@@ -10,7 +10,9 @@ interface NewEntryDialogProps {
 export function NewEntryDialog({ isOpen, onClose }: NewEntryDialogProps) {
     const [title, setTitle] = useState('');
     const [type, setType] = useState<"MANHUA" | "DONGHUA">('MANHUA');
+    const [currentChapter, setCurrentChapter] = useState('');
     const [totalChapters, setTotalChapters] = useState('');
+    const [sourceUrl, setSourceUrl] = useState('');
 
     const createMedia = useCreateMedia();
 
@@ -21,13 +23,17 @@ export function NewEntryDialog({ isOpen, onClose }: NewEntryDialogProps) {
         createMedia.mutate({
             title,
             type,
+            currentChapter: Number(currentChapter) || 0,
             totalChapters: Number(totalChapters),
-            status: "READING"
+            status: "READING",
+            sourceUrl
         }, {
             onSuccess: () => {
                 onClose();
                 setTitle('');
+                setCurrentChapter('');
                 setTotalChapters('');
+                setSourceUrl('');
             }
         });
     };
@@ -62,8 +68,8 @@ export function NewEntryDialog({ isOpen, onClose }: NewEntryDialogProps) {
                                 type="button"
                                 onClick={() => setType('MANHUA')}
                                 className={`py-3 px-4 rounded-xl text-sm font-semibold border flex items-center justify-center gap-2 transition-all ${type === 'MANHUA'
-                                        ? 'bg-orange-500/10 border-orange-500/50 text-orange-400 shadow-[0_0_15px_rgba(249,115,22,0.1)]'
-                                        : 'bg-black/20 border-white/5 text-slate-400 hover:bg-white/5 hover:text-slate-300'
+                                    ? 'bg-orange-500/10 border-orange-500/50 text-orange-400 shadow-[0_0_15px_rgba(249,115,22,0.1)]'
+                                    : 'bg-black/20 border-white/5 text-slate-400 hover:bg-white/5 hover:text-slate-300'
                                     }`}
                             >
                                 <Book size={18} strokeWidth={2.5} />
@@ -73,8 +79,8 @@ export function NewEntryDialog({ isOpen, onClose }: NewEntryDialogProps) {
                                 type="button"
                                 onClick={() => setType('DONGHUA')}
                                 className={`py-3 px-4 rounded-xl text-sm font-semibold border flex items-center justify-center gap-2 transition-all ${type === 'DONGHUA'
-                                        ? 'bg-blue-500/10 border-blue-500/50 text-blue-400 shadow-[0_0_15px_rgba(59,130,246,0.1)]'
-                                        : 'bg-black/20 border-white/5 text-slate-400 hover:bg-white/5 hover:text-slate-300'
+                                    ? 'bg-blue-500/10 border-blue-500/50 text-blue-400 shadow-[0_0_15px_rgba(59,130,246,0.1)]'
+                                    : 'bg-black/20 border-white/5 text-slate-400 hover:bg-white/5 hover:text-slate-300'
                                     }`}
                             >
                                 <Youtube size={18} strokeWidth={2.5} />
@@ -83,15 +89,38 @@ export function NewEntryDialog({ isOpen, onClose }: NewEntryDialogProps) {
                         </div>
                     </div>
 
+                    <div className="grid grid-cols-2 gap-4">
+                        <div>
+                            <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Current Ch. / Ep.</label>
+                            <input
+                                type="number"
+                                min="0"
+                                value={currentChapter}
+                                onChange={(e) => setCurrentChapter(e.target.value)}
+                                className="w-full px-4 py-3 bg-black/20 border border-white/10 rounded-xl focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500/50 outline-none text-white placeholder-slate-600 transition-all font-medium"
+                                placeholder="0"
+                            />
+                        </div>
+                        <div>
+                            <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Total Chapters (Optional)</label>
+                            <input
+                                type="number"
+                                value={totalChapters}
+                                onChange={(e) => setTotalChapters(e.target.value)}
+                                className="w-full px-4 py-3 bg-black/20 border border-white/10 rounded-xl focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500/50 outline-none text-white placeholder-slate-600 transition-all font-medium"
+                                placeholder="Leave empty if ongoing"
+                            />
+                        </div>
+                    </div>
+
                     <div>
-                        <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Total Chapters</label>
+                        <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Link to Series (Optional)</label>
                         <input
-                            type="number"
-                            required
-                            value={totalChapters}
-                            onChange={(e) => setTotalChapters(e.target.value)}
+                            type="url"
+                            value={sourceUrl}
+                            onChange={(e) => setSourceUrl(e.target.value)}
                             className="w-full px-4 py-3 bg-black/20 border border-white/10 rounded-xl focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500/50 outline-none text-white placeholder-slate-600 transition-all font-medium"
-                            placeholder="e.g. 1000"
+                            placeholder="https://..."
                         />
                     </div>
 

@@ -3,7 +3,18 @@ import { media } from "./schema";
 import { z } from "zod";
 
 export const insertMediaSchema = createInsertSchema(media).omit({
-    id: true
+    id: true,
+    totalChapters: true,
+    currentChapter: true,
+}).extend({
+    totalChapters: z.union([z.string(), z.number(), z.null()])
+        .transform((val) => (val === "" || val === 0 ? null : Number(val)))
+        .optional(),
+    currentChapter: z.union([z.string(), z.number()])
+        .transform((val) => Number(val) || 0)
+        .optional(),
+    sourceUrl: z.string().optional().nullable().transform((val) => val === "" ? null : val),
+    latestReleasedChapter: z.number().optional().nullable(),
 });
 
 export const patchMediaSchema = insertMediaSchema.partial();

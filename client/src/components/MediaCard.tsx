@@ -1,90 +1,171 @@
-import { Plus } from 'lucide-react';
-import { useUpdateProgress } from '../hooks/useMedia';
+import { Plus, Pencil, ExternalLink, Minus, RefreshCw } from 'lucide-react';
+import React, { useState } from 'react';
+import { EditMediaDialog } from './EditMediaDialog';
+import { useUpdateProgress, useCheckUpdate } from '../hooks/useMedia';
 
 interface MediaCardProps {
     media: {
         id: number;
         title: string;
         type: "MANHUA" | "DONGHUA";
-        status: "READING" | "COMPLETED";
         currentChapter: number;
-        totalChapters: number;
+        totalChapters: number | null;
+        status: "READING" | "COMPLETED" | "PLAN_TO_READ" | "ON_HOLD" | "DROPPED";
+        sourceUrl: string | null;
         coverUrl: string | null;
-    };
+        latestReleasedChapter: number | null;
+    }
 }
 
 export function MediaCard({ media }: MediaCardProps) {
+    const [isHovered, setIsHovered] = useState(false);
+    const [isEditOpen, setIsEditOpen] = useState(false);
     const updateProgress = useUpdateProgress();
+    const checkUpdate = useCheckUpdate();
 
-    const handleQuickIncrement = () => {
+    const handleQuickIncrement = (e: React.MouseEvent) => {
+        e.stopPropagation();
         updateProgress.mutate({
             id: media.id,
-            currentChapter: media.currentChapter + 1,
+            currentChapter: media.currentChapter + 1
         });
     };
 
-    const isManhua = media.type === 'MANHUA';
-    const progress = Math.min((media.currentChapter / media.totalChapters) * 100, 100);
+    const handleQuickDecrement = (e: React.MouseEvent) => {
+        e.stopPropagation();
+        if (media.currentChapter > 0) {
+            updateProgress.mutate({
+                id: media.id,
+                currentChapter: media.currentChapter - 1
+            });
+        }
+    };
+
+    const handleCheckUpdate = (e: React.MouseEvent) => {
+        e.stopPropagation();
+        checkUpdate.mutate(media.id);
+    };
+
+    const hasUpdate = media.latestReleasedChapter != null && media.latestReleasedChapter > media.currentChapter;
 
     return (
-        <div className="group relative flex flex-row items-center gap-4 p-4 mb-4 rounded-2xl bg-[#111111] border border-white/5 shadow-lg overflow-hidden transition-all hover:bg-white/[0.02]">
-            {/* Background Glow */}
-            <div className={`absolute -right-10 -top-10 w-40 h-40 rounded-full blur-[60px] opacity-0 group-hover:opacity-20 transition-opacity duration-500 pointer-events-none ${isManhua ? 'bg-orange-500' : 'bg-blue-500'}`} />
-
-            {/* Cover Image */}
-            <div className={`h-24 w-16 bg-white/5 rounded-lg shrink-0 overflow-hidden flex items-center justify-center text-white/20 text-[10px] text-center border border-white/10 ring-1 ring-white/5 shadow-inner`}>
-                {media.coverUrl ? (
-                    <img src={media.coverUrl} alt={media.title} className="h-full w-full object-cover rounded-lg" />
-                ) : (
-                    <span className="px-2">No Cover</span>
-                )}
-            </div>
-
-            {/* Content */}
-            <div className="flex-1 flex flex-col justify-center min-w-0 z-10">
-                <div className="flex items-center gap-2 mb-1.5">
-                    <span className={`text-[9px] font-bold px-2 py-0.5 rounded-full border ${isManhua
-                            ? 'bg-orange-500/10 text-orange-400 border-orange-500/20'
-                            : 'bg-blue-500/10 text-blue-400 border-blue-500/20'
-                        }`}>
-                        {media.type}
-                    </span>
-                    <span className={`text-[9px] font-semibold tracking-wide ${media.status === 'READING' ? 'text-indigo-400' : 'text-emerald-400'}`}>
-                        {media.status}
-                    </span>
-                </div>
-
-                <h3 className="font-semibold text-slate-100 text-base leading-tight mb-2 truncate group-hover:text-white transition-colors">
-                    {media.title}
-                </h3>
-
-                {/* Progress Bar & Text */}
-                <div className="w-full">
-                    <div className="flex justify-between items-end mb-1">
-                        <p className="text-xs text-slate-400">
-                            Ch. <span className="font-semibold text-slate-200 text-sm">{media.currentChapter}</span>
-                            <span className="text-slate-600 mx-1">/</span>
-                            {media.totalChapters}
-                        </p>
-                        <span className="text-[10px] text-slate-500 font-medium">{Math.round(progress)}%</span>
-                    </div>
-                    <div className="h-1 w-full bg-slate-800 rounded-full overflow-hidden">
-                        <div
-                            className={`h-full rounded-full transition-all duration-500 ease-out ${isManhua ? 'bg-gradient-to-r from-orange-500 to-amber-500' : 'bg-gradient-to-r from-blue-500 to-cyan-500'}`}
-                            style={{ width: `${progress}%` }}
-                        />
-                    </div>
-                </div>
-            </div>
-
-            {/* Action Button */}
-            <button
-                onClick={handleQuickIncrement}
-                disabled={updateProgress.isPending}
-                className="w-10 h-10 rounded-full flex items-center justify-center text-white/90 bg-white/5 border border-white/10 shadow-lg hover:bg-indigo-500 hover:border-indigo-400 active:scale-95 transition-all duration-300 disabled:opacity-50 disabled:hover:bg-white/5 z-10 group/btn"
+        <>
+            <div
+                className="group relative flex items-center bg-white/5 hover:bg-white/10 rounded-xl p-3 border border-white/5 hover:border-white/10 transition-all duration-300 backdrop-blur-sm mb-3 cursor-pointer"
+                onMouseEnter={() => setIsHovered(true)}
+                onMouseLeave={() => setIsHovered(false)}
+                onClick={() => setIsEditOpen(true)}
             >
-                <Plus size={18} strokeWidth={2.5} className="group-hover/btn:scale-110 transition-transform" />
-            </button>
-        </div>
+                {/* Cover Image */}
+                <div className="relative w-16 h-24 sm:w-20 sm:h-28 rounded-lg overflow-hidden flex-shrink-0 shadow-lg bg-black/40 mr-4">
+                    {media.coverUrl ? (
+                        <img
+                            src={media.coverUrl}
+                            alt={media.title}
+                            className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                            loading="lazy"
+                        />
+                    ) : (
+                        <div className="w-full h-full flex items-center justify-center bg-indigo-900/20 text-indigo-200/40 text-xs font-medium">
+                            {media.type === 'DONGHUA' ? 'ANIME' : 'MANHUA'}
+                        </div>
+                    )}
+
+                    {/* Badge Logic: Priority given to NEW updates */}
+                    <div className="absolute top-0 left-0 z-10 flex flex-col items-start gap-1 p-1">
+                        {hasUpdate ? (
+                            // 1. If Update Exists: Show ONLY "NEW"
+                            <span className="rounded-md bg-red-600 px-2 py-1 text-[10px] font-bold text-white shadow-md animate-pulse">
+                                NEW
+                            </span>
+                        ) : (
+                            // 2. Else: Show standard Status/Type badge
+                            <span className="rounded-md bg-indigo-600/90 px-2 py-1 text-[10px] font-bold text-white shadow-sm backdrop-blur-sm">
+                                {media.type === 'DONGHUA' ? 'WATCHING' : 'READING'}
+                            </span>
+                        )}
+                    </div>
+                </div>
+
+                {/* Content */}
+                <div className="flex-1 min-w-0 py-1">
+                    <div className="flex justify-between items-start mb-1">
+                        <h3 className="font-semibold text-slate-100 text-base leading-tight truncate group-hover:text-white transition-colors flex items-center gap-2 max-w-[80%]">
+                            {(media.sourceUrl || (media as any).source_url) ? (
+                                <a
+                                    href={media.sourceUrl || (media as any).source_url}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="hover:text-indigo-400 transition-colors flex items-center"
+                                    onClick={(e) => e.stopPropagation()}
+                                >
+                                    {media.title}
+                                    <ExternalLink className="w-3 h-3 ml-1 opacity-50 inline" />
+                                </a>
+                            ) : (
+                                media.title
+                            )}
+                        </h3>
+
+                        {/* Refresh Button */}
+                        {(media.sourceUrl || (media as any).source_url) && (
+                            <button
+                                onClick={handleCheckUpdate}
+                                disabled={checkUpdate.isPending}
+                                className={`p-1.5 rounded-full text-slate-500 hover:text-indigo-400 hover:bg-white/5 transition-all ${checkUpdate.isPending ? 'animate-spin text-indigo-400' : ''}`}
+                                title="Check for updates"
+                            >
+                                <RefreshCw size={14} />
+                            </button>
+                        )}
+                    </div>
+
+                    <div className="flex items-center text-xs text-slate-400 mb-3 space-x-2">
+                        <span className={hasUpdate ? "text-orange-400 font-medium" : ""}>
+                            {media.type === 'DONGHUA' ? 'Ep.' : 'Ch.'} {media.currentChapter}
+                            {hasUpdate && media.latestReleasedChapter != null && media.latestReleasedChapter > 0 && ` / ${media.latestReleasedChapter} (New!)`}
+                        </span>
+                        {(media.totalChapters || 0) > 0 && (
+                            <>
+                                <span className="text-slate-600">•</span>
+                                <span>Total: {media.totalChapters}</span>
+                            </>
+                        )}
+                    </div>
+
+                    {/* Progress Bar & Actions */}
+                    <div className="flex items-center gap-3">
+                        <div className="flex-1 h-1.5 bg-white/5 rounded-full overflow-hidden">
+                            <div
+                                className={`h-full rounded-full transition-all duration-500 ${media.status === 'COMPLETED' ? 'bg-emerald-500' : 'bg-indigo-500'
+                                    }`}
+                                style={{ width: `${media.totalChapters ? Math.min((media.currentChapter / media.totalChapters) * 100, 100) : 0}%` }}
+                            />
+                        </div>
+
+                        <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                            <button
+                                onClick={handleQuickDecrement}
+                                className="p-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-slate-400 hover:text-white transition-colors"
+                            >
+                                <Minus size={14} strokeWidth={2.5} />
+                            </button>
+                            <button
+                                onClick={handleQuickIncrement}
+                                className="p-1.5 rounded-lg bg-indigo-500/20 hover:bg-indigo-500 text-indigo-400 hover:text-white transition-all shadow-[0_0_10px_rgba(99,102,241,0.2)] hover:shadow-[0_0_15px_rgba(99,102,241,0.5)]"
+                            >
+                                <Plus size={14} strokeWidth={2.5} />
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <EditMediaDialog
+                isOpen={isEditOpen}
+                onClose={() => setIsEditOpen(false)}
+                media={media}
+            />
+        </>
     );
 }

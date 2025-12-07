@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { Search, Plus, Loader2 } from 'lucide-react';
 import { useMediaList } from '../hooks/useMedia';
 import { MediaCard } from './MediaCard';
@@ -7,6 +7,35 @@ import { NewEntryDialog } from './NewEntryDialog';
 export function Dashboard() {
     const { data: mediaList, isLoading, error } = useMediaList();
     const [isDialogOpen, setIsDialogOpen] = useState(false);
+
+    const sortedMedia = useMemo(() => {
+        if (!mediaList) return [];
+
+        return [...mediaList].sort((a: any, b: any) => {
+            // Calculate the "Gap" (Unread count)
+            // specific check: ensure we don't get negative numbers if data is weird
+            const gapA = Math.max(0, (a.latestReleasedChapter || 0) - a.currentChapter);
+            const gapB = Math.max(0, (b.latestReleasedChapter || 0) - b.currentChapter);
+
+            // 1. If both have updates, the one with the LARGER gap comes first
+            if (gapA > 0 && gapB > 0) {
+                return gapB - gapA;
+            }
+
+            // 2. If only A has updates, A comes first
+            if (gapA > 0) return -1;
+
+            // 3. If only B has updates, B comes first
+            if (gapB > 0) return 1;
+
+            // 4. If neither has updates, sort by last modified (Newest first)
+            // Using updatedAt if available, otherwise fallback to ID (usually chronological)
+            const timeA = a.updatedAt ? new Date(a.updatedAt).getTime() : a.id;
+            const timeB = b.updatedAt ? new Date(b.updatedAt).getTime() : b.id;
+
+            return timeB - timeA;
+        });
+    }, [mediaList]);
 
     if (isLoading) {
         return (
@@ -35,23 +64,24 @@ export function Dashboard() {
                 <div>
                     <h1 className="text-2xl font-bold bg-gradient-to-r from-white to-slate-400 bg-clip-text text-transparent">SpiritScroll</h1>
                 </div>
-                <button className="p-2.5 bg-white/5 rounded-full text-slate-400 hover:text-white hover:bg-white/10 transition-colors ring-1 ring-white/5">
-                    <Search size={20} strokeWidth={2.5} />
-                </button>
+                <div className="flex items-center gap-2">
+                    <button className="p-2.5 bg-white/5 rounded-full text-slate-400 hover:text-white hover:bg-white/10 transition-colors ring-1 ring-white/5">
+                        <Search size={20} strokeWidth={2.5} />
+                    </button>
+                    <button
+                        onClick={() => setIsDialogOpen(true)}
+                        className="p-2.5 bg-white/5 rounded-full text-slate-400 hover:text-white hover:bg-white/10 transition-colors ring-1 ring-white/5"
+                    >
+                        <Plus size={20} strokeWidth={2.5} />
+                    </button>
+                </div>
             </header>
 
             <div className="flex flex-col px-4 pt-4">
-                {mediaList?.map((media: any) => (
+                {sortedMedia?.map((media: any) => (
                     <MediaCard key={media.id} media={media} />
                 ))}
             </div>
-
-            <button
-                onClick={() => setIsDialogOpen(true)}
-                className="fixed bottom-24 right-6 sm:right-8 lg:right-[calc(50%-18rem)] w-14 h-14 bg-indigo-600 text-white rounded-full shadow-[0_4px_20px_rgba(79,70,229,0.4)] flex items-center justify-center hover:scale-105 hover:bg-indigo-500 active:scale-95 transition-all z-40 bg-gradient-to-br from-indigo-500 to-indigo-700 border border-indigo-400/20"
-            >
-                <Plus size={28} strokeWidth={2.5} />
-            </button>
 
             <NewEntryDialog isOpen={isDialogOpen} onClose={() => setIsDialogOpen(false)} />
         </div>

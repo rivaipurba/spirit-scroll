@@ -1,7 +1,13 @@
 import React from 'react';
 import { Home, Library, Settings } from 'lucide-react';
 
-export function Layout({ children }: { children: React.ReactNode }) {
+interface LayoutProps {
+    children: React.ReactNode;
+    currentView: 'home' | 'library' | 'settings';
+    onNavigate: (view: 'home' | 'library' | 'settings') => void;
+}
+
+export function Layout({ children, currentView, onNavigate }: LayoutProps) {
     return (
         <div className="min-h-screen w-full bg-[#0a0a0a] flex justify-center selection:bg-indigo-500/30">
             {/* Background Gradients */}
@@ -17,9 +23,24 @@ export function Layout({ children }: { children: React.ReactNode }) {
 
                 <nav className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-[500px] bg-[#0a0a0a]/80 backdrop-blur-xl border-t border-white/5 z-50 pb-safe transition-all duration-300">
                     <div className="flex justify-around items-center h-20 px-6">
-                        <NavButton icon={<Home size={24} />} label="Home" active />
-                        <NavButton icon={<Library size={24} />} label="Library" />
-                        <NavButton icon={<Settings size={24} />} label="Settings" />
+                        <NavButton
+                            icon={<Home size={24} />}
+                            label="Home"
+                            active={currentView === 'home'}
+                            onClick={() => onNavigate('home')}
+                        />
+                        <NavButton
+                            icon={<Library size={24} />}
+                            label="Library"
+                            active={currentView === 'library'}
+                            onClick={() => onNavigate('library')}
+                        />
+                        <NavButton
+                            icon={<Settings size={24} />}
+                            label="Settings"
+                            active={currentView === 'settings'}
+                            onClick={() => onNavigate('settings')}
+                        />
                     </div>
                 </nav>
             </div>
@@ -27,9 +48,12 @@ export function Layout({ children }: { children: React.ReactNode }) {
     );
 }
 
-function NavButton({ icon, label, active }: { icon: React.ReactNode, label: string, active?: boolean }) {
+function NavButton({ icon, label, active, onClick }: { icon: React.ReactNode, label: string, active?: boolean, onClick: () => void }) {
     return (
-        <button className={`flex flex-col items-center justify-center w-16 h-full transition-all duration-200 group relative ${active ? 'text-white' : 'text-zinc-500 hover:text-zinc-300'}`}>
+        <button
+            onClick={onClick}
+            className={`flex flex-col items-center justify-center w-16 h-full transition-all duration-200 group relative ${active ? 'text-white' : 'text-zinc-500 hover:text-zinc-300'}`}
+        >
             <div className={`p-1.5 rounded-xl transition-all duration-300 ${active ? 'bg-indigo-500/10 translate-y-[-2px]' : 'group-hover:bg-white/5'}`}>
                 {React.cloneElement(icon as any, {
                     strokeWidth: active ? 2.5 : 2,
