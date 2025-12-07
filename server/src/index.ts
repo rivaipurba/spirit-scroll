@@ -15,7 +15,7 @@ const app = new Hono();
 app.use(
     "/*",
     cors({
-        origin: (origin) => origin, // Allow any origin for development
+        origin: '*', // Allow any origin for development
         allowHeaders: ["X-Custom-Header", "Upgrade-Insecure-Requests", "Content-Type"],
         allowMethods: ["POST", "GET", "OPTIONS", "PATCH", "DELETE"],
         exposeHeaders: ["Content-Length", "X-Kuma-Revision"],
@@ -146,5 +146,6 @@ export type AppType = typeof routes;
 
 export default {
     port: 3000,
+    hostname: '0.0.0.0', // Allow access from network
     fetch: app.fetch,
 };
