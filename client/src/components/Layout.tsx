@@ -1,13 +1,29 @@
-import React from 'react';
-import { Home, Library, Settings } from 'lucide-react';
+import React, { useRef, useEffect } from 'react';
+import { Home, Library, Settings, Search, X } from 'lucide-react';
+import { useSearch } from '../context/SearchContext';
 
 interface LayoutProps {
     children: React.ReactNode;
     currentView: 'home' | 'library' | 'settings';
     onNavigate: (view: 'home' | 'library' | 'settings') => void;
+    headerAction?: React.ReactNode;
 }
 
-export function Layout({ children, currentView, onNavigate }: LayoutProps) {
+export function Layout({ children, currentView, onNavigate, headerAction }: LayoutProps) {
+    const { searchQuery, setSearchQuery, isSearchOpen, setIsSearchOpen } = useSearch();
+    const inputRef = useRef<HTMLInputElement>(null);
+
+    useEffect(() => {
+        if (isSearchOpen && inputRef.current) {
+            inputRef.current.focus();
+        }
+    }, [isSearchOpen]);
+
+    const handleClear = () => {
+        setSearchQuery('');
+        setIsSearchOpen(false);
+    };
+
     return (
         <div className="min-h-screen w-full bg-[#0a0a0a] flex justify-center selection:bg-indigo-500/30">
             {/* Background Gradients */}
@@ -17,6 +33,49 @@ export function Layout({ children, currentView, onNavigate }: LayoutProps) {
             </div>
 
             <div className="w-full max-w-[500px] min-h-screen bg-[#0a0a0a] border-x border-white/5 shadow-2xl relative flex flex-col z-10">
+
+                {/* Header */}
+                <header className="flex justify-between items-center px-6 py-6 sticky top-0 z-20 backdrop-blur-md bg-[#0a0a0a]/80 border-b border-white/5">
+                    {isSearchOpen ? (
+                        <div className="flex-1 flex items-center bg-neutral-900/50 rounded-full px-3 py-1 mr-2 border border-white/10 focus-within:border-indigo-500/50 transition-colors animate-in fade-in slide-in-from-left-2 duration-200">
+                            <Search className="h-4 w-4 text-slate-400 mr-2 shrink-0" />
+                            <input
+                                ref={inputRef}
+                                type="text"
+                                value={searchQuery}
+                                onChange={(e) => setSearchQuery(e.target.value)}
+                                placeholder="Search titles..."
+                                autoFocus
+                                className="w-full bg-transparent border-none p-1 text-sm text-white placeholder:text-slate-500 focus:outline-none focus:ring-0"
+                            />
+                        </div>
+                    ) : (
+                        <div className="animate-in fade-in slide-in-from-left-2 duration-200">
+                            <h1 className="text-2xl font-bold bg-gradient-to-r from-white to-slate-400 bg-clip-text text-transparent">SpiritScroll</h1>
+                        </div>
+                    )}
+
+                    <div className="flex items-center gap-2 ml-4">
+                        {isSearchOpen ? (
+                            <button
+                                onClick={handleClear}
+                                className="p-2 rounded-full text-slate-400 hover:text-white hover:bg-white/10 transition-colors"
+                            >
+                                <X size={20} />
+                            </button>
+                        ) : (
+                            <button
+                                onClick={() => setIsSearchOpen(true)}
+                                className="p-2.5 bg-white/5 rounded-full text-slate-400 hover:text-white hover:bg-white/10 transition-colors ring-1 ring-white/5"
+                            >
+                                <Search size={20} strokeWidth={2.5} />
+                            </button>
+                        )}
+
+                        {headerAction}
+                    </div>
+                </header>
+
                 <main className="flex-1 pb-24 w-full px-4 sm:px-6 pt-2">
                     {children}
                 </main>

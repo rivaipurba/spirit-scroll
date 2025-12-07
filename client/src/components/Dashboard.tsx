@@ -1,19 +1,34 @@
-import { useState, useMemo } from 'react';
-import { Search, Plus, Loader2 } from 'lucide-react';
+import { useMemo } from 'react';
+import { Loader2 } from 'lucide-react';
 import { useMediaList } from '../hooks/useMedia';
 import { MediaCard } from './MediaCard';
 import { NewEntryDialog } from './NewEntryDialog';
+import { useSearch } from '../context/SearchContext';
 
-export function Dashboard() {
+interface DashboardProps {
+    isDialogOpen: boolean;
+    onCloseDialog: () => void;
+}
+
+export function Dashboard({ isDialogOpen, onCloseDialog }: DashboardProps) {
     const { data: mediaList, isLoading, error } = useMediaList();
-    const [isDialogOpen, setIsDialogOpen] = useState(false);
+    const { searchQuery } = useSearch();
 
     const sortedMedia = useMemo(() => {
         if (!mediaList) return [];
 
-        return [...mediaList].sort((a: any, b: any) => {
+        let result = mediaList;
+
+        // Filter by Search Query
+        if (searchQuery.trim()) {
+            result = result.filter((m: any) =>
+                m.title.toLowerCase().includes(searchQuery.toLowerCase())
+            );
+        }
+
+        // Sort
+        return [...result].sort((a: any, b: any) => {
             // Calculate the "Gap" (Unread count)
-            // specific check: ensure we don't get negative numbers if data is weird
             const gapA = Math.max(0, (a.latestReleasedChapter || 0) - a.currentChapter);
             const gapB = Math.max(0, (b.latestReleasedChapter || 0) - b.currentChapter);
 
@@ -29,13 +44,12 @@ export function Dashboard() {
             if (gapB > 0) return 1;
 
             // 4. If neither has updates, sort by last modified (Newest first)
-            // Using updatedAt if available, otherwise fallback to ID (usually chronological)
             const timeA = a.updatedAt ? new Date(a.updatedAt).getTime() : a.id;
             const timeB = b.updatedAt ? new Date(b.updatedAt).getTime() : b.id;
 
             return timeB - timeA;
         });
-    }, [mediaList]);
+    }, [mediaList, searchQuery]);
 
     if (isLoading) {
         return (
@@ -60,30 +74,21 @@ export function Dashboard() {
 
     return (
         <div className="pb-24">
-            <header className="flex justify-between items-center px-6 py-6 sticky top-0 z-20 backdrop-blur-md bg-[#0a0a0a]/80 border-b border-white/5">
-                <div>
-                    <h1 className="text-2xl font-bold bg-gradient-to-r from-white to-slate-400 bg-clip-text text-transparent">SpiritScroll</h1>
-                </div>
-                <div className="flex items-center gap-2">
-                    <button className="p-2.5 bg-white/5 rounded-full text-slate-400 hover:text-white hover:bg-white/10 transition-colors ring-1 ring-white/5">
-                        <Search size={20} strokeWidth={2.5} />
-                    </button>
-                    <button
-                        onClick={() => setIsDialogOpen(true)}
-                        className="p-2.5 bg-white/5 rounded-full text-slate-400 hover:text-white hover:bg-white/10 transition-colors ring-1 ring-white/5"
-                    >
-                        <Plus size={20} strokeWidth={2.5} />
-                    </button>
-                </div>
-            </header>
+            {/* Header removed - now in Layout */}
 
             <div className="flex flex-col px-4 pt-4">
                 {sortedMedia?.map((media: any) => (
                     <MediaCard key={media.id} media={media} />
                 ))}
+
+                {sortedMedia.length === 0 && searchQuery && (
+                    <div className="flex flex-col items-center justify-center py-20 text-center opacity-50">
+                        <p className="text-sm font-medium text-slate-400">No matches found for "{searchQuery}"</p>
+                    </div>
+                )}
             </div>
 
-            <NewEntryDialog isOpen={isDialogOpen} onClose={() => setIsDialogOpen(false)} />
+            <NewEntryDialog isOpen={isDialogOpen} onClose={onCloseDialog} />
         </div>
     );
 }

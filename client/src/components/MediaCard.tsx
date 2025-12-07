@@ -90,17 +90,17 @@ export function MediaCard({ media }: MediaCardProps) {
                 {/* Content */}
                 <div className="flex-1 min-w-0 py-1">
                     <div className="flex justify-between items-start mb-1">
-                        <h3 className="font-semibold text-slate-100 text-base leading-tight truncate group-hover:text-white transition-colors flex items-center gap-2 max-w-[80%]">
+                        <h3 className="font-semibold text-slate-100 text-base leading-tight line-clamp-2 group-hover:text-white transition-colors max-w-[80%]">
                             {(media.sourceUrl || (media as any).source_url) ? (
                                 <a
                                     href={media.sourceUrl || (media as any).source_url}
                                     target="_blank"
                                     rel="noopener noreferrer"
-                                    className="hover:text-indigo-400 transition-colors flex items-center"
+                                    className="hover:text-indigo-400 transition-colors inline"
                                     onClick={(e) => e.stopPropagation()}
                                 >
                                     {media.title}
-                                    <ExternalLink className="w-3 h-3 ml-1 opacity-50 inline" />
+                                    <ExternalLink className="w-3 h-3 ml-1 opacity-50 inline align-baseline" />
                                 </a>
                             ) : (
                                 media.title
