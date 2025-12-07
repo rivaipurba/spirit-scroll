@@ -2,7 +2,7 @@
 
 SpiritScroll is a personal media tracking application designed for managing reading progress of Manhua and Donghua. It features a modern, premium dark-themed UI and a robust full-stack architecture with automated update checking capabilities.
 
-![SpiritScroll Dashboard](client/public/screenshot-placeholder.png)
+![SpiritScroll Dashboard](client/public/dashboard-preview.png)
 
 ## Key Features
 
