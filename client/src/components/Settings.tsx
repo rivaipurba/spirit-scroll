@@ -3,7 +3,8 @@ import { useMediaList as useMedia, useImportMedia, useScanAll, useUpdateMedia } 
 import { useRef, useState } from 'react';
 
 export function Settings() {
-    const { data: media } = useMedia();
+    const { data: paginatedMedia } = useMedia(1, undefined, 10000);
+    const media = paginatedMedia?.data;
     const importMedia = useImportMedia();
     const scanAll = useScanAll();
     const updateMedia = useUpdateMedia();

@@ -1,16 +1,23 @@
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient, keepPreviousData } from "@tanstack/react-query";
 import { client } from "../lib/api";
 
-export function useMediaList() {
+export function useMediaList(page: number = 1, type?: "MANHUA" | "DONGHUA", limit: number = 12) {
     return useQuery({
-        queryKey: ["media-list"],
+        queryKey: ["media-list", { page, type, limit }],
         queryFn: async () => {
-            const res = await client.api.media.$get();
+            const res = await client.api.media.$get({
+                query: {
+                    page: page.toString(),
+                    limit: limit.toString(),
+                    type: type
+                }
+            });
             if (!res.ok) {
                 throw new Error("Failed to fetch media");
             }
             return await res.json();
         },
+        placeholderData: keepPreviousData,
     });
 }
 

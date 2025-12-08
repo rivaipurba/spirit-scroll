@@ -5,7 +5,7 @@ import { cors } from "hono/cors";
 import { insertMediaSchema, patchMediaSchema } from "./db/zod";
 import { db } from "./db";
 import { media } from "./db/schema";
-import { eq, or } from "drizzle-orm";
+import { eq, or, count } from "drizzle-orm";
 
 import { fetchCoverImage } from "./utils/scraper";
 import { checkLatestChapter } from "./utils/update-checker";
@@ -26,8 +26,31 @@ app.use(
 
 const routes = app.basePath("/api")
     .get("/media", async (c) => {
-        const result = await db.select().from(media);
-        return c.json(result);
+        const page = Number(c.req.query("page")) || 1;
+        const limit = Number(c.req.query("limit")) || 12;
+        const type = c.req.query("type") as "MANHUA" | "DONGHUA" | undefined;
+
+        const offset = (page - 1) * limit;
+
+        const whereClause = type ? eq(media.type, type) : undefined;
+
+        const [data, totalResult] = await Promise.all([
+            db.select().from(media).where(whereClause).limit(limit).offset(offset),
+            db.select({ count: count() }).from(media).where(whereClause)
+        ]);
+
+        const total = totalResult[0].count;
+        const totalPages = Math.ceil(total / limit);
+
+        return c.json({
+            data,
+            meta: {
+                total,
+                page,
+                limit,
+                totalPages
+            }
+        });
     })
     .post("/media", zValidator("json", insertMediaSchema), async (c) => {
         const data = c.req.valid("json");

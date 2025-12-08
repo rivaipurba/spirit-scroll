@@ -1,10 +1,20 @@
 import { useState } from 'react';
 import { useMediaList } from '../hooks/useMedia';
-import { Loader2, Book, Youtube } from 'lucide-react';
+import { Loader2, Book, Youtube, ChevronLeft, ChevronRight } from 'lucide-react';
 
 export function Library() {
-    const { data: mediaList, isLoading } = useMediaList();
     const [activeTab, setActiveTab] = useState<'ALL' | 'MANHUA' | 'DONGHUA'>('ALL');
+    const [page, setPage] = useState(1);
+
+    const { data, isLoading, isPlaceholderData } = useMediaList(page, activeTab === 'ALL' ? undefined : activeTab);
+
+    const mediaList = data?.data || [];
+    const meta = data?.meta;
+
+    const handleTabChange = (tabId: 'ALL' | 'MANHUA' | 'DONGHUA') => {
+        setActiveTab(tabId);
+        setPage(1);
+    };
 
     if (isLoading) {
         return (
@@ -13,11 +23,6 @@ export function Library() {
             </div>
         );
     }
-
-    const filteredMedia = mediaList?.filter((media: any) => {
-        if (activeTab === 'ALL') return true;
-        return media.type === activeTab;
-    }) || [];
 
     const tabs = [
         { id: 'ALL', label: 'All' },
@@ -34,7 +39,7 @@ export function Library() {
                 {tabs.map((tab) => (
                     <button
                         key={tab.id}
-                        onClick={() => setActiveTab(tab.id as any)}
+                        onClick={() => handleTabChange(tab.id as any)}
                         className={`px-4 py-2 rounded-full text-xs font-bold whitespace-nowrap transition-all ${activeTab === tab.id
                             ? 'bg-white text-black'
                             : 'bg-white/5 text-slate-400 hover:bg-white/10 hover:text-slate-200'
@@ -46,10 +51,37 @@ export function Library() {
             </div>
 
             {/* Grid */}
-            {filteredMedia.length > 0 ? (
-                <div className="grid grid-cols-3 gap-3">
-                    {filteredMedia.map((media: any) => <LibraryCard key={media.id} media={media} />)}
-                </div>
+            {mediaList.length > 0 ? (
+                <>
+                    <div className="grid grid-cols-3 gap-3">
+                        {mediaList.map((media: any) => <LibraryCard key={media.id} media={media} />)}
+                    </div>
+
+                    {/* Pagination Footer */}
+                    {meta && meta.totalPages > 1 && (
+                        <div className="flex items-center justify-center gap-4 mt-8">
+                            <button
+                                onClick={() => setPage(p => Math.max(1, p - 1))}
+                                disabled={page === 1}
+                                className="p-2 rounded-full bg-white/5 hover:bg-white/10 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                            >
+                                <ChevronLeft size={20} className="text-slate-300" />
+                            </button>
+
+                            <span className="text-xs font-bold text-slate-400">
+                                Page {meta.page} of {meta.totalPages}
+                            </span>
+
+                            <button
+                                onClick={() => setPage(p => Math.min(meta.totalPages, p + 1))}
+                                disabled={page === meta.totalPages || isPlaceholderData}
+                                className="p-2 rounded-full bg-white/5 hover:bg-white/10 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                            >
+                                <ChevronRight size={20} className="text-slate-300" />
+                            </button>
+                        </div>
+                    )}
+                </>
             ) : (
                 <div className="flex flex-col items-center justify-center py-20 text-center opacity-50">
                     <Book size={48} className="mb-4 text-slate-600" />

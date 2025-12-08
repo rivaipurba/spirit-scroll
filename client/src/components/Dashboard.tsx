@@ -11,7 +11,8 @@ interface DashboardProps {
 }
 
 export function Dashboard({ isDialogOpen, onCloseDialog }: DashboardProps) {
-    const { data: mediaList, isLoading, error } = useMediaList();
+    const { data: paginatedMedia, isLoading, error } = useMediaList(1, undefined, 10000);
+    const mediaList = paginatedMedia?.data;
     const { searchQuery } = useSearch();
 
     const sortedMedia = useMemo(() => {
