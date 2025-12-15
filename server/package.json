@@ -21,6 +21,7 @@
     "@libsql/client": "^0.15.15",
     "better-sqlite3": "^12.5.0",
     "cheerio": "^1.1.2",
+    "dotenv": "^17.2.3",
     "drizzle-orm": "^0.45.0",
     "drizzle-zod": "^0.8.3",
     "hono": "^4.10.7",

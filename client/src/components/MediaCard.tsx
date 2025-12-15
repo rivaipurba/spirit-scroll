@@ -76,9 +76,14 @@ export function MediaCard({ media }: MediaCardProps) {
                                 NEW
                             </span>
                         ) : (
-                            // 2. Else: Show standard Status/Type badge
+                            // 2. Show status based on progress and type
                             <span className="rounded-md bg-indigo-600/90 px-2 py-1 text-[10px] font-bold text-white shadow-sm backdrop-blur-sm">
-                                {media.type === 'DONGHUA' ? 'WATCHING' : 'READING'}
+                                {(() => {
+                                    // Check if 100% complete
+                                    const isComplete = media.totalChapters && media.currentChapter >= media.totalChapters;
+                                    if (isComplete) return 'FINISHED';
+                                    return media.type === 'DONGHUA' ? 'WATCHING' : 'READING';
+                                })()}
                             </span>
                         )}
                     </div>
@@ -140,7 +145,7 @@ export function MediaCard({ media }: MediaCardProps) {
                             />
                         </div>
 
-                        <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                        <div className="flex items-center gap-1 transition-opacity duration-200">
                             <button
                                 onClick={handleQuickDecrement}
                                 className="p-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-slate-400 hover:text-white transition-colors"

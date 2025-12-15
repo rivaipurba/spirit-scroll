@@ -181,6 +181,53 @@ const routes = app.basePath("/api")
         }
 
         return c.json({ success: true, updated: updatedCount });
+    })
+    .post("/import", zValidator("json", z.array(insertMediaSchema)), async (c) => {
+        try {
+            const data = c.req.valid("json");
+            
+            if (!Array.isArray(data) || data.length === 0) {
+                return c.json({ error: "Invalid data: expected non-empty array" }, 400);
+            }
+
+            const db = createDb(c.env.DATABASE_URL, c.env.DATABASE_AUTH_TOKEN);
+            
+            let successCount = 0;
+            const errors: string[] = [];
+
+            for (const item of data) {
+                try {
+                    let coverUrl = item.coverUrl;
+                    if (item.sourceUrl && !coverUrl) {
+                        try {
+                            coverUrl = await fetchCoverImage(item.sourceUrl);
+                        } catch (e) {
+                            // Continue without cover if scraping fails
+                        }
+                    }
+
+                    await db.insert(media).values({
+                        ...item,
+                        coverUrl: coverUrl
+                    });
+                    successCount++;
+                } catch (e: any) {
+                    errors.push(`Failed to import "${item.title}": ${e.message}`);
+                }
+            }
+
+            return c.json({
+                success: true,
+                count: successCount,
+                total: data.length,
+                errors: errors.length > 0 ? errors : undefined
+            });
+        } catch (e: any) {
+            return c.json({
+                error: e.message,
+                stack: e.stack
+            }, 500);
+        }
     });
 
 export type AppType = typeof routes;
