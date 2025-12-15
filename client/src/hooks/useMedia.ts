@@ -38,7 +38,38 @@ export function useUpdateProgress() {
             }
             return await res.json();
         },
-        onSuccess: () => {
+        onMutate: async ({ id, status, currentChapter }) => {
+            // Cancel outgoing refetches
+            await queryClient.cancelQueries({ queryKey: ["media-list"] });
+
+            // Snapshot the previous value
+            const previousData = queryClient.getQueriesData({ queryKey: ["media-list"] });
+
+            // Optimistically update the cache
+            queryClient.setQueriesData({ queryKey: ["media-list"] }, (old: any) => {
+                if (!old?.data) return old;
+                
+                return {
+                    ...old,
+                    data: old.data.map((item: any) => 
+                        item.id === id 
+                            ? { ...item, currentChapter: currentChapter ?? item.currentChapter, status: status ?? item.status }
+                            : item
+                    )
+                };
+            });
+
+            return { previousData };
+        },
+        onError: (_err, _variables, context) => {
+            // Rollback on error
+            if (context?.previousData) {
+                context.previousData.forEach(([queryKey, data]) => {
+                    queryClient.setQueryData(queryKey, data);
+                });
+            }
+        },
+        onSettled: () => {
             queryClient.invalidateQueries({ queryKey: ["media-list"] });
         },
     });

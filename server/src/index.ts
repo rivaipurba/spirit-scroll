@@ -5,7 +5,7 @@ import { cors } from "hono/cors";
 import { insertMediaSchema, patchMediaSchema } from "./db/zod";
 import { createDb } from "./db";
 import { media } from "./db/schema";
-import { eq, or, count } from "drizzle-orm";
+import { eq, or, count, like, and, desc, asc } from "drizzle-orm";
 
 import { fetchCoverImage } from "./utils/scraper";
 import { checkLatestChapter } from "./utils/update-checker";
@@ -29,24 +29,60 @@ app.use(
     })
 );
 
+// Simple rate limiting middleware
+const rateLimitMap = new Map();
+app.use("/*", async (c, next) => {
+    const ip = c.req.header('cf-connecting-ip') || c.req.header('x-forwarded-for') || 'unknown';
+    const now = Date.now();
+    const windowMs = 60 * 1000; // 1 minute
+    const maxRequests = 100; // 100 requests per minute
+
+    if (!rateLimitMap.has(ip)) {
+        rateLimitMap.set(ip, { count: 1, resetTime: now + windowMs });
+    } else {
+        const limit = rateLimitMap.get(ip);
+        if (now > limit.resetTime) {
+            limit.count = 1;
+            limit.resetTime = now + windowMs;
+        } else {
+            limit.count++;
+            if (limit.count > maxRequests) {
+                return c.json({ error: 'Too many requests' }, 429);
+            }
+        }
+    }
+
+    await next();
+});
+
 const routes = app.basePath("/api")
     .get("/media", async (c) => {
         try {
             const page = Number(c.req.query("page")) || 1;
             const limit = Number(c.req.query("limit")) || 12;
             const type = c.req.query("type") as "MANHUA" | "DONGHUA" | undefined;
+            const sortBy = c.req.query("sortBy") as "title" | "progress" | "recent" | "updates" | undefined;
+            const search = c.req.query("search")?.trim();
 
             const offset = (page - 1) * limit;
 
             const db = createDb(c.env.DATABASE_URL, c.env.DATABASE_AUTH_TOKEN);
-            const whereClause = type ? eq(media.type, type) : undefined;
+            
+            // Build where conditions
+            const conditions = [];
+            if (type) conditions.push(eq(media.type, type));
+            if (search) conditions.push(like(media.title, `%${search}%`));
+            
+            const whereClause = conditions.length > 0 ? and(...conditions) : undefined;
 
+            // For now, keep simple query structure and handle sorting client-side
+            // TODO: Implement proper server-side sorting in future update
             const [data, totalResult] = await Promise.all([
                 db.select().from(media).where(whereClause).limit(limit).offset(offset),
                 db.select({ count: count() }).from(media).where(whereClause)
             ]);
 
-            const total = totalResult[0].count;
+            const total = totalResult[0]?.count || 0;
             const totalPages = Math.ceil(total / limit);
 
             return c.json({
@@ -115,7 +151,7 @@ const routes = app.basePath("/api")
         const db = createDb(c.env.DATABASE_URL, c.env.DATABASE_AUTH_TOKEN);
         const result = await db.delete(media).where(eq(media.id, id)).returning();
         if (result.length === 0) return c.json({ error: "Not found" }, 404);
-        return c.json({ success: true, deletedId: result[0].id });
+        return c.json({ success: true, deletedId: result[0]?.id });
     })
     .post("/media/:id/check", async (c) => {
         const id = Number(c.req.param("id"));
@@ -125,7 +161,7 @@ const routes = app.basePath("/api")
         const item = await db.select().from(media).where(eq(media.id, id)).limit(1);
         if (item.length === 0) return c.json({ error: "Not found" }, 404);
 
-        const sourceUrl = item[0].sourceUrl;
+        const sourceUrl = item[0]?.sourceUrl;
         if (!sourceUrl) return c.json({ error: "No source URL found" }, 400);
 
         const latestChapter = await checkLatestChapter(sourceUrl);
@@ -137,7 +173,7 @@ const routes = app.basePath("/api")
 
             return c.json({
                 new_chapter: latestChapter,
-                has_update: latestChapter > item[0].currentChapter
+                has_update: latestChapter > (item[0]?.currentChapter || 0)
             });
         }
 
