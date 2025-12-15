@@ -100,7 +100,7 @@ export function Settings() {
     };
 
     const totalSeries = media?.length || 0;
-    const totalChapters = media?.reduce((acc, curr) => acc + curr.currentChapter, 0) || 0;
+    const totalChapters = media?.reduce((acc: any, curr: any) => acc + curr.currentChapter, 0) || 0;
 
     return (
         <div className="p-6 max-w-4xl mx-auto space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">

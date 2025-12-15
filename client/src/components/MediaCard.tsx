@@ -1,4 +1,4 @@
-import { Plus, Pencil, ExternalLink, Minus, RefreshCw } from 'lucide-react';
+import { Plus, ExternalLink, Minus, RefreshCw } from 'lucide-react';
 import React, { useState } from 'react';
 import { EditMediaDialog } from './EditMediaDialog';
 import { useUpdateProgress, useCheckUpdate } from '../hooks/useMedia';
@@ -18,7 +18,6 @@ interface MediaCardProps {
 }
 
 export function MediaCard({ media }: MediaCardProps) {
-    const [isHovered, setIsHovered] = useState(false);
     const [isEditOpen, setIsEditOpen] = useState(false);
     const updateProgress = useUpdateProgress();
     const checkUpdate = useCheckUpdate();
@@ -52,8 +51,6 @@ export function MediaCard({ media }: MediaCardProps) {
         <>
             <div
                 className="group relative flex items-center bg-white/5 hover:bg-white/10 rounded-xl p-3 border border-white/5 hover:border-white/10 transition-all duration-300 backdrop-blur-sm mb-3 cursor-pointer"
-                onMouseEnter={() => setIsHovered(true)}
-                onMouseLeave={() => setIsHovered(false)}
                 onClick={() => setIsEditOpen(true)}
             >
                 {/* Cover Image */}

@@ -8,12 +8,12 @@ export const insertMediaSchema = createInsertSchema(media).omit({
     currentChapter: true,
 }).extend({
     totalChapters: z.union([z.string(), z.number(), z.null()])
-        .transform((val) => (val === "" || val === 0 ? null : Number(val)))
+        .transform((val: any) => (val === "" || val === 0 ? null : Number(val)))
         .optional(),
     currentChapter: z.union([z.string(), z.number()])
-        .transform((val) => Number(val) || 0)
+        .transform((val: any) => Number(val) || 0)
         .optional(),
-    sourceUrl: z.string().optional().nullable().transform((val) => val === "" ? null : val),
+    sourceUrl: z.string().optional().nullable().transform((val: any) => val === "" ? null : val),
     latestReleasedChapter: z.number().optional().nullable(),
 });
 
