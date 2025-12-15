@@ -1,4 +1,5 @@
-import { db } from "./db";
+import { createDb } from "./db";
+const db = createDb();
 import { media } from "./db/schema";
 import { migrate } from "drizzle-orm/bun-sqlite/migrator";
 // Note: We'll use drizzle-kit push for schema creation, so migrate might not be needed if we push first.

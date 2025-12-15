@@ -15,5 +15,4 @@ export const createDb = (url?: string, authToken?: string) => {
     return drizzle(client, { schema });
 };
 
-// For local scripts (seed.ts) that run in Node/Bun environment
-export const db = createDb();
+

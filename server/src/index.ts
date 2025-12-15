@@ -31,33 +31,40 @@ app.use(
 
 const routes = app.basePath("/api")
     .get("/media", async (c) => {
-        const page = Number(c.req.query("page")) || 1;
-        const limit = Number(c.req.query("limit")) || 12;
-        const type = c.req.query("type") as "MANHUA" | "DONGHUA" | undefined;
+        try {
+            const page = Number(c.req.query("page")) || 1;
+            const limit = Number(c.req.query("limit")) || 12;
+            const type = c.req.query("type") as "MANHUA" | "DONGHUA" | undefined;
 
-        const offset = (page - 1) * limit;
+            const offset = (page - 1) * limit;
 
-        const whereClause = type ? eq(media.type, type) : undefined;
+            const db = createDb(c.env.DATABASE_URL, c.env.DATABASE_AUTH_TOKEN);
+            const whereClause = type ? eq(media.type, type) : undefined;
 
-        const db = createDb(c.env.DATABASE_URL, c.env.DATABASE_AUTH_TOKEN);
+            const [data, totalResult] = await Promise.all([
+                db.select().from(media).where(whereClause).limit(limit).offset(offset),
+                db.select({ count: count() }).from(media).where(whereClause)
+            ]);
 
-        const [data, totalResult] = await Promise.all([
-            db.select().from(media).where(whereClause).limit(limit).offset(offset),
-            db.select({ count: count() }).from(media).where(whereClause)
-        ]);
+            const total = totalResult[0].count;
+            const totalPages = Math.ceil(total / limit);
 
-        const total = totalResult[0].count;
-        const totalPages = Math.ceil(total / limit);
-
-        return c.json({
-            data,
-            meta: {
-                total,
-                page,
-                limit,
-                totalPages
-            }
-        });
+            return c.json({
+                data,
+                meta: {
+                    total,
+                    page,
+                    limit,
+                    totalPages
+                }
+            });
+        } catch (e: any) {
+            return c.json({
+                error: e.message,
+                stack: e.stack,
+                env_keys: Object.keys(c.env || {})
+            }, 500);
+        }
     })
     .post("/media", zValidator("json", insertMediaSchema), async (c) => {
         const data = c.req.valid("json");
