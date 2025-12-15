@@ -1,20 +1,65 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { useMediaList } from '../hooks/useMedia';
-import { Loader2, Book, Youtube, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Loader2, Book, Youtube, ChevronLeft, ChevronRight, ArrowUpDown } from 'lucide-react';
+
+type SortOption = 'title' | 'progress' | 'recent' | 'updates';
 
 export function Library() {
     const [activeTab, setActiveTab] = useState<'ALL' | 'MANHUA' | 'DONGHUA'>('ALL');
     const [page, setPage] = useState(1);
+    const [sortBy, setSortBy] = useState<SortOption>('title');
 
-    const { data, isLoading, isPlaceholderData } = useMediaList(page, activeTab === 'ALL' ? undefined : activeTab);
+    const { data, isLoading, isPlaceholderData } = useMediaList(page, activeTab === 'ALL' ? undefined : activeTab, 50);
 
-    const mediaList = data?.data || [];
+    const rawMediaList = data?.data || [];
     const meta = data?.meta;
+
+    // Sort the media list
+    const mediaList = useMemo(() => {
+        return [...rawMediaList].sort((a: any, b: any) => {
+            switch (sortBy) {
+                case 'title':
+                    return a.title.localeCompare(b.title);
+
+                case 'progress': {
+                    const progressA = a.totalChapters ? (a.currentChapter / a.totalChapters) * 100 : 0;
+                    const progressB = b.totalChapters ? (b.currentChapter / b.totalChapters) * 100 : 0;
+                    return progressB - progressA;
+                }
+
+                case 'recent': {
+                    const timeA = a.updatedAt ? new Date(a.updatedAt).getTime() : a.id;
+                    const timeB = b.updatedAt ? new Date(b.updatedAt).getTime() : b.id;
+                    return timeB - timeA;
+                }
+
+                case 'updates': {
+                    const gapA = Math.max(0, (a.latestReleasedChapter || 0) - a.currentChapter);
+                    const gapB = Math.max(0, (b.latestReleasedChapter || 0) - b.currentChapter);
+                    
+                    if (gapA > 0 && gapB > 0) return gapB - gapA;
+                    if (gapA > 0) return -1;
+                    if (gapB > 0) return 1;
+                    return a.title.localeCompare(b.title);
+                }
+
+                default:
+                    return 0;
+            }
+        });
+    }, [rawMediaList, sortBy]);
 
     const handleTabChange = (tabId: 'ALL' | 'MANHUA' | 'DONGHUA') => {
         setActiveTab(tabId);
         setPage(1);
     };
+
+    const sortOptions = [
+        { value: 'title', label: 'Title A-Z', icon: '📝' },
+        { value: 'progress', label: 'Progress %', icon: '📊' },
+        { value: 'recent', label: 'Recent', icon: '⏰' },
+        { value: 'updates', label: 'Updates', icon: '🔥' },
+    ];
 
     if (isLoading) {
         return (
@@ -35,7 +80,7 @@ export function Library() {
             <h1 className="text-2xl font-bold bg-gradient-to-r from-white to-slate-400 bg-clip-text text-transparent mb-6 px-2">Library</h1>
 
             {/* Tabs */}
-            <div className="flex gap-2 mb-6 overflow-x-auto pb-2 scrollbar-none">
+            <div className="flex gap-2 mb-4 overflow-x-auto pb-2 scrollbar-none">
                 {tabs.map((tab) => (
                     <button
                         key={tab.id}
@@ -48,6 +93,36 @@ export function Library() {
                         {tab.label}
                     </button>
                 ))}
+            </div>
+
+            {/* Sorting Options */}
+            <div className="mb-6">
+                <div className="flex items-center justify-between mb-3">
+                    <div className="flex items-center gap-2">
+                        <ArrowUpDown size={14} className="text-slate-400" />
+                        <span className="text-xs font-medium text-slate-400">Sort by:</span>
+                    </div>
+                    <span className="text-xs text-slate-500">
+                        {mediaList.length} item{mediaList.length !== 1 ? 's' : ''}
+                    </span>
+                </div>
+                
+                <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-none">
+                    {sortOptions.map((option) => (
+                        <button
+                            key={option.value}
+                            onClick={() => setSortBy(option.value as SortOption)}
+                            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap transition-all ${
+                                sortBy === option.value
+                                    ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-500/25'
+                                    : 'bg-white/5 text-slate-400 hover:bg-white/10 hover:text-slate-200'
+                            }`}
+                        >
+                            <span className="text-[10px]">{option.icon}</span>
+                            <span>{option.label}</span>
+                        </button>
+                    ))}
+                </div>
             </div>
 
             {/* Grid */}
@@ -85,7 +160,15 @@ export function Library() {
             ) : (
                 <div className="flex flex-col items-center justify-center py-20 text-center opacity-50">
                     <Book size={48} className="mb-4 text-slate-600" />
-                    <p className="text-sm font-medium text-slate-400">No scriptures found in this section.</p>
+                    <p className="text-sm font-medium text-slate-400">
+                        {rawMediaList.length === 0 
+                            ? "No scriptures found in this section." 
+                            : `No items match the current sort order.`
+                        }
+                    </p>
+                    {rawMediaList.length > 0 && mediaList.length === 0 && (
+                        <p className="text-xs text-slate-500 mt-2">Try a different sorting option.</p>
+                    )}
                 </div>
             )}
         </div>
