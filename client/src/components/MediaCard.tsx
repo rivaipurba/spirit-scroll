@@ -69,15 +69,15 @@ export function MediaCard({ media }: MediaCardProps) {
                     )}
 
                     {/* Badge Logic: Priority given to NEW updates */}
-                    <div className="absolute top-0 left-0 z-10 flex flex-col items-start gap-1 p-1">
+                    <div className="absolute top-1 left-1 z-10 flex flex-col items-start gap-1">
                         {hasUpdate ? (
                             // 1. If Update Exists: Show ONLY "NEW"
-                            <span className="rounded-md bg-red-600 px-2 py-1 text-[10px] font-bold text-white shadow-md animate-pulse">
+                            <span className="rounded-md bg-red-600 px-1.5 py-0.5 text-[9px] font-bold text-white shadow-md animate-pulse">
                                 NEW
                             </span>
                         ) : (
                             // 2. Show status based on progress and type
-                            <span className="rounded-md bg-indigo-600/90 px-2 py-1 text-[10px] font-bold text-white shadow-sm backdrop-blur-sm">
+                            <span className="rounded-md bg-indigo-600/90 px-1.5 py-0.5 text-[9px] font-bold text-white shadow-sm backdrop-blur-sm">
                                 {(() => {
                                     // Check if 100% complete
                                     const isComplete = media.totalChapters && media.currentChapter >= media.totalChapters;
