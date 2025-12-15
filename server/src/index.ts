@@ -3,14 +3,19 @@ import { zValidator } from "@hono/zod-validator";
 import { z } from "zod";
 import { cors } from "hono/cors";
 import { insertMediaSchema, patchMediaSchema } from "./db/zod";
-import { db } from "./db";
+import { createDb } from "./db";
 import { media } from "./db/schema";
 import { eq, or, count } from "drizzle-orm";
 
 import { fetchCoverImage } from "./utils/scraper";
 import { checkLatestChapter } from "./utils/update-checker";
 
-const app = new Hono();
+type Bindings = {
+    DATABASE_URL: string;
+    DATABASE_AUTH_TOKEN: string;
+};
+
+const app = new Hono<{ Bindings: Bindings }>();
 
 app.use(
     "/*",
@@ -33,6 +38,8 @@ const routes = app.basePath("/api")
         const offset = (page - 1) * limit;
 
         const whereClause = type ? eq(media.type, type) : undefined;
+
+        const db = createDb(c.env.DATABASE_URL, c.env.DATABASE_AUTH_TOKEN);
 
         const [data, totalResult] = await Promise.all([
             db.select().from(media).where(whereClause).limit(limit).offset(offset),
@@ -60,6 +67,8 @@ const routes = app.basePath("/api")
             coverUrl = await fetchCoverImage(data.sourceUrl);
         }
 
+        const db = createDb(c.env.DATABASE_URL, c.env.DATABASE_AUTH_TOKEN);
+
         const result = await db.insert(media).values({
             ...data,
             coverUrl: coverUrl
@@ -81,6 +90,8 @@ const routes = app.basePath("/api")
             }
         }
 
+        const db = createDb(c.env.DATABASE_URL, c.env.DATABASE_AUTH_TOKEN);
+
         const result = await db
             .update(media)
             .set(patchData)
@@ -94,6 +105,7 @@ const routes = app.basePath("/api")
         const id = Number(c.req.param("id"));
         if (isNaN(id)) return c.json({ error: "Invalid ID" }, 400);
 
+        const db = createDb(c.env.DATABASE_URL, c.env.DATABASE_AUTH_TOKEN);
         const result = await db.delete(media).where(eq(media.id, id)).returning();
         if (result.length === 0) return c.json({ error: "Not found" }, 404);
         return c.json({ success: true, deletedId: result[0].id });
@@ -102,6 +114,7 @@ const routes = app.basePath("/api")
         const id = Number(c.req.param("id"));
         if (isNaN(id)) return c.json({ error: "Invalid ID" }, 400);
 
+        const db = createDb(c.env.DATABASE_URL, c.env.DATABASE_AUTH_TOKEN);
         const item = await db.select().from(media).where(eq(media.id, id)).limit(1);
         if (item.length === 0) return c.json({ error: "Not found" }, 404);
 
@@ -124,6 +137,7 @@ const routes = app.basePath("/api")
         return c.json({ error: "Could not find chapter info" }, 404);
     })
     .post("/check-all", async (c) => {
+        const db = createDb(c.env.DATABASE_URL, c.env.DATABASE_AUTH_TOKEN);
         const items = await db.select().from(media).where(
             or(eq(media.status, "READING"), eq(media.status, "ON_HOLD"))
         ); // Focusing on Reading/OnHold usually makes sense, but user said 'READING' or 'WATCHING' (which is status READING and type DONGHUA)
@@ -150,9 +164,6 @@ const routes = app.basePath("/api")
                         .where(eq(media.id, item.id));
                     updatedCount++;
                 } else if (latest !== null) {
-                    // Update latest chapter even if not new, to keep it current? 
-                    // User only asked for updates count. 
-                    // Usually good to sync the latest chapter anyway.
                     await db.update(media)
                         .set({ latestReleasedChapter: latest })
                         .where(eq(media.id, item.id));
