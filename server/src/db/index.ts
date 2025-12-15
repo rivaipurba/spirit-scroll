@@ -1,6 +1,12 @@
-import { Database } from "bun:sqlite";
-import { drizzle } from "drizzle-orm/bun-sqlite";
+import { drizzle } from "drizzle-orm/libsql";
+import { createClient } from "@libsql/client";
 import * as schema from "./schema";
 
-const sqlite = new Database("spirit_scroll.sqlite");
-export const db = drizzle(sqlite, { schema });
+const url = process.env.DATABASE_URL || "file:spirit_scroll.sqlite";
+
+const client = createClient({
+    url,
+    authToken: process.env.DATABASE_AUTH_TOKEN,
+});
+
+export const db = drizzle(client, { schema });

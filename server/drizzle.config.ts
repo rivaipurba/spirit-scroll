@@ -5,6 +5,6 @@ export default defineConfig({
     out: "./drizzle",
     dialect: "sqlite",
     dbCredentials: {
-        url: "spirit_scroll.sqlite",
+        url: process.env.DATABASE_URL || "file:spirit_scroll.sqlite",
     },
 });

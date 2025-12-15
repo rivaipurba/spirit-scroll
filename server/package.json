@@ -17,6 +17,7 @@
   },
   "dependencies": {
     "@hono/zod-validator": "^0.7.5",
+    "@libsql/client": "^0.15.15",
     "better-sqlite3": "^12.5.0",
     "cheerio": "^1.1.2",
     "drizzle-orm": "^0.45.0",
