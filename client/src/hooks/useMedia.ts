@@ -2,15 +2,16 @@ import { useQuery, useMutation, useQueryClient, keepPreviousData } from "@tansta
 import { client } from "../lib/api";
 import { useToastContext } from "../context/ToastContext";
 
-export function useMediaList(page: number = 1, type?: "MANHUA" | "DONGHUA", limit: number = 12, search?: string) {
+export function useMediaList(page: number = 1, type?: "MANHUA" | "DONGHUA", limit: number = 12, sortBy?: "title" | "progress" | "recent" | "updates" | "type", search?: string) {
     return useQuery({
-        queryKey: ["media-list", { page, type, limit, search }],
+        queryKey: ["media-list", { page, type, limit, sortBy, search }],
         queryFn: async () => {
             const res = await client.api.media.$get({
                 query: {
                     page: page.toString(),
                     limit: limit.toString(),
                     type: type,
+                    sortBy: sortBy,
                     search: search?.trim() || undefined
                 }
             });

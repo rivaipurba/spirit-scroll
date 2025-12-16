@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState } from 'react';
 import { useMediaList } from '../hooks/useMedia';
 import { Loader2, Book, Youtube, ChevronLeft, ChevronRight, ArrowUpDown } from 'lucide-react';
 
@@ -9,49 +9,19 @@ export function Library() {
     const [page, setPage] = useState(1);
     const [sortBy, setSortBy] = useState<SortOption>('title');
 
-    const { data, isLoading, isPlaceholderData } = useMediaList(page, activeTab === 'ALL' ? undefined : activeTab, 50);
+    const { data, isLoading, isPlaceholderData } = useMediaList(page, activeTab === 'ALL' ? undefined : activeTab, 50, sortBy);
 
-    const rawMediaList = data?.data || [];
+    const mediaList = data?.data || [];
     const meta = data?.meta;
-
-    // Sort the media list
-    const mediaList = useMemo(() => {
-        return [...rawMediaList].sort((a: any, b: any) => {
-            switch (sortBy) {
-                case 'title':
-                    return a.title.localeCompare(b.title);
-
-                case 'progress': {
-                    const progressA = a.totalChapters ? (a.currentChapter / a.totalChapters) * 100 : 0;
-                    const progressB = b.totalChapters ? (b.currentChapter / b.totalChapters) * 100 : 0;
-                    return progressB - progressA;
-                }
-
-                case 'recent': {
-                    const timeA = a.updatedAt ? new Date(a.updatedAt).getTime() : a.id;
-                    const timeB = b.updatedAt ? new Date(b.updatedAt).getTime() : b.id;
-                    return timeB - timeA;
-                }
-
-                case 'updates': {
-                    const gapA = Math.max(0, (a.latestReleasedChapter || 0) - a.currentChapter);
-                    const gapB = Math.max(0, (b.latestReleasedChapter || 0) - b.currentChapter);
-                    
-                    if (gapA > 0 && gapB > 0) return gapB - gapA;
-                    if (gapA > 0) return -1;
-                    if (gapB > 0) return 1;
-                    return a.title.localeCompare(b.title);
-                }
-
-                default:
-                    return 0;
-            }
-        });
-    }, [rawMediaList, sortBy]);
 
     const handleTabChange = (tabId: 'ALL' | 'MANHUA' | 'DONGHUA') => {
         setActiveTab(tabId);
         setPage(1);
+    };
+
+    const handleSortChange = (newSortBy: SortOption) => {
+        setSortBy(newSortBy);
+        setPage(1); // Reset to first page when sorting changes
     };
 
     const sortOptions = [
@@ -111,7 +81,7 @@ export function Library() {
                     {sortOptions.map((option) => (
                         <button
                             key={option.value}
-                            onClick={() => setSortBy(option.value as SortOption)}
+                            onClick={() => handleSortChange(option.value as SortOption)}
                             className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap transition-all ${
                                 sortBy === option.value
                                     ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-500/25'
@@ -161,14 +131,8 @@ export function Library() {
                 <div className="flex flex-col items-center justify-center py-20 text-center opacity-50">
                     <Book size={48} className="mb-4 text-slate-600" />
                     <p className="text-sm font-medium text-slate-400">
-                        {rawMediaList.length === 0 
-                            ? "No scriptures found in this section." 
-                            : `No items match the current sort order.`
-                        }
+                        No scriptures found in this section.
                     </p>
-                    {rawMediaList.length > 0 && mediaList.length === 0 && (
-                        <p className="text-xs text-slate-500 mt-2">Try a different sorting option.</p>
-                    )}
                 </div>
             )}
         </div>

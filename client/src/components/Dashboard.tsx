@@ -1,4 +1,4 @@
-import { useMemo, useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { Loader2, ArrowUpDown, Book, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useMediaList } from '../hooks/useMedia';
 import { MediaCard } from './MediaCard';
@@ -18,77 +18,14 @@ export function Dashboard({ isDialogOpen, onCloseDialog }: DashboardProps) {
     const { searchQuery } = useSearch();
     
     // Use larger page size for better sorting, but still paginate for performance
-    const { data: paginatedMedia, isLoading, error, isPlaceholderData } = useMediaList(page, undefined, 20, searchQuery);
-    const mediaList = paginatedMedia?.data;
+    const { data: paginatedMedia, isLoading, error, isPlaceholderData } = useMediaList(page, undefined, 20, sortBy, searchQuery);
+    const mediaList = paginatedMedia?.data || [];
     const meta = paginatedMedia?.meta;
 
     // Reset to page 1 when search query changes
     useEffect(() => {
         setPage(1);
     }, [searchQuery]);
-
-    const sortedMedia = useMemo(() => {
-        if (!mediaList) return [];
-
-        let result = mediaList;
-
-        // Search is now handled server-side, no need for client-side filtering
-
-        // Sort based on selected option
-        return [...result].sort((a: any, b: any) => {
-            switch (sortBy) {
-                case 'updates': {
-                    // Calculate the "Gap" (Unread count)
-                    const gapA = Math.max(0, (a.latestReleasedChapter || 0) - a.currentChapter);
-                    const gapB = Math.max(0, (b.latestReleasedChapter || 0) - b.currentChapter);
-
-                    // 1. If both have updates, the one with the LARGER gap comes first
-                    if (gapA > 0 && gapB > 0) {
-                        return gapB - gapA;
-                    }
-
-                    // 2. If only A has updates, A comes first
-                    if (gapA > 0) return -1;
-
-                    // 3. If only B has updates, B comes first
-                    if (gapB > 0) return 1;
-
-                    // 4. If neither has updates, sort by last modified (Newest first)
-                    const timeA = a.updatedAt ? new Date(a.updatedAt).getTime() : a.id;
-                    const timeB = b.updatedAt ? new Date(b.updatedAt).getTime() : b.id;
-
-                    return timeB - timeA;
-                }
-
-                case 'title':
-                    return a.title.localeCompare(b.title);
-
-                case 'progress': {
-                    // Sort by completion percentage (highest first)
-                    const progressA = a.totalChapters ? (a.currentChapter / a.totalChapters) * 100 : 0;
-                    const progressB = b.totalChapters ? (b.currentChapter / b.totalChapters) * 100 : 0;
-                    return progressB - progressA;
-                }
-
-                case 'recent': {
-                    // Sort by most recently updated (newest first)
-                    const timeA = a.updatedAt ? new Date(a.updatedAt).getTime() : a.id;
-                    const timeB = b.updatedAt ? new Date(b.updatedAt).getTime() : b.id;
-                    return timeB - timeA;
-                }
-
-                case 'type':
-                    // Sort by type (DONGHUA first, then MANHUA), then by title
-                    if (a.type !== b.type) {
-                        return a.type === 'DONGHUA' ? -1 : 1;
-                    }
-                    return a.title.localeCompare(b.title);
-
-                default:
-                    return 0;
-            }
-        });
-    }, [mediaList, searchQuery, sortBy]);
 
     if (isLoading) {
         return (
@@ -129,7 +66,7 @@ export function Dashboard({ isDialogOpen, onCloseDialog }: DashboardProps) {
                         <span className="text-sm font-medium text-slate-300">Sort by:</span>
                     </div>
                     <span className="text-xs text-slate-500">
-                        {meta ? `${meta.total} total • Page ${meta.page}/${meta.totalPages}` : `${sortedMedia.length} items`}
+                        {meta ? `${meta.total} total • Page ${meta.page}/${meta.totalPages}` : `${mediaList.length} items`}
                     </span>
                 </div>
                 {meta && meta.totalPages > 1 && searchQuery && (
@@ -168,11 +105,11 @@ export function Dashboard({ isDialogOpen, onCloseDialog }: DashboardProps) {
                         <Loader2 className="w-6 h-6 animate-spin text-indigo-500" />
                     </div>
                 )}
-                {sortedMedia?.map((media: any) => (
+                {mediaList?.map((media: any) => (
                     <MediaCard key={media.id} media={media} />
                 ))}
 
-                {sortedMedia.length === 0 && (
+                {mediaList.length === 0 && (
                     <div className="flex flex-col items-center justify-center py-20 text-center opacity-50">
                         {searchQuery ? (
                             <p className="text-sm font-medium text-slate-400">No matches found for "{searchQuery}"</p>

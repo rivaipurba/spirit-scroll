@@ -5,7 +5,7 @@ import { cors } from "hono/cors";
 import { insertMediaSchema, patchMediaSchema } from "./db/zod";
 import { createDb } from "./db";
 import { media } from "./db/schema";
-import { eq, or, count, like, and, desc, asc } from "drizzle-orm";
+import { eq, or, count, like, and, desc, asc, sql } from "drizzle-orm";
 
 import { fetchCoverImage } from "./utils/scraper";
 import { checkLatestChapter } from "./utils/update-checker";
@@ -61,7 +61,7 @@ const routes = app.basePath("/api")
             const page = Number(c.req.query("page")) || 1;
             const limit = Number(c.req.query("limit")) || 12;
             const type = c.req.query("type") as "MANHUA" | "DONGHUA" | undefined;
-            const sortBy = c.req.query("sortBy") as "title" | "progress" | "recent" | "updates" | undefined;
+            const sortBy = c.req.query("sortBy") as "title" | "progress" | "recent" | "updates" | "type" | undefined;
             const search = c.req.query("search")?.trim();
 
             const offset = (page - 1) * limit;
@@ -71,14 +71,41 @@ const routes = app.basePath("/api")
             // Build where conditions
             const conditions = [];
             if (type) conditions.push(eq(media.type, type));
-            if (search) conditions.push(like(media.title, `%${search}%`));
+            if (search) {
+                // Use case-insensitive search
+                conditions.push(sql`LOWER(${media.title}) LIKE LOWER(${'%' + search + '%'})`);
+            }
             
             const whereClause = conditions.length > 0 ? and(...conditions) : undefined;
 
-            // For now, keep simple query structure and handle sorting client-side
-            // TODO: Implement proper server-side sorting in future update
+            // Build order by clause based on sortBy parameter
+            let orderByClause;
+            switch (sortBy) {
+                case 'title':
+                    orderByClause = asc(media.title);
+                    break;
+                case 'progress':
+                    // Sort by progress percentage (currentChapter/totalChapters), nulls last
+                    orderByClause = desc(sql`CASE WHEN ${media.totalChapters} > 0 THEN CAST(${media.currentChapter} AS REAL) / CAST(${media.totalChapters} AS REAL) ELSE 0 END`);
+                    break;
+                case 'recent':
+                    // Sort by id (most recent entries first) since we don't have updatedAt
+                    orderByClause = desc(media.id);
+                    break;
+                case 'updates':
+                    // Sort by available updates (latestReleasedChapter - currentChapter), then by title
+                    orderByClause = desc(sql`MAX(0, COALESCE(${media.latestReleasedChapter}, 0) - ${media.currentChapter})`);
+                    break;
+                case 'type':
+                    // Sort by type (DONGHUA first, then MANHUA), then by title
+                    orderByClause = sql`CASE WHEN ${media.type} = 'DONGHUA' THEN 0 ELSE 1 END, ${media.title} ASC`;
+                    break;
+                default:
+                    orderByClause = asc(media.title);
+            }
+
             const [data, totalResult] = await Promise.all([
-                db.select().from(media).where(whereClause).limit(limit).offset(offset),
+                db.select().from(media).where(whereClause).orderBy(orderByClause).limit(limit).offset(offset),
                 db.select({ count: count() }).from(media).where(whereClause)
             ]);
 
