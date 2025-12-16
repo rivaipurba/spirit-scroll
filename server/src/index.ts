@@ -93,8 +93,21 @@ const routes = app.basePath("/api")
                     orderByClause = desc(media.id);
                     break;
                 case 'updates':
-                    // Sort by available updates (latestReleasedChapter - currentChapter), then by title
-                    orderByClause = desc(sql`MAX(0, COALESCE(${media.latestReleasedChapter}, 0) - ${media.currentChapter})`);
+                    // Complex sorting for updates: 
+                    // 1. Items with updates (gap > 0) come first, ordered by gap size (larger gaps first)
+                    // 2. Items without updates come after, ordered by title
+                    orderByClause = sql`
+                        CASE 
+                            WHEN COALESCE(${media.latestReleasedChapter}, 0) > ${media.currentChapter} THEN 0
+                            ELSE 1 
+                        END ASC,
+                        CASE 
+                            WHEN COALESCE(${media.latestReleasedChapter}, 0) > ${media.currentChapter} 
+                            THEN (COALESCE(${media.latestReleasedChapter}, 0) - ${media.currentChapter}) 
+                            ELSE 0 
+                        END DESC,
+                        ${media.title} ASC
+                    `;
                     break;
                 case 'type':
                     // Sort by type (DONGHUA first, then MANHUA), then by title
