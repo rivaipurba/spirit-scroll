@@ -6,6 +6,7 @@ interface ConfirmDialogProps {
     message: string;
     confirmText?: string;
     cancelText?: string;
+    variant?: 'default' | 'danger';
     onConfirm: () => void;
     onCancel: () => void;
 }
@@ -16,6 +17,7 @@ export function ConfirmDialog({
     message,
     confirmText = "OK",
     cancelText = "Cancel",
+    variant = 'default',
     onConfirm,
     onCancel
 }: ConfirmDialogProps) {
@@ -43,7 +45,11 @@ export function ConfirmDialog({
                     </button>
                     <button
                         onClick={onConfirm}
-                        className="flex-1 px-4 py-3 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl font-medium transition-colors shadow-lg shadow-indigo-500/25"
+                        className={`flex-1 px-4 py-3 text-white rounded-xl font-medium transition-colors shadow-lg ${
+                            variant === 'danger' 
+                                ? 'bg-red-600 hover:bg-red-500 shadow-red-500/25' 
+                                : 'bg-indigo-600 hover:bg-indigo-500 shadow-indigo-500/25'
+                        }`}
                     >
                         {confirmText}
                     </button>

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { X, Book, Youtube, Trash2 } from 'lucide-react';
 import { useUpdateMedia, useDeleteMedia } from '../hooks/useMedia';
+import { ConfirmDialog } from './ConfirmDialog';
 
 interface EditMediaDialogProps {
     isOpen: boolean;
@@ -23,6 +24,7 @@ export function EditMediaDialog({ isOpen, onClose, media }: EditMediaDialogProps
     const [totalChapters, setTotalChapters] = useState(media.totalChapters?.toString() || '');
     const [status, setStatus] = useState<"READING" | "COMPLETED" | "PLAN_TO_READ" | "ON_HOLD" | "DROPPED">(media.status);
     const [sourceUrl, setSourceUrl] = useState(media.sourceUrl || (media as any).source_url || '');
+    const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false);
 
     const updateMedia = useUpdateMedia();
     const deleteMedia = useDeleteMedia();
@@ -58,13 +60,20 @@ export function EditMediaDialog({ isOpen, onClose, media }: EditMediaDialogProps
     };
 
     const handleDelete = () => {
-        if (confirm("Are you sure you want to delete this entry? This action cannot be undone.")) {
-            deleteMedia.mutate(media.id, {
-                onSuccess: () => {
-                    onClose();
-                }
-            });
-        }
+        setIsDeleteConfirmOpen(true);
+    };
+
+    const handleConfirmDelete = () => {
+        deleteMedia.mutate(media.id, {
+            onSuccess: () => {
+                onClose();
+            }
+        });
+        setIsDeleteConfirmOpen(false);
+    };
+
+    const handleCancelDelete = () => {
+        setIsDeleteConfirmOpen(false);
     };
 
     return (
@@ -189,6 +198,17 @@ export function EditMediaDialog({ isOpen, onClose, media }: EditMediaDialogProps
                 </div>
 
             </div>
+
+            <ConfirmDialog
+                isOpen={isDeleteConfirmOpen}
+                title="Delete Entry"
+                message={`Are you sure you want to delete "${media.title}"? This action cannot be undone.`}
+                confirmText="Delete"
+                cancelText="Cancel"
+                variant="danger"
+                onConfirm={handleConfirmDelete}
+                onCancel={handleCancelDelete}
+            />
         </div>
     );
 }
