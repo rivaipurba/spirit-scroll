@@ -3,6 +3,7 @@ import React, { useState } from 'react';
 import { EditMediaDialog } from './EditMediaDialog';
 import { ConfirmDialog } from './ConfirmDialog';
 import { useUpdateProgress, useCheckUpdate } from '../hooks/useMedia';
+import { useToastContext } from '../context/ToastContext';
 
 interface MediaCardProps {
     media: {
@@ -23,6 +24,7 @@ export function MediaCard({ media }: MediaCardProps) {
     const [isConfirmOpen, setIsConfirmOpen] = useState(false);
     const updateProgress = useUpdateProgress();
     const checkUpdate = useCheckUpdate();
+    const toast = useToastContext();
 
     const handleQuickIncrement = (e: React.MouseEvent) => {
         e.stopPropagation();
@@ -31,9 +33,18 @@ export function MediaCard({ media }: MediaCardProps) {
 
     const handleConfirmIncrement = () => {
         const nextChapter = media.currentChapter + 1;
+        const chapterType = media.type === 'DONGHUA' ? 'episode' : 'chapter';
+        
         updateProgress.mutate({
             id: media.id,
             currentChapter: nextChapter
+        }, {
+            onSuccess: () => {
+                toast.success(
+                    "Progress Updated",
+                    `Marked ${chapterType} ${nextChapter} as read`
+                );
+            }
         });
         setIsConfirmOpen(false);
     };

@@ -1,5 +1,6 @@
 import { useQuery, useMutation, useQueryClient, keepPreviousData } from "@tanstack/react-query";
 import { client } from "../lib/api";
+import { useToastContext } from "../context/ToastContext";
 
 export function useMediaList(page: number = 1, type?: "MANHUA" | "DONGHUA", limit: number = 12) {
     return useQuery({
@@ -23,6 +24,7 @@ export function useMediaList(page: number = 1, type?: "MANHUA" | "DONGHUA", limi
 
 export function useUpdateProgress() {
     const queryClient = useQueryClient();
+    const toast = useToastContext();
 
     return useMutation({
         mutationFn: async ({ id, status, currentChapter }: { id: number, status?: "READING" | "COMPLETED", currentChapter?: number }) => {
@@ -61,13 +63,17 @@ export function useUpdateProgress() {
 
             return { previousData };
         },
-        onError: (_err, _variables, context) => {
+        onError: (error, _variables, context) => {
             // Rollback on error
             if (context?.previousData) {
                 context.previousData.forEach(([queryKey, data]) => {
                     queryClient.setQueryData(queryKey, data);
                 });
             }
+            toast.error(
+                "Update Failed",
+                "Failed to update progress. Please try again."
+            );
         },
         onSettled: () => {
             queryClient.invalidateQueries({ queryKey: ["media-list"] });
@@ -77,6 +83,7 @@ export function useUpdateProgress() {
 
 export function useCreateMedia() {
     const queryClient = useQueryClient();
+    const toast = useToastContext();
 
     return useMutation({
         mutationFn: async (json: { title: string; type: "MANHUA" | "DONGHUA"; totalChapters: number | null; currentChapter: number; status: "READING" | "COMPLETED" | "PLAN_TO_READ" | "ON_HOLD" | "DROPPED"; sourceUrl?: string }) => {
@@ -91,16 +98,25 @@ export function useCreateMedia() {
             }
             return await res.json();
         },
-        onSuccess: () => {
+        onSuccess: (data) => {
             queryClient.invalidateQueries({ queryKey: ["media-list"] });
+            toast.success(
+                "Entry Created", 
+                `"${data.title}" has been added to your library`
+            );
+        },
+        onError: (error) => {
+            toast.error(
+                "Failed to Create Entry",
+                error.message || "Something went wrong while creating the entry"
+            );
         },
     });
-
-
 }
 
 export function useUpdateMedia() {
     const queryClient = useQueryClient();
+    const toast = useToastContext();
 
     return useMutation({
         mutationFn: async ({ id, ...data }: { id: number; title?: string; type?: "MANHUA" | "DONGHUA"; currentChapter?: number; totalChapters?: number | null; status?: "READING" | "COMPLETED" | "PLAN_TO_READ" | "ON_HOLD" | "DROPPED"; sourceUrl?: string | null }) => {
@@ -121,6 +137,7 @@ export function useUpdateMedia() {
 
 export function useDeleteMedia() {
     const queryClient = useQueryClient();
+    const toast = useToastContext();
 
     return useMutation({
         mutationFn: async (id: number) => {
@@ -134,12 +151,23 @@ export function useDeleteMedia() {
         },
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ["media-list"] });
+            toast.success(
+                "Entry Deleted",
+                "The entry has been removed from your library"
+            );
+        },
+        onError: (error) => {
+            toast.error(
+                "Delete Failed",
+                error.message || "Failed to delete entry"
+            );
         },
     });
 }
 
 export function useImportMedia() {
     const queryClient = useQueryClient();
+    const toast = useToastContext();
 
     return useMutation({
         mutationFn: async (data: any[]) => {
@@ -151,14 +179,25 @@ export function useImportMedia() {
             }
             return await res.json();
         },
-        onSuccess: () => {
+        onSuccess: (data) => {
             queryClient.invalidateQueries({ queryKey: ["media-list"] });
+            toast.success(
+                "Import Successful",
+                `Successfully imported ${data.count} entries`
+            );
+        },
+        onError: (error) => {
+            toast.error(
+                "Import Failed",
+                error.message || "Failed to import data"
+            );
         },
     });
 }
 
 export function useCheckUpdate() {
     const queryClient = useQueryClient();
+    const toast = useToastContext();
 
     return useMutation({
         mutationFn: async (id: number) => {
@@ -171,14 +210,32 @@ export function useCheckUpdate() {
             }
             return await res.json();
         },
-        onSuccess: () => {
+        onSuccess: (data) => {
             queryClient.invalidateQueries({ queryKey: ["media-list"] });
+            if (data.has_update) {
+                toast.success(
+                    "New Chapter Found!",
+                    `Chapter ${data.new_chapter} is now available`
+                );
+            } else {
+                toast.info(
+                    "No Updates",
+                    "You're up to date with the latest chapter"
+                );
+            }
+        },
+        onError: (error) => {
+            toast.error(
+                "Update Check Failed",
+                error.message || "Failed to check for updates"
+            );
         },
     });
 }
 
 export function useScanAll() {
     const queryClient = useQueryClient();
+    const toast = useToastContext();
 
     return useMutation({
         mutationFn: async () => {
@@ -194,3 +251,6 @@ export function useScanAll() {
     });
 }
 
+// Note: Some functions above need manual notification updates:
+// - useUpdateMedia: Add success/error handlers
+// - useScanAll: Add success/error handlers with proper data handling
