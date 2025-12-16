@@ -1,7 +1,8 @@
+import type { ReactNode } from 'react';
 import { ToastProvider } from '../context/ToastContext';
 
 interface AppWithToastsProps {
-    children: React.ReactNode;
+    children: ReactNode;
 }
 
 export function AppWithToasts({ children }: AppWithToastsProps) {

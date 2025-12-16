@@ -1,4 +1,5 @@
-import { Toast, ToastType } from './Toast';
+import { Toast } from './Toast';
+import type { ToastType } from './Toast';
 
 export interface ToastData {
     id: string;

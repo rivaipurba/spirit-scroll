@@ -63,7 +63,7 @@ export function useUpdateProgress() {
 
             return { previousData };
         },
-        onError: (error, _variables, context) => {
+        onError: (_error, _variables, context) => {
             // Rollback on error
             if (context?.previousData) {
                 context.previousData.forEach(([queryKey, data]) => {
@@ -116,7 +116,7 @@ export function useCreateMedia() {
 
 export function useUpdateMedia() {
     const queryClient = useQueryClient();
-    const toast = useToastContext();
+    // const toast = useToastContext(); // TODO: Add notifications
 
     return useMutation({
         mutationFn: async ({ id, ...data }: { id: number; title?: string; type?: "MANHUA" | "DONGHUA"; currentChapter?: number; totalChapters?: number | null; status?: "READING" | "COMPLETED" | "PLAN_TO_READ" | "ON_HOLD" | "DROPPED"; sourceUrl?: string | null }) => {
@@ -245,8 +245,18 @@ export function useScanAll() {
             }
             return await res.json();
         },
-        onSuccess: () => {
+        onSuccess: (data) => {
             queryClient.invalidateQueries({ queryKey: ["media-list"] });
+            toast.success(
+                "Scan Complete",
+                `Found updates for ${data.updated} entries`
+            );
+        },
+        onError: (error) => {
+            toast.error(
+                "Scan Failed",
+                error.message || "Failed to scan for updates"
+            );
         },
     });
 }
