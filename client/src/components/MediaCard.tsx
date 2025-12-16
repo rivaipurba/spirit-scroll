@@ -1,6 +1,7 @@
 import { Plus, ExternalLink, Minus, RefreshCw } from 'lucide-react';
 import React, { useState } from 'react';
 import { EditMediaDialog } from './EditMediaDialog';
+import { ConfirmDialog } from './ConfirmDialog';
 import { useUpdateProgress, useCheckUpdate } from '../hooks/useMedia';
 
 interface MediaCardProps {
@@ -19,22 +20,26 @@ interface MediaCardProps {
 
 export function MediaCard({ media }: MediaCardProps) {
     const [isEditOpen, setIsEditOpen] = useState(false);
+    const [isConfirmOpen, setIsConfirmOpen] = useState(false);
     const updateProgress = useUpdateProgress();
     const checkUpdate = useCheckUpdate();
 
     const handleQuickIncrement = (e: React.MouseEvent) => {
         e.stopPropagation();
-        
-        // Add confirmation for increment to prevent accidents
+        setIsConfirmOpen(true);
+    };
+
+    const handleConfirmIncrement = () => {
         const nextChapter = media.currentChapter + 1;
-        const chapterType = media.type === 'DONGHUA' ? 'episode' : 'chapter';
-        
-        if (confirm(`Mark ${chapterType} ${nextChapter} as read?`)) {
-            updateProgress.mutate({
-                id: media.id,
-                currentChapter: nextChapter
-            });
-        }
+        updateProgress.mutate({
+            id: media.id,
+            currentChapter: nextChapter
+        });
+        setIsConfirmOpen(false);
+    };
+
+    const handleCancelIncrement = () => {
+        setIsConfirmOpen(false);
     };
 
     const handleQuickDecrement = (e: React.MouseEvent) => {
@@ -176,6 +181,16 @@ export function MediaCard({ media }: MediaCardProps) {
                 isOpen={isEditOpen}
                 onClose={() => setIsEditOpen(false)}
                 media={media}
+            />
+
+            <ConfirmDialog
+                isOpen={isConfirmOpen}
+                title="Mark as Read"
+                message={`Mark ${media.type === 'DONGHUA' ? 'episode' : 'chapter'} ${media.currentChapter + 1} as read?`}
+                confirmText="Mark Read"
+                cancelText="Cancel"
+                onConfirm={handleConfirmIncrement}
+                onCancel={handleCancelIncrement}
             />
         </>
     );
