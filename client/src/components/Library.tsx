@@ -9,7 +9,7 @@ export function Library() {
     const [page, setPage] = useState(1);
     const [sortBy, setSortBy] = useState<SortOption>('title');
 
-    const { data, isLoading, isPlaceholderData } = useMediaList(page, activeTab === 'ALL' ? undefined : activeTab, 50, sortBy);
+    const { data, isLoading, isPlaceholderData } = useMediaList(page, activeTab === 'ALL' ? undefined : activeTab, 10, sortBy);
 
     const mediaList = data?.data || [];
     const meta = data?.meta;
