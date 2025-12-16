@@ -18,7 +18,7 @@ export function Dashboard({ isDialogOpen, onCloseDialog }: DashboardProps) {
     const { searchQuery } = useSearch();
     
     // Use larger page size for better sorting, but still paginate for performance
-    const { data: paginatedMedia, isLoading, error, isPlaceholderData } = useMediaList(page, undefined, 20);
+    const { data: paginatedMedia, isLoading, error, isPlaceholderData } = useMediaList(page, undefined, 20, searchQuery);
     const mediaList = paginatedMedia?.data;
     const meta = paginatedMedia?.meta;
 
@@ -32,12 +32,7 @@ export function Dashboard({ isDialogOpen, onCloseDialog }: DashboardProps) {
 
         let result = mediaList;
 
-        // Filter by Search Query
-        if (searchQuery.trim()) {
-            result = result.filter((m: any) =>
-                m.title.toLowerCase().includes(searchQuery.toLowerCase())
-            );
-        }
+        // Search is now handled server-side, no need for client-side filtering
 
         // Sort based on selected option
         return [...result].sort((a: any, b: any) => {
@@ -137,10 +132,10 @@ export function Dashboard({ isDialogOpen, onCloseDialog }: DashboardProps) {
                         {meta ? `${meta.total} total • Page ${meta.page}/${meta.totalPages}` : `${sortedMedia.length} items`}
                     </span>
                 </div>
-                {meta && meta.totalPages > 1 && (
+                {meta && meta.totalPages > 1 && searchQuery && (
                     <div className="mb-2">
                         <p className="text-xs text-slate-500 text-center">
-                            Sorting applies to current page only
+                            Search results • Sorting applies to current page only
                         </p>
                     </div>
                 )}
