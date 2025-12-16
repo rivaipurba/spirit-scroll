@@ -39,16 +39,21 @@ export function NewEntryDialog({ isOpen, onClose }: NewEntryDialogProps) {
     };
 
     return (
-        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center pointer-events-none">
+        <div className="fixed inset-0 z-50 flex items-center justify-center pointer-events-none p-2 sm:p-4">
             <div className="absolute inset-0 bg-[#0a0a0a]/80 backdrop-blur-sm pointer-events-auto transition-opacity" onClick={onClose} />
-            <div className="bg-[#111] border border-white/10 w-full sm:w-96 rounded-t-3xl sm:rounded-3xl p-6 relative pointer-events-auto shadow-2xl animate-in slide-in-from-bottom duration-300">
-                <button onClick={onClose} className="absolute top-5 right-5 text-slate-500 hover:text-white transition-colors p-1 hover:bg-white/10 rounded-full">
-                    <X size={20} />
-                </button>
+            <div 
+                className="bg-[#111] border border-white/10 w-full max-w-md max-h-[95vh] sm:max-h-[90vh] rounded-2xl relative pointer-events-auto shadow-2xl animate-in slide-in-from-bottom duration-300 overflow-hidden"
+                onClick={(e) => e.stopPropagation()}
+            >
+                <div className="flex items-center justify-between p-4 sm:p-6 border-b border-white/10">
+                    <h2 className="text-xl font-bold text-white">New Entry</h2>
+                    <button onClick={onClose} className="text-slate-500 hover:text-white transition-colors p-1 hover:bg-white/10 rounded-full">
+                        <X size={20} />
+                    </button>
+                </div>
 
-                <h2 className="text-xl font-bold mb-6 text-white">New Entry</h2>
-
-                <form onSubmit={handleSubmit} className="space-y-5">
+                <div className="overflow-y-auto max-h-[calc(95vh-140px)] sm:max-h-[calc(90vh-140px)] p-4 sm:p-6 pb-8">
+                    <form id="new-entry-form" onSubmit={handleSubmit} className="space-y-5">
                     <div>
                         <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Title</label>
                         <input
@@ -124,14 +129,20 @@ export function NewEntryDialog({ isOpen, onClose }: NewEntryDialogProps) {
                         />
                     </div>
 
+                    </form>
+                </div>
+
+                {/* Fixed Submit Button */}
+                <div className="border-t border-white/10 p-4 sm:p-6 bg-[#111]">
                     <button
                         type="submit"
+                        form="new-entry-form"
                         disabled={createMedia.isPending}
-                        className="w-full bg-gradient-to-r from-indigo-600 to-indigo-700 text-white py-3.5 rounded-xl font-bold shadow-lg shadow-indigo-500/20 active:scale-[0.98] transition-all hover:brightness-110 mt-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                        className="w-full bg-gradient-to-r from-indigo-600 to-indigo-700 text-white py-3.5 rounded-xl font-bold shadow-lg shadow-indigo-500/20 active:scale-[0.98] transition-all hover:brightness-110 disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                         {createMedia.isPending ? 'Creating...' : 'Create Entry'}
                     </button>
-                </form>
+                </div>
             </div>
         </div>
     );

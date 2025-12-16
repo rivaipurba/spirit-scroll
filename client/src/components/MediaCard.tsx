@@ -24,10 +24,17 @@ export function MediaCard({ media }: MediaCardProps) {
 
     const handleQuickIncrement = (e: React.MouseEvent) => {
         e.stopPropagation();
-        updateProgress.mutate({
-            id: media.id,
-            currentChapter: media.currentChapter + 1
-        });
+        
+        // Add confirmation for increment to prevent accidents
+        const nextChapter = media.currentChapter + 1;
+        const chapterType = media.type === 'DONGHUA' ? 'episode' : 'chapter';
+        
+        if (confirm(`Mark ${chapterType} ${nextChapter} as read?`)) {
+            updateProgress.mutate({
+                id: media.id,
+                currentChapter: nextChapter
+            });
+        }
     };
 
     const handleQuickDecrement = (e: React.MouseEvent) => {
@@ -149,12 +156,14 @@ export function MediaCard({ media }: MediaCardProps) {
                             <button
                                 onClick={handleQuickDecrement}
                                 className="p-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-slate-400 hover:text-white transition-colors"
+                                title="Go back one chapter"
                             >
                                 <Minus size={14} strokeWidth={2.5} />
                             </button>
                             <button
                                 onClick={handleQuickIncrement}
                                 className="p-1.5 rounded-lg bg-indigo-500/20 hover:bg-indigo-500 text-indigo-400 hover:text-white transition-all shadow-[0_0_10px_rgba(99,102,241,0.2)] hover:shadow-[0_0_15px_rgba(99,102,241,0.5)]"
+                                title="Mark next chapter as read"
                             >
                                 <Plus size={14} strokeWidth={2.5} />
                             </button>
