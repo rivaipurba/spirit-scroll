@@ -18,7 +18,8 @@ export function MALSetup() {
     const checkStatus = async () => {
         setLoading(true);
         try {
-            const response = await fetch(`${API_BASE_URL}/api/mal/status`);
+            const baseUrl = API_BASE_URL.endsWith('/') ? API_BASE_URL.slice(0, -1) : API_BASE_URL;
+            const response = await fetch(`${baseUrl}/api/mal/status`);
             if (!response.ok) {
                 throw new Error(`HTTP ${response.status}: ${response.statusText}`);
             }
@@ -34,7 +35,8 @@ export function MALSetup() {
     const getAuthUrl = async () => {
         setLoading(true);
         try {
-            const response = await fetch(`${API_BASE_URL}/api/mal/auth-url`);
+            const baseUrl = API_BASE_URL.endsWith('/') ? API_BASE_URL.slice(0, -1) : API_BASE_URL;
+            const response = await fetch(`${baseUrl}/api/mal/auth-url`);
             if (!response.ok) {
                 throw new Error(`HTTP ${response.status}: ${response.statusText}`);
             }
