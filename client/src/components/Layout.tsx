@@ -27,12 +27,12 @@ export function Layout({ children, currentView, onNavigate, headerAction }: Layo
     return (
         <div className="min-h-screen w-full bg-[#0a0a0a] flex justify-center selection:bg-indigo-500/30">
             {/* Background Gradients */}
-            <div className="fixed inset-0 pointer-events-none overflow-hidden max-w-[500px] mx-auto">
+            <div className="fixed inset-0 pointer-events-none overflow-hidden max-w-[500px] md:max-w-4xl lg:max-w-6xl mx-auto">
                 <div className="absolute -top-[20%] -left-[10%] w-[70%] h-[50%] rounded-full bg-indigo-900/20 blur-[100px]" />
                 <div className="absolute top-[20%] -right-[10%] w-[60%] h-[60%] rounded-full bg-violet-900/10 blur-[100px]" />
             </div>
 
-            <div className="w-full max-w-[500px] min-h-screen bg-[#0a0a0a] border-x border-white/5 shadow-2xl relative flex flex-col z-10">
+            <div className="w-full max-w-[500px] md:max-w-4xl lg:max-w-6xl min-h-screen bg-[#0a0a0a] border-x border-white/5 shadow-2xl relative flex flex-col z-10">
 
                 {/* Header */}
                 <header className="flex justify-between items-center px-6 py-6 sticky top-0 z-20 backdrop-blur-md bg-[#0a0a0a]/80 border-b border-white/5">
@@ -76,11 +76,11 @@ export function Layout({ children, currentView, onNavigate, headerAction }: Layo
                     </div>
                 </header>
 
-                <main className="flex-1 pb-24 w-full px-4 sm:px-6 pt-2">
+                <main className="flex-1 pb-24 w-full px-4 sm:px-6 md:px-8 lg:px-12 pt-2">
                     {children}
                 </main>
 
-                <nav className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-[500px] bg-[#0a0a0a]/80 backdrop-blur-xl border-t border-white/5 z-50 pb-safe transition-all duration-300">
+                <nav className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-[500px] md:max-w-4xl lg:max-w-6xl bg-[#0a0a0a]/80 backdrop-blur-xl border-t border-white/5 z-50 pb-safe transition-all duration-300">
                     <div className="flex justify-around items-center h-20 px-6">
                         <NavButton
                             icon={<Home size={24} />}
