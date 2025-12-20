@@ -250,41 +250,58 @@ const routes = app.basePath("/api")
             hasToken: !!accessToken
         });
     })
-    .post("/refresh-mal/:id", async (c) => {
-        const id = Number(c.req.param("id"));
-        if (isNaN(id)) return c.json({ error: "Invalid ID" }, 400);
-
-        const db = createDb(c.env.DATABASE_URL, c.env.DATABASE_AUTH_TOKEN);
-        const item = await db.select().from(media).where(eq(media.id, id)).limit(1);
-        if (item.length === 0) return c.json({ error: "Not found" }, 404);
-
-        const mediaItem = item[0];
+    .get("/test-mal", async (c) => {
+        return c.json({ message: "MAL test endpoint working" });
+    })
+    .post("/test-mal", async (c) => {
+        return c.json({ message: "MAL POST test endpoint working" });
+    })
+    .all("/refresh-mal/:id", async (c) => {
+        const method = c.req.method;
+        const id = c.req.param("id");
         
-        // Only fetch MAL data for DONGHUA content
-        if (mediaItem.type !== "DONGHUA") {
-            return c.json({ error: "MAL data only available for DONGHUA content" }, 400);
+        if (method === "GET") {
+            return c.json({ message: `GET refresh-mal endpoint working for ID: ${id}` });
         }
-
-        const malData = await updateMALData(mediaItem.title, mediaItem.type);
         
-        if (Object.keys(malData).length === 0) {
-            return c.json({ error: "Could not fetch MAL data" }, 404);
-        }
+        if (method === "POST") {
+            const idNum = Number(id);
+            if (isNaN(idNum)) return c.json({ error: "Invalid ID" }, 400);
 
-        const result = await db.update(media)
-            .set(malData)
-            .where(eq(media.id, id))
-            .returning();
+            const db = createDb(c.env.DATABASE_URL, c.env.DATABASE_AUTH_TOKEN);
+            const item = await db.select().from(media).where(eq(media.id, idNum)).limit(1);
+            if (item.length === 0) return c.json({ error: "Not found" }, 404);
 
-        return c.json({
-            success: true,
-            malData: {
-                score: malData.malScore,
-                rank: malData.malRank,
-                popularity: malData.malPopularity,
-                status: malData.malStatus,
+            const mediaItem = item[0];
+            
+            // Only fetch MAL data for DONGHUA content
+            if (mediaItem.type !== "DONGHUA") {
+                return c.json({ error: "MAL data only available for DONGHUA content" }, 400);
             }
-        });
+
+            const malData = await updateMALData(mediaItem.title, mediaItem.type);
+            
+            if (Object.keys(malData).length === 0) {
+                return c.json({ error: "Could not fetch MAL data" }, 404);
+            }
+
+            const result = await db.update(media)
+                .set(malData)
+                .where(eq(media.id, idNum))
+                .returning();
+
+            return c.json({
+                success: true,
+                malData: {
+                    score: malData.malScore,
+                    rank: malData.malRank,
+                    popularity: malData.malPopularity,
+                    status: malData.malStatus,
+                }
+            });
+        }
+        
+        return c.json({ error: "Method not allowed" }, 405);
     })
     .get("/media", async (c) => {
         try {
