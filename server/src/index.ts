@@ -112,19 +112,18 @@ const routes = app.basePath("/api")
         }
 
         // Generate a random state for security
-        const state = Math.random().toString(36).substring(2, 15);
+        const state = Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
         
+        // Use simple OAuth2 flow without PKCE for easier implementation
         const authUrl = `https://myanimelist.net/v1/oauth2/authorize?` +
             `response_type=code&` +
             `client_id=${clientId}&` +
             `state=${state}&` +
-            `redirect_uri=${encodeURIComponent(c.env.MAL_REDIRECT_URI || 'http://localhost:3000/api/mal/callback')}&` +
-            `code_challenge_method=plain&` +
-            `code_challenge=${state}`;
+            `redirect_uri=${encodeURIComponent(c.env.MAL_REDIRECT_URI || 'http://localhost:3000/api/mal/callback')}`;
 
         return c.json({ 
             authUrl,
-            state 
+            state
         });
     })
     .get("/mal/callback", async (c) => {
@@ -153,7 +152,6 @@ const routes = app.basePath("/api")
                     client_id: clientId,
                     client_secret: clientSecret,
                     code: code,
-                    code_verifier: state || '',
                     grant_type: 'authorization_code',
                     redirect_uri: redirectUri,
                 }),
@@ -162,13 +160,16 @@ const routes = app.basePath("/api")
             if (!tokenResponse.ok) {
                 const errorText = await tokenResponse.text();
                 console.error('[MAL] Token exchange failed:', errorText);
-                return c.json({ error: "Failed to exchange code for token" }, 400);
+                return c.json({ 
+                    error: "Failed to exchange code for token",
+                    details: errorText,
+                    status: tokenResponse.status
+                }, 400);
             }
 
             const tokenData = await tokenResponse.json();
             
-            // In a real app, you'd store these tokens securely
-            // For now, we'll return them so you can set them as environment variables
+            // Return the tokens so you can set them as environment variables
             return c.json({
                 success: true,
                 message: "MAL authentication successful! Please save these tokens as environment variables.",
