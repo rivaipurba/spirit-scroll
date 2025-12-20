@@ -73,11 +73,11 @@ export function MediaCard({ media }: MediaCardProps) {
     return (
         <>
             <div
-                className="group relative flex flex-col md:flex-row items-start md:items-center bg-white/5 hover:bg-white/10 rounded-xl p-3 border border-white/5 hover:border-white/10 transition-all duration-300 backdrop-blur-sm cursor-pointer"
+                className="group relative flex items-center bg-white/5 hover:bg-white/10 rounded-xl p-3 border border-white/5 hover:border-white/10 transition-all duration-300 backdrop-blur-sm cursor-pointer"
                 onClick={() => setIsEditOpen(true)}
             >
                 {/* Cover Image */}
-                <div className="relative w-full md:w-16 h-48 md:h-24 lg:w-20 lg:h-28 rounded-lg overflow-hidden flex-shrink-0 shadow-lg bg-black/40 md:mr-4 mb-3 md:mb-0">
+                <div className="relative w-16 h-24 sm:w-20 sm:h-28 rounded-lg overflow-hidden flex-shrink-0 shadow-lg bg-black/40 mr-4">
                     {media.coverUrl ? (
                         <img
                             src={media.coverUrl}
@@ -113,9 +113,9 @@ export function MediaCard({ media }: MediaCardProps) {
                 </div>
 
                 {/* Content */}
-                <div className="flex-1 min-w-0 py-1 w-full">
+                <div className="flex-1 min-w-0 py-1">
                     <div className="flex justify-between items-start mb-1">
-                        <h3 className="font-semibold text-slate-100 text-sm md:text-base leading-tight line-clamp-2 group-hover:text-white transition-colors flex-1 pr-2">
+                        <h3 className="font-semibold text-slate-100 text-base leading-tight line-clamp-2 group-hover:text-white transition-colors max-w-[80%]">
                             {(media.sourceUrl || (media as any).source_url) ? (
                                 <a
                                     href={media.sourceUrl || (media as any).source_url}
@@ -137,7 +137,7 @@ export function MediaCard({ media }: MediaCardProps) {
                             <button
                                 onClick={handleCheckUpdate}
                                 disabled={checkUpdate.isPending}
-                                className={`p-1.5 rounded-full text-slate-500 hover:text-indigo-400 hover:bg-white/5 transition-all flex-shrink-0 ${checkUpdate.isPending ? 'animate-spin text-indigo-400' : ''}`}
+                                className={`p-1.5 rounded-full text-slate-500 hover:text-indigo-400 hover:bg-white/5 transition-all ${checkUpdate.isPending ? 'animate-spin text-indigo-400' : ''}`}
                                 title="Check for updates"
                             >
                                 <RefreshCw size={14} />
@@ -168,7 +168,7 @@ export function MediaCard({ media }: MediaCardProps) {
                             />
                         </div>
 
-                        <div className="flex items-center gap-1 transition-opacity duration-200 flex-shrink-0">
+                        <div className="flex items-center gap-1 transition-opacity duration-200">
                             <button
                                 onClick={handleQuickDecrement}
                                 className="p-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-slate-400 hover:text-white transition-colors"

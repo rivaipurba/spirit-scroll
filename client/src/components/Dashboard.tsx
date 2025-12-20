@@ -17,8 +17,8 @@ export function Dashboard({ isDialogOpen, onCloseDialog }: DashboardProps) {
     const [sortBy, setSortBy] = useState<SortOption>('updates');
     const { searchQuery } = useSearch();
     
-    // Use 10 items per page
-    const { data: paginatedMedia, isLoading, error, isPlaceholderData } = useMediaList(page, undefined, 10, sortBy, searchQuery);
+    // Use 12 items per page
+    const { data: paginatedMedia, isLoading, error, isPlaceholderData } = useMediaList(page, undefined, 12, sortBy, searchQuery);
     const mediaList = paginatedMedia?.data || [];
     const meta = paginatedMedia?.meta;
 
