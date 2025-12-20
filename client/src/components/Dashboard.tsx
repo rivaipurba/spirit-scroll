@@ -86,7 +86,7 @@ export function Dashboard({ isDialogOpen, onCloseDialog }: DashboardProps) {
                                 setPage(1); // Reset to first page when sorting changes
                             }}
                             title={option.desc}
-                            className={`flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-medium whitespace-nowrap transition-all ${
+                            className={`flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-medium whitespace-nowrap transition-all cursor-pointer ${
                                 sortBy === option.value
                                     ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-500/25'
                                     : 'bg-white/5 text-slate-400 hover:bg-white/10 hover:text-slate-200'
@@ -133,7 +133,7 @@ export function Dashboard({ isDialogOpen, onCloseDialog }: DashboardProps) {
                         <button
                             onClick={() => setPage(p => Math.max(1, p - 1))}
                             disabled={page === 1}
-                            className="p-2 rounded-full bg-white/5 hover:bg-white/10 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                            className="p-2 rounded-full bg-white/5 hover:bg-white/10 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer transition-colors"
                         >
                             <ChevronLeft size={20} className="text-slate-300" />
                         </button>
@@ -147,7 +147,7 @@ export function Dashboard({ isDialogOpen, onCloseDialog }: DashboardProps) {
                         <button
                             onClick={() => setPage(p => Math.min(meta.totalPages, p + 1))}
                             disabled={page === meta.totalPages || isPlaceholderData}
-                            className="p-2 rounded-full bg-white/5 hover:bg-white/10 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                            className="p-2 rounded-full bg-white/5 hover:bg-white/10 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer transition-colors"
                         >
                             <ChevronRight size={20} className="text-slate-300" />
                         </button>

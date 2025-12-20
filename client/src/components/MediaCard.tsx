@@ -121,7 +121,7 @@ export function MediaCard({ media }: MediaCardProps) {
                                     href={media.sourceUrl || (media as any).source_url}
                                     target="_blank"
                                     rel="noopener noreferrer"
-                                    className="hover:text-indigo-400 transition-colors inline"
+                                    className="hover:text-indigo-400 transition-colors inline cursor-pointer"
                                     onClick={(e) => e.stopPropagation()}
                                 >
                                     {media.title}
@@ -137,7 +137,7 @@ export function MediaCard({ media }: MediaCardProps) {
                             <button
                                 onClick={handleCheckUpdate}
                                 disabled={checkUpdate.isPending}
-                                className={`p-1.5 rounded-full text-slate-500 hover:text-indigo-400 hover:bg-white/5 transition-all ${checkUpdate.isPending ? 'animate-spin text-indigo-400' : ''}`}
+                                className={`p-1.5 rounded-full text-slate-500 hover:text-indigo-400 hover:bg-white/5 transition-all cursor-pointer disabled:cursor-not-allowed ${checkUpdate.isPending ? 'animate-spin text-indigo-400' : ''}`}
                                 title="Check for updates"
                             >
                                 <RefreshCw size={14} />
@@ -173,14 +173,14 @@ export function MediaCard({ media }: MediaCardProps) {
                         <div className="flex items-center gap-1 transition-opacity duration-200">
                             <button
                                 onClick={handleQuickDecrement}
-                                className="p-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-slate-400 hover:text-white transition-colors"
+                                className="p-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-slate-400 hover:text-white transition-colors cursor-pointer"
                                 title="Go back one chapter"
                             >
                                 <Minus size={14} strokeWidth={2.5} />
                             </button>
                             <button
                                 onClick={handleQuickIncrement}
-                                className="p-1.5 rounded-lg bg-indigo-500/20 hover:bg-indigo-500 text-indigo-400 hover:text-white transition-all shadow-[0_0_10px_rgba(99,102,241,0.2)] hover:shadow-[0_0_15px_rgba(99,102,241,0.5)]"
+                                className="p-1.5 rounded-lg bg-indigo-500/20 hover:bg-indigo-500 text-indigo-400 hover:text-white transition-all shadow-[0_0_10px_rgba(99,102,241,0.2)] hover:shadow-[0_0_15px_rgba(99,102,241,0.5)] cursor-pointer"
                                 title="Mark next chapter as read"
                             >
                                 <Plus size={14} strokeWidth={2.5} />

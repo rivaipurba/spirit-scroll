@@ -59,14 +59,14 @@ export function Layout({ children, currentView, onNavigate, headerAction }: Layo
                         {isSearchOpen ? (
                             <button
                                 onClick={handleClear}
-                                className="p-2 rounded-full text-slate-400 hover:text-white hover:bg-white/10 transition-colors"
+                                className="p-2 rounded-full text-slate-400 hover:text-white hover:bg-white/10 transition-colors cursor-pointer"
                             >
                                 <X size={20} />
                             </button>
                         ) : (
                             <button
                                 onClick={() => setIsSearchOpen(true)}
-                                className="p-2.5 bg-white/5 rounded-full text-slate-400 hover:text-white hover:bg-white/10 transition-colors ring-1 ring-white/5"
+                                className="p-2.5 bg-white/5 rounded-full text-slate-400 hover:text-white hover:bg-white/10 transition-colors ring-1 ring-white/5 cursor-pointer"
                             >
                                 <Search size={20} strokeWidth={2.5} />
                             </button>
@@ -111,7 +111,7 @@ function NavButton({ icon, label, active, onClick }: { icon: React.ReactNode, la
     return (
         <button
             onClick={onClick}
-            className={`flex flex-col items-center justify-center w-16 h-full transition-all duration-200 group relative ${active ? 'text-white' : 'text-zinc-500 hover:text-zinc-300'}`}
+            className={`flex flex-col items-center justify-center w-16 h-full transition-all duration-200 group relative cursor-pointer ${active ? 'text-white' : 'text-zinc-500 hover:text-zinc-300'}`}
         >
             <div className={`p-1.5 rounded-xl transition-all duration-300 ${active ? 'bg-indigo-500/10 translate-y-[-2px]' : 'group-hover:bg-white/5'}`}>
                 {React.cloneElement(icon as any, {

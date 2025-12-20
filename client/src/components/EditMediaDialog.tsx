@@ -83,7 +83,7 @@ export function EditMediaDialog({ isOpen, onClose, media }: EditMediaDialogProps
                 {/* 1. Fixed Header */}
                 <div className="flex items-center justify-between border-b border-white/10 p-4 shrink-0">
                     <h2 className="text-lg font-semibold text-white">Edit Entry</h2>
-                    <button onClick={onClose} className="text-neutral-400 hover:text-white transition-colors">
+                    <button onClick={onClose} className="text-neutral-400 hover:text-white transition-colors cursor-pointer">
                         <X size={20} />
                     </button>
                 </div>

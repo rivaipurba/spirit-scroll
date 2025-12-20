@@ -47,7 +47,7 @@ export function NewEntryDialog({ isOpen, onClose }: NewEntryDialogProps) {
             >
                 <div className="flex items-center justify-between p-4 sm:p-6 border-b border-white/10">
                     <h2 className="text-xl font-bold text-white">New Entry</h2>
-                    <button onClick={onClose} className="text-slate-500 hover:text-white transition-colors p-1 hover:bg-white/10 rounded-full">
+                    <button onClick={onClose} className="text-slate-500 hover:text-white transition-colors p-1 hover:bg-white/10 rounded-full cursor-pointer">
                         <X size={20} />
                     </button>
                 </div>
