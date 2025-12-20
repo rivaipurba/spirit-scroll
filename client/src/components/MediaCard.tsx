@@ -1,8 +1,8 @@
-import { Plus, ExternalLink, Minus, RefreshCw } from 'lucide-react';
+import { Plus, ExternalLink, Minus, RefreshCw, Star } from 'lucide-react';
 import React, { useState } from 'react';
 import { EditMediaDialog } from './EditMediaDialog';
 import { ConfirmDialog } from './ConfirmDialog';
-import { useUpdateProgress, useCheckUpdate } from '../hooks/useMedia';
+import { useUpdateProgress, useCheckUpdate, useRefreshMAL } from '../hooks/useMedia';
 import { useToastContext } from '../context/ToastContext';
 
 interface MediaCardProps {
@@ -16,6 +16,17 @@ interface MediaCardProps {
         sourceUrl: string | null;
         coverUrl: string | null;
         latestReleasedChapter: number | null;
+        // MAL fields
+        malId?: number | null;
+        malScore?: number | null;
+        malRank?: number | null;
+        malPopularity?: number | null;
+        malSynopsis?: string | null;
+        malGenres?: string | null;
+        malStatus?: string | null;
+        malStartDate?: string | null;
+        malEndDate?: string | null;
+        malLastUpdated?: number | null;
     }
 }
 
@@ -24,6 +35,7 @@ export function MediaCard({ media }: MediaCardProps) {
     const [isConfirmOpen, setIsConfirmOpen] = useState(false);
     const updateProgress = useUpdateProgress();
     const checkUpdate = useCheckUpdate();
+    const refreshMAL = useRefreshMAL();
     const toast = useToastContext();
 
     const handleQuickIncrement = (e: React.MouseEvent) => {
@@ -66,6 +78,11 @@ export function MediaCard({ media }: MediaCardProps) {
     const handleCheckUpdate = (e: React.MouseEvent) => {
         e.stopPropagation();
         checkUpdate.mutate(media.id);
+    };
+
+    const handleRefreshMAL = (e: React.MouseEvent) => {
+        e.stopPropagation();
+        refreshMAL.mutate(media.id);
     };
 
     const hasUpdate = media.latestReleasedChapter != null && media.latestReleasedChapter > media.currentChapter;
@@ -132,17 +149,32 @@ export function MediaCard({ media }: MediaCardProps) {
                             )}
                         </h3>
 
-                        {/* Refresh Button */}
-                        {(media.sourceUrl || (media as any).source_url) && (
-                            <button
-                                onClick={handleCheckUpdate}
-                                disabled={checkUpdate.isPending}
-                                className={`p-1.5 rounded-full text-slate-500 hover:text-indigo-400 hover:bg-white/5 transition-all cursor-pointer disabled:cursor-not-allowed ${checkUpdate.isPending ? 'animate-spin text-indigo-400' : ''}`}
-                                title="Check for updates"
-                            >
-                                <RefreshCw size={14} />
-                            </button>
-                        )}
+                        {/* Action Buttons */}
+                        <div className="flex items-center gap-1">
+                            {/* Refresh Button */}
+                            {(media.sourceUrl || (media as any).source_url) && (
+                                <button
+                                    onClick={handleCheckUpdate}
+                                    disabled={checkUpdate.isPending}
+                                    className={`p-1.5 rounded-full text-slate-500 hover:text-indigo-400 hover:bg-white/5 transition-all cursor-pointer disabled:cursor-not-allowed ${checkUpdate.isPending ? 'animate-spin text-indigo-400' : ''}`}
+                                    title="Check for updates"
+                                >
+                                    <RefreshCw size={14} />
+                                </button>
+                            )}
+                            
+                            {/* MAL Refresh Button - Only for DONGHUA */}
+                            {media.type === 'DONGHUA' && (
+                                <button
+                                    onClick={handleRefreshMAL}
+                                    disabled={refreshMAL.isPending}
+                                    className={`p-1.5 rounded-full text-slate-500 hover:text-yellow-400 hover:bg-white/5 transition-all cursor-pointer disabled:cursor-not-allowed ${refreshMAL.isPending ? 'animate-spin text-yellow-400' : ''}`}
+                                    title="Refresh MAL data"
+                                >
+                                    <Star size={14} />
+                                </button>
+                            )}
+                        </div>
                     </div>
 
                     <div className="flex items-center text-xs text-slate-400 mb-3 space-x-2">
@@ -156,6 +188,20 @@ export function MediaCard({ media }: MediaCardProps) {
                             <>
                                 <span className="text-slate-600">•</span>
                                 <span>Total: {media.totalChapters}</span>
+                            </>
+                        )}
+                        
+                        {/* MAL Data Display */}
+                        {media.type === 'DONGHUA' && media.malScore && (
+                            <>
+                                <span className="text-slate-600">•</span>
+                                <span className="text-yellow-400 font-medium">★ {media.malScore.toFixed(1)}</span>
+                            </>
+                        )}
+                        {media.type === 'DONGHUA' && media.malRank && (
+                            <>
+                                <span className="text-slate-600">•</span>
+                                <span className="text-green-400 font-medium">#{media.malRank}</span>
                             </>
                         )}
                     </div>

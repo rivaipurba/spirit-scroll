@@ -263,6 +263,37 @@ export function useScanAll() {
     });
 }
 
+export function useRefreshMAL() {
+    const queryClient = useQueryClient();
+    const toast = useToastContext();
+
+    return useMutation({
+        mutationFn: async (id: number) => {
+            const res = await client.api.media[":id"]["refresh-mal"].$post({
+                param: { id: id.toString() }
+            });
+            if (!res.ok) {
+                throw new Error("Failed to refresh MAL data");
+            }
+            return await res.json();
+        },
+        onSuccess: (data, id) => {
+            queryClient.invalidateQueries({ queryKey: ["media-list"] });
+            const malData = data.malData;
+            toast.success(
+                "MAL Data Updated",
+                `Score: ${malData.score || 'N/A'} • Rank: #${malData.rank || 'N/A'}`
+            );
+        },
+        onError: (error) => {
+            toast.error(
+                "MAL Refresh Failed",
+                error.message || "Failed to refresh MAL data"
+            );
+        },
+    });
+}
+
 // Note: Some functions above need manual notification updates:
 // - useUpdateMedia: Add success/error handlers
 // - useScanAll: Add success/error handlers with proper data handling

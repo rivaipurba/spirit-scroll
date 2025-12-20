@@ -9,10 +9,17 @@ import { eq, or, count, like, and, desc, asc, sql } from "drizzle-orm";
 
 import { fetchCoverImage } from "./utils/scraper";
 import { checkLatestChapter } from "./utils/update-checker";
+import { searchMALAnime, getMALAnimeDetails, shouldUpdateMALData } from "./utils/mal-api";
+import { z } from "zod";
 
 type Bindings = {
     DATABASE_URL: string;
     DATABASE_AUTH_TOKEN: string;
+    MAL_CLIENT_ID: string;
+    MAL_CLIENT_SECRET: string;
+    MAL_ACCESS_TOKEN?: string;
+    MAL_REFRESH_TOKEN?: string;
+    MAL_REDIRECT_URI?: string;
 };
 
 const app = new Hono<{ Bindings: Bindings }>();
@@ -65,7 +72,133 @@ app.use("/*", async (c, next) => {
     await next();
 });
 
+// Helper function to fetch and update MAL data
+async function updateMALData(title: string, type: "MANHUA" | "DONGHUA") {
+    try {
+        // Only search for DONGHUA (anime) content on MAL
+        if (type !== "DONGHUA") {
+            return {};
+        }
+
+        const malData = await searchMALAnime(title);
+        if (!malData) {
+            return {};
+        }
+
+        return {
+            malId: malData.id,
+            malScore: malData.mean || null,
+            malRank: malData.rank || null,
+            malPopularity: malData.popularity || null,
+            malSynopsis: malData.synopsis || null,
+            malGenres: malData.genres ? JSON.stringify(malData.genres) : null,
+            malStatus: malData.status || null,
+            malStartDate: malData.start_date || null,
+            malEndDate: malData.end_date || null,
+            malLastUpdated: Date.now(),
+        };
+    } catch (error) {
+        console.error('[MAL] Error updating MAL data:', error);
+        return {};
+    }
+}
+
 const routes = app.basePath("/api")
+    // MAL OAuth2 endpoints
+    .get("/mal/auth-url", async (c) => {
+        const clientId = c.env.MAL_CLIENT_ID;
+        if (!clientId) {
+            return c.json({ error: "MAL Client ID not configured" }, 500);
+        }
+
+        // Generate a random state for security
+        const state = Math.random().toString(36).substring(2, 15);
+        
+        const authUrl = `https://myanimelist.net/v1/oauth2/authorize?` +
+            `response_type=code&` +
+            `client_id=${clientId}&` +
+            `state=${state}&` +
+            `redirect_uri=${encodeURIComponent(c.env.MAL_REDIRECT_URI || 'http://localhost:3000/api/mal/callback')}&` +
+            `code_challenge_method=plain&` +
+            `code_challenge=${state}`;
+
+        return c.json({ 
+            authUrl,
+            state 
+        });
+    })
+    .get("/mal/callback", async (c) => {
+        const code = c.req.query("code");
+        const state = c.req.query("state");
+        
+        if (!code) {
+            return c.json({ error: "Authorization code not provided" }, 400);
+        }
+
+        const clientId = c.env.MAL_CLIENT_ID;
+        const clientSecret = c.env.MAL_CLIENT_SECRET;
+        const redirectUri = c.env.MAL_REDIRECT_URI || 'http://localhost:3000/api/mal/callback';
+
+        if (!clientId || !clientSecret) {
+            return c.json({ error: "MAL credentials not configured" }, 500);
+        }
+
+        try {
+            const tokenResponse = await fetch('https://myanimelist.net/v1/oauth2/token', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: new URLSearchParams({
+                    client_id: clientId,
+                    client_secret: clientSecret,
+                    code: code,
+                    code_verifier: state || '',
+                    grant_type: 'authorization_code',
+                    redirect_uri: redirectUri,
+                }),
+            });
+
+            if (!tokenResponse.ok) {
+                const errorText = await tokenResponse.text();
+                console.error('[MAL] Token exchange failed:', errorText);
+                return c.json({ error: "Failed to exchange code for token" }, 400);
+            }
+
+            const tokenData = await tokenResponse.json();
+            
+            // In a real app, you'd store these tokens securely
+            // For now, we'll return them so you can set them as environment variables
+            return c.json({
+                success: true,
+                message: "MAL authentication successful! Please save these tokens as environment variables.",
+                tokens: {
+                    access_token: tokenData.access_token,
+                    refresh_token: tokenData.refresh_token,
+                    expires_in: tokenData.expires_in,
+                    token_type: tokenData.token_type
+                },
+                instructions: {
+                    access_token: "Set MAL_ACCESS_TOKEN environment variable",
+                    refresh_token: "Set MAL_REFRESH_TOKEN environment variable"
+                }
+            });
+        } catch (error) {
+            console.error('[MAL] OAuth2 callback error:', error);
+            return c.json({ error: "OAuth2 callback failed" }, 500);
+        }
+    })
+    .get("/mal/status", async (c) => {
+        const clientId = c.env.MAL_CLIENT_ID;
+        const accessToken = c.env.MAL_ACCESS_TOKEN;
+        
+        return c.json({
+            configured: !!clientId,
+            authenticated: !!accessToken,
+            clientId: clientId ? `${clientId.substring(0, 8)}...` : null,
+            hasToken: !!accessToken
+        });
+    })
     .get("/media", async (c) => {
         try {
             const page = Number(c.req.query("page")) || 1;
@@ -160,11 +293,15 @@ const routes = app.basePath("/api")
             coverUrl = await fetchCoverImage(data.sourceUrl);
         }
 
+        // Fetch MAL data for DONGHUA content
+        const malData = await updateMALData(data.title, data.type);
+
         const db = createDb(c.env.DATABASE_URL, c.env.DATABASE_AUTH_TOKEN);
 
         const result = await db.insert(media).values({
             ...data,
-            coverUrl: coverUrl
+            coverUrl: coverUrl,
+            ...malData,
         }).returning();
         return c.json(result[0], 201);
     })
@@ -272,6 +409,42 @@ const routes = app.basePath("/api")
         response.headers.set("Access-Control-Allow-Methods", "POST, OPTIONS");
         response.headers.set("Access-Control-Allow-Headers", "Content-Type");
         return response;
+    })
+    .post("/media/:id/refresh-mal", async (c) => {
+        const id = Number(c.req.param("id"));
+        if (isNaN(id)) return c.json({ error: "Invalid ID" }, 400);
+
+        const db = createDb(c.env.DATABASE_URL, c.env.DATABASE_AUTH_TOKEN);
+        const item = await db.select().from(media).where(eq(media.id, id)).limit(1);
+        if (item.length === 0) return c.json({ error: "Not found" }, 404);
+
+        const mediaItem = item[0];
+        
+        // Only fetch MAL data for DONGHUA content
+        if (mediaItem.type !== "DONGHUA") {
+            return c.json({ error: "MAL data only available for DONGHUA content" }, 400);
+        }
+
+        const malData = await updateMALData(mediaItem.title, mediaItem.type);
+        
+        if (Object.keys(malData).length === 0) {
+            return c.json({ error: "Could not fetch MAL data" }, 404);
+        }
+
+        const result = await db.update(media)
+            .set(malData)
+            .where(eq(media.id, id))
+            .returning();
+
+        return c.json({
+            success: true,
+            malData: {
+                score: malData.malScore,
+                rank: malData.malRank,
+                popularity: malData.malPopularity,
+                status: malData.malStatus,
+            }
+        });
     })
     .post("/import", zValidator("json", z.array(insertMediaSchema)), async (c) => {
         try {
