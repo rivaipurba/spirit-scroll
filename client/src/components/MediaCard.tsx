@@ -148,7 +148,9 @@ export function MediaCard({ media }: MediaCardProps) {
                     <div className="flex items-center text-xs text-slate-400 mb-3 space-x-2">
                         <span className={hasUpdate ? "text-orange-400 font-medium" : ""}>
                             {media.type === 'DONGHUA' ? 'Ep.' : 'Ch.'} {media.currentChapter}
-                            {hasUpdate && media.latestReleasedChapter != null && media.latestReleasedChapter > 0 && ` / ${media.latestReleasedChapter} (New!)`}
+                            {hasUpdate && media.latestReleasedChapter != null && media.latestReleasedChapter > 0 && (
+                                ` / ${media.latestReleasedChapter} (${media.latestReleasedChapter - media.currentChapter})`
+                            )}
                         </span>
                         {(media.totalChapters || 0) > 0 && (
                             <>
