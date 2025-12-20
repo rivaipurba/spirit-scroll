@@ -417,6 +417,42 @@ const routes = app.basePath("/api")
 
         return c.json({ error: "Could not find chapter info" }, 404);
     })
+    .post("/refresh-mal/:id", async (c) => {
+        const id = Number(c.req.param("id"));
+        if (isNaN(id)) return c.json({ error: "Invalid ID" }, 400);
+
+        const db = createDb(c.env.DATABASE_URL, c.env.DATABASE_AUTH_TOKEN);
+        const item = await db.select().from(media).where(eq(media.id, id)).limit(1);
+        if (item.length === 0) return c.json({ error: "Not found" }, 404);
+
+        const mediaItem = item[0];
+        
+        // Only fetch MAL data for DONGHUA content
+        if (mediaItem.type !== "DONGHUA") {
+            return c.json({ error: "MAL data only available for DONGHUA content" }, 400);
+        }
+
+        const malData = await updateMALData(mediaItem.title, mediaItem.type);
+        
+        if (Object.keys(malData).length === 0) {
+            return c.json({ error: "Could not fetch MAL data" }, 404);
+        }
+
+        const result = await db.update(media)
+            .set(malData)
+            .where(eq(media.id, id))
+            .returning();
+
+        return c.json({
+            success: true,
+            malData: {
+                score: malData.malScore,
+                rank: malData.malRank,
+                popularity: malData.malPopularity,
+                status: malData.malStatus,
+            }
+        });
+    })
     .get("/media/:id/refresh-mal", async (c) => {
         // GET version for testing
         return c.json({ message: "MAL refresh endpoint is working", method: "GET" });

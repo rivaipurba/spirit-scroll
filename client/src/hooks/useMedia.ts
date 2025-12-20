@@ -269,11 +269,11 @@ export function useRefreshMAL() {
 
     return useMutation({
         mutationFn: async (id: number) => {
-            // Use direct fetch instead of RPC client for this endpoint
+            // Use the new endpoint structure
             const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
             const baseUrl = API_BASE_URL.endsWith('/') ? API_BASE_URL.slice(0, -1) : API_BASE_URL;
             
-            const res = await fetch(`${baseUrl}/api/media/${id}/refresh-mal`, {
+            const res = await fetch(`${baseUrl}/api/refresh-mal/${id}`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
