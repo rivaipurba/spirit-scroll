@@ -103,10 +103,6 @@ async function updateMALData(title: string, type: "MANHUA" | "DONGHUA") {
     }
 }
 
-// Simple in-memory store for PKCE code verifiers
-// In production, you'd use a proper session store or database
-const codeVerifierStore = new Map<string, string>();
-
 const routes = app.basePath("/api")
     // MAL OAuth2 endpoints
     .get("/mal/auth-url", async (c) => {
@@ -115,9 +111,6 @@ const routes = app.basePath("/api")
             return c.json({ error: "MAL Client ID not configured" }, 500);
         }
 
-        // Generate a random state for security
-        const state = Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
-        
         // Generate a proper PKCE code verifier (43-128 characters)
         // Using A-Z, a-z, 0-9, and -._~ characters as per OAuth2 spec
         const codeVerifier = Array.from({ length: 64 }, () => {
@@ -125,21 +118,32 @@ const routes = app.basePath("/api")
             return chars.charAt(Math.floor(Math.random() * chars.length));
         }).join('');
         
-        // Store the code verifier with the state as key
-        codeVerifierStore.set(state, codeVerifier);
+        // Generate a random state and encode the code verifier in it
+        // Format: randomState.base64EncodedCodeVerifier
+        const randomState = Math.random().toString(36).substring(2, 15);
+        const encodedVerifier = btoa(codeVerifier); // Base64 encode
+        const state = `${randomState}.${encodedVerifier}`;
         
         // For MAL, code_challenge = code_verifier (plain method)
         const authUrl = `https://myanimelist.net/v1/oauth2/authorize?` +
             `response_type=code&` +
             `client_id=${clientId}&` +
-            `state=${state}&` +
+            `state=${encodeURIComponent(state)}&` +
             `redirect_uri=${encodeURIComponent(c.env.MAL_REDIRECT_URI || 'http://localhost:3000/api/mal/callback')}&` +
             `code_challenge=${codeVerifier}&` +
             `code_challenge_method=plain`;
 
+        // Debug logging
+        console.log('[MAL] Generated code verifier length:', codeVerifier.length);
+        console.log('[MAL] Generated auth URL:', authUrl);
+
         return c.json({ 
             authUrl,
-            state
+            state: randomState, // Only return the random part for display
+            debug: {
+                codeVerifierLength: codeVerifier.length,
+                codeVerifier: codeVerifier.substring(0, 10) + '...' // Show first 10 chars for debugging
+            }
         });
     })
     .get("/mal/callback", async (c) => {
@@ -154,24 +158,27 @@ const routes = app.basePath("/api")
             return c.json({ error: "State parameter not provided" }, 400);
         }
 
-        // Retrieve the code verifier using the state
-        const codeVerifier = codeVerifierStore.get(state);
-        if (!codeVerifier) {
-            return c.json({ error: "Invalid state or expired session" }, 400);
-        }
-
-        // Clean up the stored code verifier
-        codeVerifierStore.delete(state);
-
-        const clientId = c.env.MAL_CLIENT_ID;
-        const clientSecret = c.env.MAL_CLIENT_SECRET;
-        const redirectUri = c.env.MAL_REDIRECT_URI || 'http://localhost:3000/api/mal/callback';
-
-        if (!clientId || !clientSecret) {
-            return c.json({ error: "MAL credentials not configured" }, 500);
-        }
-
+        // Decode the code verifier from the state parameter
         try {
+            const [randomState, encodedVerifier] = state.split('.');
+            if (!encodedVerifier) {
+                return c.json({ error: "Invalid state format" }, 400);
+            }
+            
+            const codeVerifier = atob(encodedVerifier); // Base64 decode
+            
+            if (codeVerifier.length < 43 || codeVerifier.length > 128) {
+                return c.json({ error: "Invalid code verifier length" }, 400);
+            }
+
+            const clientId = c.env.MAL_CLIENT_ID;
+            const clientSecret = c.env.MAL_CLIENT_SECRET;
+            const redirectUri = c.env.MAL_REDIRECT_URI || 'http://localhost:3000/api/mal/callback';
+
+            if (!clientId || !clientSecret) {
+                return c.json({ error: "MAL credentials not configured" }, 500);
+            }
+
             const tokenResponse = await fetch('https://myanimelist.net/v1/oauth2/token', {
                 method: 'POST',
                 headers: {
@@ -216,8 +223,21 @@ const routes = app.basePath("/api")
             });
         } catch (error) {
             console.error('[MAL] OAuth2 callback error:', error);
-            return c.json({ error: "OAuth2 callback failed" }, 500);
+            return c.json({ error: "Failed to decode state parameter" }, 400);
         }
+    })
+    .get("/mal/test-verifier", async (c) => {
+        // Test code verifier generation
+        const codeVerifier = Array.from({ length: 64 }, () => {
+            const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-._~';
+            return chars.charAt(Math.floor(Math.random() * chars.length));
+        }).join('');
+        
+        return c.json({
+            codeVerifier,
+            length: codeVerifier.length,
+            isValidLength: codeVerifier.length >= 43 && codeVerifier.length <= 128
+        });
     })
     .get("/mal/status", async (c) => {
         const clientId = c.env.MAL_CLIENT_ID;
