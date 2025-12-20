@@ -39,16 +39,10 @@ class MALTokenManager {
     private accessToken: string | null = null;
     private refreshToken: string | null = null;
     private expiresAt: number = 0;
+    private env: any = null;
 
     private constructor() {
-        // Load tokens from environment if available
-        this.accessToken = process.env.MAL_ACCESS_TOKEN || null;
-        this.refreshToken = process.env.MAL_REFRESH_TOKEN || null;
-        
-        // If we have an access token but no expiry, assume it's valid for 1 hour
-        if (this.accessToken && !this.expiresAt) {
-            this.expiresAt = Date.now() + (3600 * 1000);
-        }
+        // Tokens will be set from environment when needed
     }
 
     static getInstance(): MALTokenManager {
@@ -58,6 +52,18 @@ class MALTokenManager {
         return MALTokenManager.instance;
     }
 
+    // Set environment context (for Cloudflare Workers)
+    setEnv(env: any) {
+        this.env = env;
+        this.accessToken = env.MAL_ACCESS_TOKEN || null;
+        this.refreshToken = env.MAL_REFRESH_TOKEN || null;
+        
+        // If we have an access token but no expiry, assume it's valid for 1 hour
+        if (this.accessToken && !this.expiresAt) {
+            this.expiresAt = Date.now() + (3600 * 1000);
+        }
+    }
+
     async getValidToken(): Promise<string | null> {
         // If we have a valid token, return it
         if (this.accessToken && Date.now() < this.expiresAt) {
@@ -65,7 +71,7 @@ class MALTokenManager {
         }
 
         // Try to refresh the token if we have a refresh token
-        if (this.refreshToken) {
+        if (this.refreshToken && this.env) {
             const refreshed = await this.refreshAccessToken();
             if (refreshed) {
                 return this.accessToken;
@@ -79,8 +85,8 @@ class MALTokenManager {
 
     private async refreshAccessToken(): Promise<boolean> {
         try {
-            const clientId = process.env.MAL_CLIENT_ID;
-            const clientSecret = process.env.MAL_CLIENT_SECRET;
+            const clientId = this.env?.MAL_CLIENT_ID || process.env.MAL_CLIENT_ID;
+            const clientSecret = this.env?.MAL_CLIENT_SECRET || process.env.MAL_CLIENT_SECRET;
 
             if (!clientId || !clientSecret || !this.refreshToken) {
                 return false;
@@ -104,7 +110,7 @@ class MALTokenManager {
                 return false;
             }
 
-            const tokenData: MALTokenResponse = await response.json();
+            const tokenData = await response.json() as MALTokenResponse;
             
             this.accessToken = tokenData.access_token;
             this.refreshToken = tokenData.refresh_token;
@@ -127,39 +133,74 @@ class MALTokenManager {
 }
 
 // Get token instance
-async function getMALToken(): Promise<string | null> {
+async function getMALToken(env?: any): Promise<string | null> {
     const tokenManager = MALTokenManager.getInstance();
+    if (env) {
+        tokenManager.setEnv(env);
+    }
     return await tokenManager.getValidToken();
 }
 
-export async function searchMALAnime(query: string): Promise<MALAnimeData | null> {
+export async function searchMALAnime(query: string, env?: any): Promise<MALAnimeData | null> {
     try {
-        const token = await getMALToken();
+        const token = await getMALToken(env);
         if (!token) {
             console.log('[MAL] No access token available, skipping MAL search');
             return null;
         }
 
-        const searchUrl = `${MAL_BASE_URL}/anime?q=${encodeURIComponent(query)}&limit=1&fields=id,title,main_picture,mean,rank,popularity,synopsis,genres,status,start_date,end_date,num_episodes,media_type`;
+        console.log(`[MAL] Searching for: "${query}"`);
         
-        const response = await fetch(searchUrl, {
-            headers: {
-                'Authorization': `Bearer ${token}`,
-                'User-Agent': 'SpiritScroll/1.0'
+        // Try multiple search strategies
+        const searchStrategies = [
+            query, // Original query
+            query.toLowerCase(), // Lowercase
+            query.replace(/[^\w\s]/g, ''), // Remove special characters
+            query.split(/[:\-–—]/).map(s => s.trim()).filter(s => s)[0] || query, // Take first part before colon/dash
+        ];
+
+        // Remove duplicates
+        const uniqueQueries = [...new Set(searchStrategies)];
+        
+        for (const searchQuery of uniqueQueries) {
+            console.log(`[MAL] Trying search query: "${searchQuery}"`);
+            
+            const searchUrl = `${MAL_BASE_URL}/anime?q=${encodeURIComponent(searchQuery)}&limit=5&fields=id,title,main_picture,mean,rank,popularity,synopsis,genres,status,start_date,end_date,num_episodes,media_type`;
+            
+            console.log(`[MAL] Search URL: ${searchUrl}`);
+            
+            const response = await fetch(searchUrl, {
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'X-MAL-CLIENT-ID': (env?.MAL_CLIENT_ID || process.env.MAL_CLIENT_ID) || '',
+                }
+            });
+
+            console.log(`[MAL] Response status: ${response.status}`);
+
+            if (!response.ok) {
+                console.error(`[MAL] Search failed: ${response.status} ${response.statusText}`);
+                const errorText = await response.text();
+                console.error(`[MAL] Error response: ${errorText}`);
+                continue; // Try next strategy
             }
-        });
 
-        if (!response.ok) {
-            console.error(`[MAL] Search failed: ${response.status} ${response.statusText}`);
-            return null;
+            const data = await response.json() as MALSearchResult;
+            console.log(`[MAL] Search results count: ${data.data?.length || 0}`);
+            
+            if (data.data && data.data.length > 0) {
+                // Log all results for debugging
+                data.data.forEach((item, index) => {
+                    console.log(`[MAL] Result ${index + 1}: ${item.node.title} (ID: ${item.node.id})`);
+                });
+                
+                // Return the first result
+                console.log(`[MAL] Found anime:`, data.data[0].node);
+                return data.data[0].node;
+            }
         }
 
-        const data: MALSearchResult = await response.json();
-        
-        if (data.data && data.data.length > 0) {
-            return data.data[0].node;
-        }
-
+        console.log(`[MAL] No results found for any search strategy of: "${query}"`);
         return null;
     } catch (error) {
         console.error('[MAL] Search error:', error);
@@ -167,9 +208,9 @@ export async function searchMALAnime(query: string): Promise<MALAnimeData | null
     }
 }
 
-export async function getMALAnimeDetails(malId: number): Promise<MALAnimeData | null> {
+export async function getMALAnimeDetails(malId: number, env?: any): Promise<MALAnimeData | null> {
     try {
-        const token = await getMALToken();
+        const token = await getMALToken(env);
         if (!token) {
             console.log('[MAL] No access token available, skipping MAL details fetch');
             return null;
@@ -180,7 +221,7 @@ export async function getMALAnimeDetails(malId: number): Promise<MALAnimeData | 
         const response = await fetch(detailsUrl, {
             headers: {
                 'Authorization': `Bearer ${token}`,
-                'User-Agent': 'SpiritScroll/1.0'
+                'X-MAL-CLIENT-ID': (env?.MAL_CLIENT_ID || process.env.MAL_CLIENT_ID) || '',
             }
         });
 
@@ -189,7 +230,7 @@ export async function getMALAnimeDetails(malId: number): Promise<MALAnimeData | 
             return null;
         }
 
-        const data: MALAnimeData = await response.json();
+        const data = await response.json() as MALAnimeData;
         return data;
     } catch (error) {
         console.error('[MAL] Details fetch error:', error);

@@ -73,14 +73,14 @@ app.use("/*", async (c, next) => {
 });
 
 // Helper function to fetch and update MAL data
-async function updateMALData(title: string, type: "MANHUA" | "DONGHUA") {
+async function updateMALData(title: string, type: "MANHUA" | "DONGHUA", env: any) {
     try {
         // Only search for DONGHUA (anime) content on MAL
         if (type !== "DONGHUA") {
             return {};
         }
 
-        const malData = await searchMALAnime(title);
+        const malData = await searchMALAnime(title, env);
         if (!malData) {
             return {};
         }
@@ -204,7 +204,7 @@ const routes = app.basePath("/api")
                 }, 400);
             }
 
-            const tokenData = await tokenResponse.json();
+            const tokenData = await tokenResponse.json() as any;
             
             // Return the tokens so you can set them as environment variables
             return c.json({
@@ -250,8 +250,25 @@ const routes = app.basePath("/api")
             hasToken: !!accessToken
         });
     })
-    .get("/test-mal", async (c) => {
-        return c.json({ message: "MAL test endpoint working" });
+    .get("/test-mal-search", async (c) => {
+        const query = c.req.query("q") || "Attack on Titan";
+        console.log(`[TEST] Testing MAL search for: "${query}"`);
+        
+        try {
+            const result = await searchMALAnime(query, c.env);
+            return c.json({
+                success: true,
+                query: query,
+                result: result,
+                hasResult: !!result
+            });
+        } catch (error) {
+            return c.json({
+                success: false,
+                query: query,
+                error: error instanceof Error ? error.message : 'Unknown error'
+            });
+        }
     })
     .post("/test-mal", async (c) => {
         return c.json({ message: "MAL POST test endpoint working" });
@@ -289,10 +306,20 @@ const routes = app.basePath("/api")
                 return c.json({ error: "MAL data only available for DONGHUA content" }, 400);
             }
 
-            const malData = await updateMALData(mediaItem.title, mediaItem.type);
+            const malData = await updateMALData(mediaItem.title, mediaItem.type, c.env);
+            
+            console.log(`[DEBUG] Searching MAL for: "${mediaItem.title}"`);
+            console.log(`[DEBUG] MAL data result:`, malData);
             
             if (Object.keys(malData).length === 0) {
-                return c.json({ error: "Could not fetch MAL data" }, 404);
+                return c.json({ 
+                    error: "Could not fetch MAL data", 
+                    debug: {
+                        title: mediaItem.title,
+                        type: mediaItem.type,
+                        searchAttempted: true
+                    }
+                }, 404);
             }
 
             const result = await db.update(media)
@@ -407,8 +434,18 @@ const routes = app.basePath("/api")
             coverUrl = await fetchCoverImage(data.sourceUrl);
         }
 
-        // Fetch MAL data for DONGHUA content
-        const malData = await updateMALData(data.title, data.type);
+        // Try to fetch MAL data for DONGHUA content, but don't fail if it doesn't work
+        let malData = {};
+        if (data.type === "DONGHUA") {
+            try {
+                malData = await updateMALData(data.title, data.type, c.env);
+                console.log(`[CREATE] MAL data fetched for "${data.title}":`, malData);
+            } catch (error) {
+                console.log(`[CREATE] MAL data fetch failed for "${data.title}", continuing without MAL data:`, error);
+            }
+        }
+        
+        console.log(`[CREATE] Creating entry for "${data.title}" with MAL data:`, Object.keys(malData).length > 0 ? 'Yes' : 'No');
 
         const db = createDb(c.env.DATABASE_URL, c.env.DATABASE_AUTH_TOKEN);
 
@@ -495,7 +532,7 @@ const routes = app.basePath("/api")
             return c.json({ error: "MAL data only available for DONGHUA content" }, 400);
         }
 
-        const malData = await updateMALData(mediaItem.title, mediaItem.type);
+        const malData = await updateMALData(mediaItem.title, mediaItem.type, c.env);
         
         if (Object.keys(malData).length === 0) {
             return c.json({ error: "Could not fetch MAL data" }, 404);
@@ -535,7 +572,7 @@ const routes = app.basePath("/api")
             return c.json({ error: "MAL data only available for DONGHUA content" }, 400);
         }
 
-        const malData = await updateMALData(mediaItem.title, mediaItem.type);
+        const malData = await updateMALData(mediaItem.title, mediaItem.type, c.env);
         
         if (Object.keys(malData).length === 0) {
             return c.json({ error: "Could not fetch MAL data" }, 404);

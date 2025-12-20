@@ -269,34 +269,54 @@ export function useRefreshMAL() {
 
     return useMutation({
         mutationFn: async (id: number) => {
-            // Use the new endpoint structure
+            // Use the working test-mal-search endpoint as a workaround
             const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
             const baseUrl = API_BASE_URL.endsWith('/') ? API_BASE_URL.slice(0, -1) : API_BASE_URL;
             
-            const res = await fetch(`${baseUrl}/api/refresh-mal/${id}`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-            });
+            // First get the media item to get its title
+            const mediaResponse = await fetch(`${baseUrl}/api/media`);
+            const mediaData = await mediaResponse.json();
+            const mediaItem = mediaData.data.find((item: any) => item.id === id);
             
-            if (!res.ok) {
-                throw new Error("Failed to refresh MAL data");
+            if (!mediaItem) {
+                throw new Error("Media item not found");
             }
-            return await res.json();
+            
+            if (mediaItem.type !== 'DONGHUA') {
+                throw new Error("MAL data only available for DONGHUA content");
+            }
+            
+            // Use the working search endpoint
+            const searchResponse = await fetch(`${baseUrl}/api/test-mal-search?q=${encodeURIComponent(mediaItem.title)}`);
+            const searchData = await searchResponse.json();
+            
+            if (!searchData.success || !searchData.result) {
+                throw new Error("No MAL data found for this title");
+            }
+            
+            // Return the MAL data in the expected format
+            return {
+                success: true,
+                malData: {
+                    score: searchData.result.mean,
+                    rank: searchData.result.rank,
+                    popularity: searchData.result.popularity,
+                    status: searchData.result.status,
+                }
+            };
         },
         onSuccess: (data) => {
             queryClient.invalidateQueries({ queryKey: ["media-list"] });
             const malData = data.malData;
             toast.success(
-                "MAL Data Updated",
+                "MAL Data Found",
                 `Score: ${malData.score || 'N/A'} • Rank: #${malData.rank || 'N/A'}`
             );
         },
         onError: (error) => {
             toast.error(
-                "MAL Refresh Failed",
-                error.message || "Failed to refresh MAL data"
+                "MAL Search Failed",
+                error.message || "Failed to find MAL data"
             );
         },
     });

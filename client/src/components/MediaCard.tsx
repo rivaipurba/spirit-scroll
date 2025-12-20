@@ -192,13 +192,13 @@ export function MediaCard({ media }: MediaCardProps) {
                         )}
                         
                         {/* MAL Data Display */}
-                        {media.type === 'DONGHUA' && media.malScore && typeof media.malScore === 'number' && (
+                        {media.type === 'DONGHUA' && media.malScore && (
                             <>
                                 <span className="text-slate-600">•</span>
-                                <span className="text-yellow-400 font-medium">★ {media.malScore.toFixed(1)}</span>
+                                <span className="text-yellow-400 font-medium">★ {Number(media.malScore).toFixed(1)}</span>
                             </>
                         )}
-                        {media.type === 'DONGHUA' && media.malRank && typeof media.malRank === 'number' && (
+                        {media.type === 'DONGHUA' && media.malRank && (
                             <>
                                 <span className="text-slate-600">•</span>
                                 <span className="text-green-400 font-medium">#{media.malRank}</span>
