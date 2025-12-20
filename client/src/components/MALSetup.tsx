@@ -8,6 +8,8 @@ interface MALStatus {
     hasToken: boolean;
 }
 
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
+
 export function MALSetup() {
     const [status, setStatus] = useState<MALStatus | null>(null);
     const [loading, setLoading] = useState(false);
@@ -16,7 +18,10 @@ export function MALSetup() {
     const checkStatus = async () => {
         setLoading(true);
         try {
-            const response = await fetch('/api/mal/status');
+            const response = await fetch(`${API_BASE_URL}/api/mal/status`);
+            if (!response.ok) {
+                throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+            }
             const data = await response.json();
             setStatus(data);
         } catch (error) {
@@ -29,7 +34,10 @@ export function MALSetup() {
     const getAuthUrl = async () => {
         setLoading(true);
         try {
-            const response = await fetch('/api/mal/auth-url');
+            const response = await fetch(`${API_BASE_URL}/api/mal/auth-url`);
+            if (!response.ok) {
+                throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+            }
             const data = await response.json();
             if (data.authUrl) {
                 setAuthUrl(data.authUrl);
