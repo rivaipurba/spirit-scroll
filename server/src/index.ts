@@ -257,6 +257,16 @@ const routes = app.basePath("/api")
         return c.json({ message: "MAL POST test endpoint working" });
     })
     .all("/refresh-mal/:id", async (c) => {
+        // Handle CORS preflight
+        if (c.req.method === "OPTIONS") {
+            return c.text("", 200, {
+                "Access-Control-Allow-Origin": "*",
+                "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
+                "Access-Control-Allow-Headers": "Content-Type",
+                "Access-Control-Max-Age": "86400",
+            });
+        }
+        
         const method = c.req.method;
         const id = c.req.param("id");
         
