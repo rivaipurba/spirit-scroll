@@ -269,9 +269,17 @@ export function useRefreshMAL() {
 
     return useMutation({
         mutationFn: async (id: number) => {
-            const res = await client.api.media[":id"]["refresh-mal"].$post({
-                param: { id: id.toString() }
+            // Use direct fetch instead of RPC client for this endpoint
+            const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
+            const baseUrl = API_BASE_URL.endsWith('/') ? API_BASE_URL.slice(0, -1) : API_BASE_URL;
+            
+            const res = await fetch(`${baseUrl}/api/media/${id}/refresh-mal`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
             });
+            
             if (!res.ok) {
                 throw new Error("Failed to refresh MAL data");
             }
