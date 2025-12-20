@@ -20,14 +20,24 @@ const app = new Hono<{ Bindings: Bindings }>();
 app.use(
     "/*",
     cors({
-        origin: '*', // Allow any origin for development
-        allowHeaders: ["X-Custom-Header", "Upgrade-Insecure-Requests", "Content-Type"],
+        origin: ['https://spirit-scroll.vercel.app', 'http://localhost:5173', '*'], // Explicit origins
+        allowHeaders: ["X-Custom-Header", "Upgrade-Insecure-Requests", "Content-Type", "Authorization"],
         allowMethods: ["POST", "GET", "OPTIONS", "PATCH", "DELETE"],
         exposeHeaders: ["Content-Length", "X-Kuma-Revision"],
         maxAge: 600,
-        credentials: true,
+        credentials: false, // Set to false for wildcard origins
     })
 );
+
+// Explicit OPTIONS handler for preflight requests
+app.options("/*", (c) => {
+    return c.text("", 200, {
+        "Access-Control-Allow-Origin": "*",
+        "Access-Control-Allow-Methods": "GET, POST, PATCH, DELETE, OPTIONS",
+        "Access-Control-Allow-Headers": "Content-Type, Authorization",
+        "Access-Control-Max-Age": "86400",
+    });
+});
 
 // Simple rate limiting middleware
 const rateLimitMap = new Map();
@@ -256,7 +266,12 @@ const routes = app.basePath("/api")
             }
         }
 
-        return c.json({ success: true, updated: updatedCount });
+        const response = c.json({ success: true, updated: updatedCount });
+        // Add explicit CORS headers
+        response.headers.set("Access-Control-Allow-Origin", "*");
+        response.headers.set("Access-Control-Allow-Methods", "POST, OPTIONS");
+        response.headers.set("Access-Control-Allow-Headers", "Content-Type");
+        return response;
     })
     .post("/import", zValidator("json", z.array(insertMediaSchema)), async (c) => {
         try {
