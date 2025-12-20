@@ -417,6 +417,10 @@ const routes = app.basePath("/api")
 
         return c.json({ error: "Could not find chapter info" }, 404);
     })
+    .get("/media/:id/refresh-mal", async (c) => {
+        // GET version for testing
+        return c.json({ message: "MAL refresh endpoint is working", method: "GET" });
+    })
     .post("/media/:id/refresh-mal", async (c) => {
         const id = Number(c.req.param("id"));
         if (isNaN(id)) return c.json({ error: "Invalid ID" }, 400);
