@@ -99,18 +99,22 @@ export function Dashboard({ isDialogOpen, onCloseDialog }: DashboardProps) {
                 </div>
             </div>
 
-            <div className="flex flex-col px-4">
+            <div className="px-4">
                 {isPlaceholderData && (
                     <div className="flex items-center justify-center py-8">
                         <Loader2 className="w-6 h-6 animate-spin text-indigo-500" />
                     </div>
                 )}
-                {mediaList?.map((media: any) => (
-                    <MediaCard key={media.id} media={media} />
-                ))}
+                
+                {/* Responsive Grid Layout */}
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {mediaList?.map((media: any) => (
+                        <MediaCard key={media.id} media={media} />
+                    ))}
+                </div>
 
                 {mediaList.length === 0 && (
-                    <div className="flex flex-col items-center justify-center py-20 text-center opacity-50">
+                    <div className="col-span-full flex flex-col items-center justify-center py-20 text-center opacity-50">
                         {searchQuery ? (
                             <p className="text-sm font-medium text-slate-400">No matches found for "{searchQuery}"</p>
                         ) : (
@@ -125,7 +129,7 @@ export function Dashboard({ isDialogOpen, onCloseDialog }: DashboardProps) {
 
                 {/* Pagination Controls */}
                 {meta && meta.totalPages > 1 && (
-                    <div className="flex items-center justify-center gap-4 mt-8 pb-4">
+                    <div className="col-span-full flex items-center justify-center gap-4 mt-8 pb-4">
                         <button
                             onClick={() => setPage(p => Math.max(1, p - 1))}
                             disabled={page === 1}
