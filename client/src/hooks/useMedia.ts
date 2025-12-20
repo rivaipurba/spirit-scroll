@@ -277,7 +277,7 @@ export function useRefreshMAL() {
             }
             return await res.json();
         },
-        onSuccess: (data, id) => {
+        onSuccess: (data) => {
             queryClient.invalidateQueries({ queryKey: ["media-list"] });
             const malData = data.malData;
             toast.success(
