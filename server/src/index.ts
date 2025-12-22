@@ -138,11 +138,8 @@ const routes = app.basePath("/api")
                 }
             });
         } catch (e: any) {
-            return c.json({
-                error: e.message,
-                stack: e.stack,
-                env_keys: Object.keys(c.env || {})
-            }, 500);
+            console.error('[GET /media] Error:', e);
+            return c.json({ error: 'Failed to fetch media' }, 500);
         }
     })
     .post("/media", zValidator("json", insertMediaSchema), async (c) => {
@@ -177,11 +174,7 @@ const routes = app.basePath("/api")
             return c.json(result[0], 201);
         } catch (error: any) {
             console.error('[CREATE] Error creating media entry:', error);
-            return c.json({
-                error: 'Failed to create media entry',
-                details: error.message,
-                stack: error.stack
-            }, 500);
+            return c.json({ error: 'Failed to create media entry' }, 500);
         }
     })
     .patch("/media/:id", zValidator("json", patchMediaSchema), async (c) => {
@@ -322,10 +315,8 @@ const routes = app.basePath("/api")
                 errors: errors.length > 0 ? errors : undefined
             });
         } catch (e: any) {
-            return c.json({
-                error: e.message,
-                stack: e.stack
-            }, 500);
+            console.error('[IMPORT] Error:', e);
+            return c.json({ error: 'Failed to import data' }, 500);
         }
     });
 
