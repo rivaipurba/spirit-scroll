@@ -46,7 +46,7 @@ export function MediaCard({ media }: MediaCardProps) {
     const handleConfirmIncrement = () => {
         const nextChapter = media.currentChapter + 1;
         const chapterType = media.type === 'DONGHUA' ? 'episode' : 'chapter';
-        
+
         updateProgress.mutate({
             id: media.id,
             currentChapter: nextChapter
@@ -162,7 +162,7 @@ export function MediaCard({ media }: MediaCardProps) {
                                     <RefreshCw size={14} />
                                 </button>
                             )}
-                            
+
                             {/* MAL Refresh Button - Only for DONGHUA */}
                             {media.type === 'DONGHUA' && (
                                 <button
@@ -190,15 +190,15 @@ export function MediaCard({ media }: MediaCardProps) {
                                 <span>Total: {media.totalChapters}</span>
                             </>
                         )}
-                        
+
                         {/* MAL Data Display */}
-                        {media.type === 'DONGHUA' && media.malScore && (
+                        {media.type === 'DONGHUA' && media.malScore != null && (
                             <>
                                 <span className="text-slate-600">•</span>
                                 <span className="text-yellow-400 font-medium">★ {Number(media.malScore).toFixed(1)}</span>
                             </>
                         )}
-                        {media.type === 'DONGHUA' && media.malRank && (
+                        {media.type === 'DONGHUA' && media.malRank != null && (
                             <>
                                 <span className="text-slate-600">•</span>
                                 <span className="text-green-400 font-medium">#{media.malRank}</span>
