@@ -52,11 +52,11 @@ export function useUpdateProgress() {
             // Optimistically update the cache
             queryClient.setQueriesData({ queryKey: ["media-list"] }, (old: any) => {
                 if (!old?.data) return old;
-                
+
                 return {
                     ...old,
-                    data: old.data.map((item: any) => 
-                        item.id === id 
+                    data: old.data.map((item: any) =>
+                        item.id === id
                             ? { ...item, currentChapter: currentChapter ?? item.currentChapter, status: status ?? item.status }
                             : item
                     )
@@ -103,7 +103,7 @@ export function useCreateMedia() {
         onSuccess: (data) => {
             queryClient.invalidateQueries({ queryKey: ["media-list"] });
             toast.success(
-                "Entry Created", 
+                "Entry Created",
                 `"${data.title}" has been added to your library`
             );
         },
@@ -262,94 +262,3 @@ export function useScanAll() {
         },
     });
 }
-
-export function useRefreshMAL() {
-    const queryClient = useQueryClient();
-    const toast = useToastContext();
-
-    return useMutation({
-        mutationFn: async (id: number) => {
-            const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
-            const baseUrl = API_BASE_URL.endsWith('/') ? API_BASE_URL.slice(0, -1) : API_BASE_URL;
-            
-            // First get the media item to get its title
-            const mediaResponse = await fetch(`${baseUrl}/api/media`);
-            const mediaData = await mediaResponse.json();
-            const mediaItem = mediaData.data.find((item: any) => item.id === id);
-            
-            if (!mediaItem) {
-                throw new Error("Media item not found");
-            }
-            
-            if (mediaItem.type !== 'DONGHUA') {
-                throw new Error("MAL data only available for DONGHUA content");
-            }
-            
-            // Use the working search endpoint to get MAL data
-            const searchResponse = await fetch(`${baseUrl}/api/test-mal-search?q=${encodeURIComponent(mediaItem.title)}`);
-            const searchData = await searchResponse.json();
-            
-            if (!searchData.success || !searchData.result) {
-                throw new Error("No MAL data found for this title");
-            }
-            
-            // Now update the media item with the MAL data using the PATCH endpoint
-            const malData = {
-                malId: searchData.result.id,
-                malScore: searchData.result.mean,
-                malRank: searchData.result.rank,
-                malPopularity: searchData.result.popularity,
-                malSynopsis: searchData.result.synopsis,
-                malGenres: searchData.result.genres ? JSON.stringify(searchData.result.genres) : null,
-                malStatus: searchData.result.status,
-                malStartDate: searchData.result.start_date,
-                malEndDate: searchData.result.end_date,
-                malLastUpdated: Date.now(),
-            };
-            
-            // Update the database record
-            const updateResponse = await fetch(`${baseUrl}/api/media/${id}`, {
-                method: 'PATCH',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(malData),
-            });
-            
-            if (!updateResponse.ok) {
-                throw new Error("Failed to save MAL data to database");
-            }
-            
-            await updateResponse.json(); // Consume the response
-            
-            // Return the result in the expected format
-            return {
-                success: true,
-                malData: {
-                    score: searchData.result.mean,
-                    rank: searchData.result.rank,
-                    popularity: searchData.result.popularity,
-                    status: searchData.result.status,
-                }
-            };
-        },
-        onSuccess: (data) => {
-            queryClient.invalidateQueries({ queryKey: ["media-list"] });
-            const malData = data.malData;
-            toast.success(
-                "MAL Data Updated",
-                `Score: ${malData.score || 'N/A'} • Rank: #${malData.rank || 'N/A'}`
-            );
-        },
-        onError: (error) => {
-            toast.error(
-                "MAL Update Failed",
-                error.message || "Failed to update MAL data"
-            );
-        },
-    });
-}
-
-// Note: Some functions above need manual notification updates:
-// - useUpdateMedia: Add success/error handlers
-// - useScanAll: Add success/error handlers with proper data handling
