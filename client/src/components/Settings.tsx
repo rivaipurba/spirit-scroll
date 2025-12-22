@@ -1,7 +1,6 @@
 import { Download, Upload, Loader2, Sparkles, Database, FileJson, RefreshCw, CheckCircle2, AlertCircle } from 'lucide-react';
 import { useMediaList as useMedia, useImportMedia, useScanAll, useUpdateMedia } from '../hooks/useMedia';
 import { useRef, useState } from 'react';
-import { MALSetup } from './MALSetup';
 
 export function Settings() {
     const { data: paginatedMedia } = useMedia(1, undefined, 10000);
@@ -162,8 +161,6 @@ export function Settings() {
                 </div>
             </div>
 
-            {/* MAL Integration */}
-            <MALSetup />
 
             {/* Data Management */}
             <div className="bg-white/5 border border-white/10 rounded-xl p-6 backdrop-blur-sm">
