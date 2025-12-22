@@ -9,7 +9,7 @@ import { eq, or, count, like, and, desc, asc, sql } from "drizzle-orm";
 
 import { fetchCoverImage } from "./utils/scraper";
 import { checkLatestChapter } from "./utils/update-checker";
-import { searchMALAnime, getMALAnimeDetails, shouldUpdateMALData } from "./utils/mal-api";
+import { searchMALAnime } from "./utils/mal-api";
 import { z } from "zod";
 
 type Bindings = {
@@ -427,27 +427,62 @@ const routes = app.basePath("/api")
         }
     })
     .post("/media", zValidator("json", insertMediaSchema), async (c) => {
-        const data = c.req.valid("json");
+        try {
+            const data = c.req.valid("json");
 
-        let coverUrl = data.coverUrl;
-        if (data.sourceUrl && !coverUrl) {
-            coverUrl = await fetchCoverImage(data.sourceUrl);
+            let coverUrl = data.coverUrl;
+            if (data.sourceUrl && !coverUrl) {
+                coverUrl = await fetchCoverImage(data.sourceUrl);
+            }
+
+            // Don't fetch MAL data during creation to avoid errors
+            // Users can use the star button to add MAL data after creation
+            const malData = {
+                malId: null,
+                malScore: null,
+                malRank: null,
+                malPopularity: null,
+                malSynopsis: null,
+                malGenres: null,
+                malStatus: null,
+                malStartDate: null,
+                malEndDate: null,
+                malLastUpdated: null,
+            };
+            
+            console.log(`[CREATE] Creating entry for "${data.title}" without MAL data (can be added later with star button)`);
+
+            const db = createDb(c.env.DATABASE_URL, c.env.DATABASE_AUTH_TOKEN);
+
+            // Create a minimal insert object with only required fields
+            const insertData = {
+                title: data.title,
+                type: data.type,
+                currentChapter: data.currentChapter || 0,
+                status: data.status,
+            };
+            
+            // Add optional fields only if they exist
+            if (data.totalChapters !== undefined && data.totalChapters !== null) {
+                insertData.totalChapters = data.totalChapters;
+            }
+            if (coverUrl) {
+                insertData.coverUrl = coverUrl;
+            }
+            if (data.sourceUrl) {
+                insertData.sourceUrl = data.sourceUrl;
+            }
+
+            const result = await db.insert(media).values(insertData).returning();
+            return c.json(result[0], 201);
+        } catch (error: any) {
+            console.error('[CREATE] Error creating media entry:', error);
+            return c.json({
+                error: 'Failed to create media entry',
+                details: error.message,
+                stack: error.stack
+            }, 500);
         }
-
-        // Don't fetch MAL data during creation to avoid errors
-        // Users can use the star button to add MAL data after creation
-        const malData = {};
-        
-        console.log(`[CREATE] Creating entry for "${data.title}" without MAL data (can be added later with star button)`);
-
-        const db = createDb(c.env.DATABASE_URL, c.env.DATABASE_AUTH_TOKEN);
-
-        const result = await db.insert(media).values({
-            ...data,
-            coverUrl: coverUrl,
-            ...malData,
-        }).returning();
-        return c.json(result[0], 201);
     })
     .patch("/media/:id", zValidator("json", patchMediaSchema), async (c) => {
         const id = Number(c.req.param("id"));
