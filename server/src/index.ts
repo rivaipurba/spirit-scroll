@@ -434,18 +434,11 @@ const routes = app.basePath("/api")
             coverUrl = await fetchCoverImage(data.sourceUrl);
         }
 
-        // Try to fetch MAL data for DONGHUA content, but don't fail if it doesn't work
-        let malData = {};
-        if (data.type === "DONGHUA") {
-            try {
-                malData = await updateMALData(data.title, data.type, c.env);
-                console.log(`[CREATE] MAL data fetched for "${data.title}":`, malData);
-            } catch (error) {
-                console.log(`[CREATE] MAL data fetch failed for "${data.title}", continuing without MAL data:`, error);
-            }
-        }
+        // Don't fetch MAL data during creation to avoid errors
+        // Users can use the star button to add MAL data after creation
+        const malData = {};
         
-        console.log(`[CREATE] Creating entry for "${data.title}" with MAL data:`, Object.keys(malData).length > 0 ? 'Yes' : 'No');
+        console.log(`[CREATE] Creating entry for "${data.title}" without MAL data (can be added later with star button)`);
 
         const db = createDb(c.env.DATABASE_URL, c.env.DATABASE_AUTH_TOKEN);
 
