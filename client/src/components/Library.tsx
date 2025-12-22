@@ -9,7 +9,7 @@ export function Library() {
     const [page, setPage] = useState(1);
     const [sortBy, setSortBy] = useState<SortOption>('title');
 
-    const { data, isLoading, isPlaceholderData } = useMediaList(page, activeTab === 'ALL' ? undefined : activeTab, 10, sortBy);
+    const { data, isLoading, isPlaceholderData } = useMediaList(page, activeTab === 'ALL' ? undefined : activeTab, 24, sortBy);
 
     const mediaList = data?.data || [];
     const meta = data?.meta;
@@ -76,17 +76,16 @@ export function Library() {
                         {mediaList.length} item{mediaList.length !== 1 ? 's' : ''}
                     </span>
                 </div>
-                
+
                 <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-none">
                     {sortOptions.map((option) => (
                         <button
                             key={option.value}
                             onClick={() => handleSortChange(option.value as SortOption)}
-                            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap transition-all ${
-                                sortBy === option.value
-                                    ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-500/25'
-                                    : 'bg-white/5 text-slate-400 hover:bg-white/10 hover:text-slate-200'
-                            }`}
+                            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap transition-all ${sortBy === option.value
+                                ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-500/25'
+                                : 'bg-white/5 text-slate-400 hover:bg-white/10 hover:text-slate-200'
+                                }`}
                         >
                             <span className="text-[10px]">{option.icon}</span>
                             <span>{option.label}</span>
@@ -98,7 +97,7 @@ export function Library() {
             {/* Grid */}
             {mediaList.length > 0 ? (
                 <>
-                    <div className="grid grid-cols-3 gap-3">
+                    <div className="grid grid-cols-4 sm:grid-cols-5 md:grid-cols-6 lg:grid-cols-8 gap-2 sm:gap-3">
                         {mediaList.map((media: any) => <LibraryCard key={media.id} media={media} />)}
                     </div>
 
@@ -143,33 +142,33 @@ function LibraryCard({ media }: { media: any }) {
     const isManhua = media.type === 'MANHUA';
 
     return (
-        <div className="flex flex-col gap-2 group cursor-pointer">
-            <div className="relative aspect-[2/3] rounded-xl overflow-hidden bg-white/5 border border-white/10 shadow-lg">
+        <div className="flex flex-col gap-1.5 group cursor-pointer">
+            <div className="relative aspect-[2/3] rounded-lg overflow-hidden bg-white/5 border border-white/5 shadow-md hover:shadow-lg transition-shadow">
                 {media.coverUrl ? (
                     <img
                         src={media.coverUrl}
                         alt={media.title}
-                        className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                        className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
                         loading="lazy"
                     />
                 ) : (
-                    <div className="w-full h-full flex items-center justify-center text-xs text-white/20">No Cover</div>
+                    <div className="w-full h-full flex items-center justify-center text-[10px] text-white/20">No Cover</div>
                 )}
 
                 {/* Type Badge Overlay */}
-                <div className={`absolute top-2 left-2 px-2 py-1 rounded-md bg-black/60 backdrop-blur-md border border-white/10 flex items-center gap-1.5`}>
+                <div className={`absolute top-1 left-1 px-1.5 py-0.5 rounded bg-black/70 backdrop-blur-sm flex items-center gap-1`}>
                     {isManhua ? (
-                        <Book size={10} className="text-orange-400" />
+                        <Book size={8} className="text-orange-400" />
                     ) : (
-                        <Youtube size={10} className="text-blue-400" />
+                        <Youtube size={8} className="text-blue-400" />
                     )}
-                    <span className={`text-[8px] font-bold tracking-wider ${isManhua ? 'text-orange-400' : 'text-blue-400'}`}>
+                    <span className={`text-[7px] font-bold tracking-wide ${isManhua ? 'text-orange-400' : 'text-blue-400'}`}>
                         {media.type}
                     </span>
                 </div>
             </div>
 
-            <h3 className="text-xs font-semibold text-slate-300 line-clamp-2 leading-relaxed group-hover:text-white transition-colors">
+            <h3 className="text-[10px] sm:text-xs font-medium text-slate-400 line-clamp-2 leading-tight group-hover:text-white transition-colors">
                 {media.title}
             </h3>
         </div>
