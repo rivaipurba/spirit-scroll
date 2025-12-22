@@ -57,7 +57,7 @@ class MALTokenManager {
         this.env = env;
         this.accessToken = env.MAL_ACCESS_TOKEN || null;
         this.refreshToken = env.MAL_REFRESH_TOKEN || null;
-        
+
         // If we have an access token but no expiry, assume it's valid for 1 hour
         if (this.accessToken && !this.expiresAt) {
             this.expiresAt = Date.now() + (3600 * 1000);
@@ -85,8 +85,8 @@ class MALTokenManager {
 
     private async refreshAccessToken(): Promise<boolean> {
         try {
-            const clientId = this.env?.MAL_CLIENT_ID || process.env.MAL_CLIENT_ID;
-            const clientSecret = this.env?.MAL_CLIENT_SECRET || process.env.MAL_CLIENT_SECRET;
+            const clientId = this.env?.MAL_CLIENT_ID;
+            const clientSecret = this.env?.MAL_CLIENT_SECRET;
 
             if (!clientId || !clientSecret || !this.refreshToken) {
                 return false;
@@ -111,7 +111,7 @@ class MALTokenManager {
             }
 
             const tokenData = await response.json() as MALTokenResponse;
-            
+
             this.accessToken = tokenData.access_token;
             this.refreshToken = tokenData.refresh_token;
             this.expiresAt = Date.now() + (tokenData.expires_in * 1000);
@@ -150,7 +150,7 @@ export async function searchMALAnime(query: string, env?: any): Promise<MALAnime
         }
 
         console.log(`[MAL] Searching for: "${query}"`);
-        
+
         // Try multiple search strategies
         const searchStrategies = [
             query, // Original query
@@ -161,18 +161,18 @@ export async function searchMALAnime(query: string, env?: any): Promise<MALAnime
 
         // Remove duplicates
         const uniqueQueries = [...new Set(searchStrategies)];
-        
+
         for (const searchQuery of uniqueQueries) {
             console.log(`[MAL] Trying search query: "${searchQuery}"`);
-            
+
             const searchUrl = `${MAL_BASE_URL}/anime?q=${encodeURIComponent(searchQuery)}&limit=5&fields=id,title,main_picture,mean,rank,popularity,synopsis,genres,status,start_date,end_date,num_episodes,media_type`;
-            
+
             console.log(`[MAL] Search URL: ${searchUrl}`);
-            
+
             const response = await fetch(searchUrl, {
                 headers: {
                     'Authorization': `Bearer ${token}`,
-                    'X-MAL-CLIENT-ID': (env?.MAL_CLIENT_ID || process.env.MAL_CLIENT_ID) || '',
+                    'X-MAL-CLIENT-ID': env?.MAL_CLIENT_ID || '',
                 }
             });
 
@@ -187,13 +187,13 @@ export async function searchMALAnime(query: string, env?: any): Promise<MALAnime
 
             const data = await response.json() as MALSearchResult;
             console.log(`[MAL] Search results count: ${data.data?.length || 0}`);
-            
+
             if (data.data && data.data.length > 0) {
                 // Log all results for debugging
                 data.data.forEach((item, index) => {
                     console.log(`[MAL] Result ${index + 1}: ${item.node.title} (ID: ${item.node.id})`);
                 });
-                
+
                 // Return the first result
                 console.log(`[MAL] Found anime:`, data.data[0].node);
                 return data.data[0].node;
@@ -217,11 +217,11 @@ export async function getMALAnimeDetails(malId: number, env?: any): Promise<MALA
         }
 
         const detailsUrl = `${MAL_BASE_URL}/anime/${malId}?fields=id,title,main_picture,mean,rank,popularity,synopsis,genres,status,start_date,end_date,num_episodes,media_type`;
-        
+
         const response = await fetch(detailsUrl, {
             headers: {
                 'Authorization': `Bearer ${token}`,
-                'X-MAL-CLIENT-ID': (env?.MAL_CLIENT_ID || process.env.MAL_CLIENT_ID) || '',
+                'X-MAL-CLIENT-ID': env?.MAL_CLIENT_ID || '',
             }
         });
 
@@ -240,7 +240,7 @@ export async function getMALAnimeDetails(malId: number, env?: any): Promise<MALA
 
 export function shouldUpdateMALData(lastUpdated: number | null): boolean {
     if (!lastUpdated) return true;
-    
+
     // Update MAL data if it's older than 7 days
     const oneWeek = 7 * 24 * 60 * 60 * 1000;
     return Date.now() - lastUpdated > oneWeek;
