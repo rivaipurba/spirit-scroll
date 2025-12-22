@@ -118,7 +118,7 @@ export function useCreateMedia() {
 
 export function useUpdateMedia() {
     const queryClient = useQueryClient();
-    // const toast = useToastContext(); // TODO: Add notifications
+    const toast = useToastContext();
 
     return useMutation({
         mutationFn: async ({ id, ...data }: { id: number; title?: string; type?: "MANHUA" | "DONGHUA"; currentChapter?: number; totalChapters?: number | null; status?: "READING" | "COMPLETED" | "PLAN_TO_READ" | "ON_HOLD" | "DROPPED"; sourceUrl?: string | null }) => {
@@ -131,8 +131,18 @@ export function useUpdateMedia() {
             }
             return await res.json();
         },
-        onSuccess: () => {
+        onSuccess: (data) => {
             queryClient.invalidateQueries({ queryKey: ["media-list"] });
+            toast.success(
+                "Entry Updated",
+                `"${data.title}" has been updated`
+            );
+        },
+        onError: (error) => {
+            toast.error(
+                "Update Failed",
+                error.message || "Failed to update entry"
+            );
         },
     });
 }
