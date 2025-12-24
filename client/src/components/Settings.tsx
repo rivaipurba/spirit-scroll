@@ -1,5 +1,6 @@
 import { Download, Upload, Loader2, Sparkles, Database, FileJson, RefreshCw, CheckCircle2, AlertCircle } from 'lucide-react';
 import { useMediaList as useMedia, useImportMedia, useScanAll, useUpdateMedia } from '../hooks/useMedia';
+import { useToastContext } from '../context/ToastContext';
 import { useRef, useState } from 'react';
 
 export function Settings() {
@@ -8,6 +9,7 @@ export function Settings() {
     const importMedia = useImportMedia();
     const scanAll = useScanAll();
     const updateMedia = useUpdateMedia();
+    const toast = useToastContext();
 
     const fileInputRef = useRef<HTMLInputElement>(null);
     const [scanResult, setScanResult] = useState<string | null>(null);
@@ -96,7 +98,10 @@ export function Settings() {
         }
 
         setIsReScraping(false);
-        alert(`Re-scrape complete. Processed ${processed} items.`);
+        toast.success(
+            'Re-scrape Complete',
+            `Processed ${processed} items successfully.`
+        );
     };
 
     const totalSeries = media?.length || 0;

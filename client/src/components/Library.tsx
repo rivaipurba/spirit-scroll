@@ -1,6 +1,13 @@
-import { useState } from 'react';
+import React, { useState } from 'react';
 import { useMediaList } from '../hooks/useMedia';
 import { Loader2, Book, Youtube, ChevronLeft, ChevronRight, ArrowUpDown } from 'lucide-react';
+
+const SORT_OPTIONS = [
+    { value: 'title', label: 'Title A-Z', icon: '📝' },
+    { value: 'progress', label: 'Progress %', icon: '📊' },
+    { value: 'recent', label: 'Recent', icon: '⏰' },
+    { value: 'updates', label: 'Updates', icon: '🔥' },
+] as const;
 
 type SortOption = 'title' | 'progress' | 'recent' | 'updates';
 
@@ -24,12 +31,7 @@ export function Library() {
         setPage(1); // Reset to first page when sorting changes
     };
 
-    const sortOptions = [
-        { value: 'title', label: 'Title A-Z', icon: '📝' },
-        { value: 'progress', label: 'Progress %', icon: '📊' },
-        { value: 'recent', label: 'Recent', icon: '⏰' },
-        { value: 'updates', label: 'Updates', icon: '🔥' },
-    ];
+
 
     if (isLoading) {
         return (
@@ -55,7 +57,7 @@ export function Library() {
                     <button
                         key={tab.id}
                         onClick={() => handleTabChange(tab.id as any)}
-                        className={`px-4 py-2 rounded-full text-xs font-bold whitespace-nowrap transition-all ${activeTab === tab.id
+                        className={`px-4 py-2 rounded-full text-xs font-bold whitespace-nowrap transition-all cursor-pointer ${activeTab === tab.id
                             ? 'bg-white text-black'
                             : 'bg-white/5 text-slate-400 hover:bg-white/10 hover:text-slate-200'
                             }`}
@@ -78,7 +80,7 @@ export function Library() {
                 </div>
 
                 <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-none">
-                    {sortOptions.map((option) => (
+                    {SORT_OPTIONS.map((option) => (
                         <button
                             key={option.value}
                             onClick={() => handleSortChange(option.value as SortOption)}
@@ -138,7 +140,7 @@ export function Library() {
     );
 }
 
-function LibraryCard({ media }: { media: any }) {
+const LibraryCard = React.memo(function LibraryCard({ media }: { media: any }) {
     const isManhua = media.type === 'MANHUA';
 
     return (
@@ -172,5 +174,5 @@ function LibraryCard({ media }: { media: any }) {
                 {media.title}
             </h3>
         </div>
-    )
-}
+    );
+});

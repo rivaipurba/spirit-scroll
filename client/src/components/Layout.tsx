@@ -1,4 +1,4 @@
-import React, { useRef, useEffect } from 'react';
+import React, { useRef, useEffect, useCallback } from 'react';
 import { Home, Library, Settings, Search, X } from 'lucide-react';
 import { useSearch } from '../context/SearchContext';
 
@@ -19,10 +19,10 @@ export function Layout({ children, currentView, onNavigate, headerAction }: Layo
         }
     }, [isSearchOpen]);
 
-    const handleClear = () => {
+    const handleClear = useCallback(() => {
         setSearchQuery('');
         setIsSearchOpen(false);
-    };
+    }, [setSearchQuery, setIsSearchOpen]);
 
     return (
         <div className="min-h-screen w-full bg-[#0a0a0a] flex justify-center selection:bg-indigo-500/30">
@@ -107,7 +107,7 @@ export function Layout({ children, currentView, onNavigate, headerAction }: Layo
     );
 }
 
-function NavButton({ icon, label, active, onClick }: { icon: React.ReactNode, label: string, active?: boolean, onClick: () => void }) {
+const NavButton = React.memo(function NavButton({ icon, label, active, onClick }: { icon: React.ReactNode, label: string, active?: boolean, onClick: () => void }) {
     return (
         <button
             onClick={onClick}
@@ -127,4 +127,4 @@ function NavButton({ icon, label, active, onClick }: { icon: React.ReactNode, la
             )}
         </button>
     );
-}
+});

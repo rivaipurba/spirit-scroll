@@ -12,11 +12,19 @@ interface DashboardProps {
 
 type SortOption = 'updates' | 'title' | 'progress' | 'recent' | 'type';
 
+const SORT_OPTIONS = [
+    { value: 'updates', label: 'Updates First', icon: '🔥', desc: 'Items with new chapters first' },
+    { value: 'title', label: 'Title A-Z', icon: '📝', desc: 'Alphabetical order' },
+    { value: 'progress', label: 'Progress %', icon: '📊', desc: 'Most completed first' },
+    { value: 'recent', label: 'Recently Updated', icon: '⏰', desc: 'Last modified first' },
+    { value: 'type', label: 'Type (Anime/Manga)', icon: '🎭', desc: 'Group by content type' },
+] as const;
+
 export function Dashboard({ isDialogOpen, onCloseDialog }: DashboardProps) {
     const [page, setPage] = useState(1);
     const [sortBy, setSortBy] = useState<SortOption>('updates');
     const { searchQuery } = useSearch();
-    
+
     // Use 12 items per page
     const { data: paginatedMedia, isLoading, error, isPlaceholderData } = useMediaList(page, undefined, 12, sortBy, searchQuery);
     const mediaList = paginatedMedia?.data || [];
@@ -48,13 +56,7 @@ export function Dashboard({ isDialogOpen, onCloseDialog }: DashboardProps) {
         );
     }
 
-    const sortOptions = [
-        { value: 'updates', label: 'Updates First', icon: '🔥', desc: 'Items with new chapters first' },
-        { value: 'title', label: 'Title A-Z', icon: '📝', desc: 'Alphabetical order' },
-        { value: 'progress', label: 'Progress %', icon: '📊', desc: 'Most completed first' },
-        { value: 'recent', label: 'Recently Updated', icon: '⏰', desc: 'Last modified first' },
-        { value: 'type', label: 'Type (Anime/Manga)', icon: '🎭', desc: 'Group by content type' },
-    ];
+
 
     return (
         <div className="pb-24">
@@ -76,9 +78,9 @@ export function Dashboard({ isDialogOpen, onCloseDialog }: DashboardProps) {
                         </p>
                     </div>
                 )}
-                
+
                 <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-none">
-                    {sortOptions.map((option) => (
+                    {SORT_OPTIONS.map((option) => (
                         <button
                             key={option.value}
                             onClick={() => {
@@ -86,11 +88,10 @@ export function Dashboard({ isDialogOpen, onCloseDialog }: DashboardProps) {
                                 setPage(1); // Reset to first page when sorting changes
                             }}
                             title={option.desc}
-                            className={`flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-medium whitespace-nowrap transition-all cursor-pointer ${
-                                sortBy === option.value
-                                    ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-500/25'
-                                    : 'bg-white/5 text-slate-400 hover:bg-white/10 hover:text-slate-200'
-                            }`}
+                            className={`flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-medium whitespace-nowrap transition-all cursor-pointer ${sortBy === option.value
+                                ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-500/25'
+                                : 'bg-white/5 text-slate-400 hover:bg-white/10 hover:text-slate-200'
+                                }`}
                         >
                             <span>{option.icon}</span>
                             <span>{option.label}</span>
@@ -105,7 +106,7 @@ export function Dashboard({ isDialogOpen, onCloseDialog }: DashboardProps) {
                         <Loader2 className="w-6 h-6 animate-spin text-indigo-500" />
                     </div>
                 )}
-                
+
                 {/* Responsive Grid Layout */}
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                     {mediaList?.map((media: any) => (

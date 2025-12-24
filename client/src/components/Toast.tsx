@@ -49,7 +49,7 @@ export function Toast({ id, type, title, message, duration = 4000, onClose }: To
     const style = styles[type];
 
     return (
-        <div className={`${style.bg} border rounded-xl p-4 shadow-lg backdrop-blur-sm animate-in slide-in-from-right duration-300 min-w-[300px] max-w-[400px]`}>
+        <div className={`${style.bg} border rounded-xl p-4 shadow-lg backdrop-blur-sm animate-in slide-in-from-right duration-300 w-full sm:min-w-[300px] sm:max-w-[400px]`}>
             <div className="flex items-start gap-3">
                 <Icon size={20} className={`${style.icon} flex-shrink-0 mt-0.5`} />
                 <div className="flex-1 min-w-0">

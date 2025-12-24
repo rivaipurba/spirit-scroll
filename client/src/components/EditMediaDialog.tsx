@@ -108,7 +108,7 @@ export function EditMediaDialog({ isOpen, onClose, media }: EditMediaDialogProps
                             <button
                                 type="button"
                                 onClick={() => setType('MANHUA')}
-                                className={`p-3 rounded-md text-sm font-medium border flex items-center justify-center gap-2 transition-all ${type === 'MANHUA'
+                                className={`p-3 rounded-md text-sm font-medium border flex items-center justify-center gap-2 transition-all cursor-pointer ${type === 'MANHUA'
                                     ? 'bg-orange-500/10 border-orange-500/50 text-orange-400'
                                     : 'bg-neutral-950 border-white/5 text-neutral-400 hover:bg-white/5 hover:text-neutral-300'
                                     }`}
@@ -119,7 +119,7 @@ export function EditMediaDialog({ isOpen, onClose, media }: EditMediaDialogProps
                             <button
                                 type="button"
                                 onClick={() => setType('DONGHUA')}
-                                className={`p-3 rounded-md text-sm font-medium border flex items-center justify-center gap-2 transition-all ${type === 'DONGHUA'
+                                className={`p-3 rounded-md text-sm font-medium border flex items-center justify-center gap-2 transition-all cursor-pointer ${type === 'DONGHUA'
                                     ? 'bg-blue-500/10 border-blue-500/50 text-blue-400'
                                     : 'bg-neutral-950 border-white/5 text-neutral-400 hover:bg-white/5 hover:text-neutral-300'
                                     }`}

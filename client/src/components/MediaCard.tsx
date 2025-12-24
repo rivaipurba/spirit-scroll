@@ -19,7 +19,7 @@ interface MediaCardProps {
     }
 }
 
-export function MediaCard({ media }: MediaCardProps) {
+export const MediaCard = React.memo(function MediaCard({ media }: MediaCardProps) {
     const [isEditOpen, setIsEditOpen] = useState(false);
     const [isConfirmOpen, setIsConfirmOpen] = useState(false);
     const updateProgress = useUpdateProgress();
@@ -207,4 +207,4 @@ export function MediaCard({ media }: MediaCardProps) {
             />
         </>
     );
-}
+});
