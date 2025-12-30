@@ -68,13 +68,13 @@ export function Dashboard({ isDialogOpen, onCloseDialog }: DashboardProps) {
                         <ArrowUpDown size={16} className="text-slate-400" />
                         <span className="text-sm font-medium text-slate-300">Sort by:</span>
                     </div>
-                    <span className="text-xs text-slate-500">
+                    <span className="text-xs text-slate-400">
                         {meta ? `${meta.total} total • Page ${meta.page}/${meta.totalPages}` : `${mediaList.length} items`}
                     </span>
                 </div>
                 {meta && meta.totalPages > 1 && searchQuery && (
                     <div className="mb-2">
-                        <p className="text-xs text-slate-500 text-center">
+                        <p className="text-xs text-slate-400 text-center">
                             Search results • Sorting applies to current page only
                         </p>
                     </div>
@@ -89,6 +89,7 @@ export function Dashboard({ isDialogOpen, onCloseDialog }: DashboardProps) {
                                 setPage(1); // Reset to first page when sorting changes
                             }}
                             title={option.desc}
+                            aria-label={`Sort by ${option.label}`}
                             className={`flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-medium whitespace-nowrap transition-all cursor-pointer ${sortBy === option.value
                                 ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-500/25'
                                 : 'bg-white/5 text-slate-400 hover:bg-white/10 hover:text-slate-200'
@@ -109,8 +110,8 @@ export function Dashboard({ isDialogOpen, onCloseDialog }: DashboardProps) {
                 )}
 
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                    {mediaList?.map((media: Media) => (
-                        <MediaCard key={media.id} media={media} />
+                    {mediaList?.map((media: Media, index: number) => (
+                        <MediaCard key={media.id} media={media} priority={index < 6} />
                     ))}
                 </div>
 
@@ -134,6 +135,7 @@ export function Dashboard({ isDialogOpen, onCloseDialog }: DashboardProps) {
                         <button
                             onClick={() => setPage(p => Math.max(1, p - 1))}
                             disabled={page === 1}
+                            aria-label="Previous page"
                             className="p-2 rounded-full bg-white/5 hover:bg-white/10 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer transition-colors"
                         >
                             <ChevronLeft size={20} className="text-slate-300" />
@@ -148,6 +150,7 @@ export function Dashboard({ isDialogOpen, onCloseDialog }: DashboardProps) {
                         <button
                             onClick={() => setPage(p => Math.min(meta.totalPages, p + 1))}
                             disabled={page === meta.totalPages || isPlaceholderData}
+                            aria-label="Next page"
                             className="p-2 rounded-full bg-white/5 hover:bg-white/10 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer transition-colors"
                         >
                             <ChevronRight size={20} className="text-slate-300" />

@@ -8,9 +8,10 @@ import { useToastContext } from '../context/ToastContext';
 
 interface MediaCardProps {
     media: Media;
+    priority?: boolean;
 }
 
-export const MediaCard = React.memo(function MediaCard({ media }: MediaCardProps) {
+export const MediaCard = React.memo(function MediaCard({ media, priority = false }: MediaCardProps) {
     const [isEditOpen, setIsEditOpen] = useState(false);
     const [isConfirmOpen, setIsConfirmOpen] = useState(false);
     const updateProgress = useUpdateProgress();
@@ -90,7 +91,9 @@ export const MediaCard = React.memo(function MediaCard({ media }: MediaCardProps
                             src={media.coverUrl}
                             alt={media.title}
                             className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
-                            loading="lazy"
+                            loading={priority ? "eager" : "lazy"}
+                            width="80"
+                            height="112"
                         />
                     ) : (
                         <div className="w-full h-full flex items-center justify-center bg-indigo-900/20 text-indigo-200/40 text-xs font-medium">
@@ -141,9 +144,10 @@ export const MediaCard = React.memo(function MediaCard({ media }: MediaCardProps
                             {/* Pin/Favorite Button */}
                             <button
                                 onClick={handleTogglePin}
+                                aria-label={media.isPinned ? "Remove from favorites" : "Add to favorites"}
                                 className={`p-1.5 rounded-full transition-all cursor-pointer ${media.isPinned
                                     ? 'text-yellow-400 hover:text-yellow-300'
-                                    : 'text-slate-500 hover:text-yellow-400 hover:bg-white/5'
+                                    : 'text-slate-400 hover:text-yellow-400 hover:bg-white/5'
                                     }`}
                                 title={media.isPinned ? "Remove from favorites" : "Add to favorites"}
                             >
@@ -154,7 +158,8 @@ export const MediaCard = React.memo(function MediaCard({ media }: MediaCardProps
                                 <button
                                     onClick={handleCheckUpdate}
                                     disabled={checkUpdate.isPending}
-                                    className={`p-1.5 rounded-full text-slate-500 hover:text-indigo-400 hover:bg-white/5 transition-all cursor-pointer disabled:cursor-not-allowed ${checkUpdate.isPending ? 'animate-spin text-indigo-400' : ''}`}
+                                    aria-label="Check for updates"
+                                    className={`p-1.5 rounded-full text-slate-400 hover:text-indigo-400 hover:bg-white/5 transition-all cursor-pointer disabled:cursor-not-allowed ${checkUpdate.isPending ? 'animate-spin text-indigo-400' : ''}`}
                                     title="Check for updates"
                                 >
                                     <RefreshCw size={14} />
@@ -191,6 +196,7 @@ export const MediaCard = React.memo(function MediaCard({ media }: MediaCardProps
                         <div className="flex items-center gap-1 transition-opacity duration-200">
                             <button
                                 onClick={handleQuickDecrement}
+                                aria-label="Go back one chapter"
                                 className="p-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-slate-400 hover:text-white transition-colors cursor-pointer"
                                 title="Go back one chapter"
                             >
@@ -198,6 +204,7 @@ export const MediaCard = React.memo(function MediaCard({ media }: MediaCardProps
                             </button>
                             <button
                                 onClick={handleQuickIncrement}
+                                aria-label="Mark next chapter as read"
                                 className="p-1.5 rounded-lg bg-indigo-500/20 hover:bg-indigo-500 text-indigo-400 hover:text-white transition-all shadow-[0_0_10px_rgba(99,102,241,0.2)] hover:shadow-[0_0_15px_rgba(99,102,241,0.5)] cursor-pointer"
                                 title="Mark next chapter as read"
                             >

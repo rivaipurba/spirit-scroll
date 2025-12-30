@@ -35,6 +35,7 @@ function AuthenticatedApp() {
         currentView === 'home' ? (
           <button
             onClick={() => setIsDialogOpen(true)}
+            aria-label="Add new entry"
             className="p-2.5 bg-white/5 rounded-full text-slate-400 hover:text-white hover:bg-white/10 transition-colors ring-1 ring-white/5"
           >
             <Plus size={20} strokeWidth={2.5} />

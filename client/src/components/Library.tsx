@@ -74,7 +74,7 @@ export function Library() {
                         <ArrowUpDown size={14} className="text-slate-400" />
                         <span className="text-xs font-medium text-slate-400">Sort by:</span>
                     </div>
-                    <span className="text-xs text-slate-500">
+                    <span className="text-xs text-slate-400">
                         {mediaList.length} item{mediaList.length !== 1 ? 's' : ''}
                     </span>
                 </div>
@@ -84,6 +84,7 @@ export function Library() {
                         <button
                             key={option.value}
                             onClick={() => handleSortChange(option.value as SortOption)}
+                            aria-label={`Sort by ${option.label}`}
                             className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap transition-all ${sortBy === option.value
                                 ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-500/25'
                                 : 'bg-white/5 text-slate-400 hover:bg-white/10 hover:text-slate-200'
@@ -100,7 +101,7 @@ export function Library() {
             {mediaList.length > 0 ? (
                 <>
                     <div className="grid grid-cols-4 sm:grid-cols-5 md:grid-cols-6 lg:grid-cols-8 gap-2 sm:gap-3">
-                        {mediaList.map((media: any) => <LibraryCard key={media.id} media={media} />)}
+                        {mediaList.map((media: any, index: number) => <LibraryCard key={media.id} media={media} priority={index < 12} />)}
                     </div>
 
                     {/* Pagination Footer */}
@@ -109,6 +110,7 @@ export function Library() {
                             <button
                                 onClick={() => setPage(p => Math.max(1, p - 1))}
                                 disabled={page === 1}
+                                aria-label="Previous page"
                                 className="p-2 rounded-full bg-white/5 hover:bg-white/10 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                             >
                                 <ChevronLeft size={20} className="text-slate-300" />
@@ -121,6 +123,7 @@ export function Library() {
                             <button
                                 onClick={() => setPage(p => Math.min(meta.totalPages, p + 1))}
                                 disabled={page === meta.totalPages || isPlaceholderData}
+                                aria-label="Next page"
                                 className="p-2 rounded-full bg-white/5 hover:bg-white/10 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                             >
                                 <ChevronRight size={20} className="text-slate-300" />
@@ -140,7 +143,7 @@ export function Library() {
     );
 }
 
-const LibraryCard = React.memo(function LibraryCard({ media }: { media: any }) {
+const LibraryCard = React.memo(function LibraryCard({ media, priority = false }: { media: any, priority?: boolean }) {
     const isManhua = media.type === 'MANHUA';
 
     return (
@@ -151,7 +154,9 @@ const LibraryCard = React.memo(function LibraryCard({ media }: { media: any }) {
                         src={media.coverUrl}
                         alt={media.title}
                         className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-                        loading="lazy"
+                        loading={priority ? "eager" : "lazy"}
+                        width="120"
+                        height="180"
                     />
                 ) : (
                     <div className="w-full h-full flex items-center justify-center text-[10px] text-white/20">No Cover</div>
