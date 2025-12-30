@@ -49,7 +49,7 @@ app.use("/*", async (c, next) => {
 app.use(
     "/*",
     cors({
-        origin: ['https://spirit-scroll.vercel.app', 'http://localhost:5173', '*'],
+        origin: ['https://spirit-scroll.vercel.app', 'http://localhost:5173'],
         allowHeaders: ["X-Custom-Header", "Upgrade-Insecure-Requests", "Content-Type", "Authorization"],
         allowMethods: ["POST", "GET", "OPTIONS", "PATCH", "DELETE"],
         exposeHeaders: ["Content-Length", "X-Kuma-Revision"],
@@ -58,34 +58,34 @@ app.use(
     })
 );
 
-// Explicit OPTIONS handler for preflight requests
-app.options("/*", (c) => {
-    return c.text("", 200, {
-        "Access-Control-Allow-Origin": "*",
-        "Access-Control-Allow-Methods": "GET, POST, PATCH, DELETE, OPTIONS",
-        "Access-Control-Allow-Headers": "Content-Type, Authorization",
-        "Access-Control-Max-Age": "86400",
-    });
-});
+// Rate limiting configuration
+const RATE_LIMIT_WINDOW_MS = 60 * 1000; // 1 minute
+const RATE_LIMIT_MAX_REQUESTS = 100; // 100 requests per minute
+const rateLimitMap = new Map<string, { count: number; resetTime: number }>();
 
-// Simple rate limiting middleware
-const rateLimitMap = new Map();
+// Clean up expired rate limit entries lazily (probability 1/20 requests)
+// This avoids using setInterval which is restricted in Cloudflare Workers global scope
 app.use("/*", async (c, next) => {
     const ip = c.req.header('cf-connecting-ip') || c.req.header('x-forwarded-for') || 'unknown';
     const now = Date.now();
-    const windowMs = 60 * 1000; // 1 minute
-    const maxRequests = 100; // 100 requests per minute
+
+    // Lazy cleanup
+    if (Math.random() < 0.05) {
+        for (const [key, data] of rateLimitMap) {
+            if (now > data.resetTime) rateLimitMap.delete(key);
+        }
+    }
 
     if (!rateLimitMap.has(ip)) {
-        rateLimitMap.set(ip, { count: 1, resetTime: now + windowMs });
+        rateLimitMap.set(ip, { count: 1, resetTime: now + RATE_LIMIT_WINDOW_MS });
     } else {
-        const limit = rateLimitMap.get(ip);
+        const limit = rateLimitMap.get(ip)!;
         if (now > limit.resetTime) {
             limit.count = 1;
-            limit.resetTime = now + windowMs;
+            limit.resetTime = now + RATE_LIMIT_WINDOW_MS;
         } else {
             limit.count++;
-            if (limit.count > maxRequests) {
+            if (limit.count > RATE_LIMIT_MAX_REQUESTS) {
                 return c.json({ error: 'Too many requests' }, 429);
             }
         }

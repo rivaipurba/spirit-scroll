@@ -2,19 +2,12 @@ import React, { useState, useEffect } from 'react';
 import { X, Book, Youtube, Trash2 } from 'lucide-react';
 import { useUpdateMedia, useDeleteMedia } from '../hooks/useMedia';
 import { ConfirmDialog } from './ConfirmDialog';
+import type { Media } from '../types/index';
 
 interface EditMediaDialogProps {
     isOpen: boolean;
     onClose: () => void;
-    media: {
-        id: number;
-        title: string;
-        type: "MANHUA" | "DONGHUA";
-        currentChapter: number;
-        totalChapters: number | null;
-        status: "READING" | "COMPLETED" | "PLAN_TO_READ" | "ON_HOLD" | "DROPPED";
-        sourceUrl: string | null;
-    }
+    media: Media;
 }
 
 export function EditMediaDialog({ isOpen, onClose, media }: EditMediaDialogProps) {

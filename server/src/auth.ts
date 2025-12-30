@@ -96,28 +96,3 @@ export async function verifyPassword(password: string, hash: string): Promise<bo
     return passwordHash === hash;
 }
 
-// Auth middleware - protects routes that modify data
-export function authMiddleware<T extends { Bindings: AuthBindings }>(c: Context<T>, next: Next) {
-    return async () => {
-        const authHeader = c.req.header("Authorization");
-
-        if (!authHeader || !authHeader.startsWith("Bearer ")) {
-            return c.json({ error: "Unauthorized" }, 401);
-        }
-
-        const token = authHeader.substring(7);
-        const jwtSecret = c.env.JWT_SECRET;
-
-        if (!jwtSecret) {
-            console.error("JWT_SECRET not configured");
-            return c.json({ error: "Server configuration error" }, 500);
-        }
-
-        const valid = await verifyToken(token, jwtSecret);
-        if (!valid) {
-            return c.json({ error: "Invalid or expired token" }, 401);
-        }
-
-        return next();
-    };
-}

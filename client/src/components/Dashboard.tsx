@@ -3,6 +3,7 @@ import { Loader2, ArrowUpDown, Book, ChevronLeft, ChevronRight } from 'lucide-re
 import { useMediaList } from '../hooks/useMedia';
 import { MediaCard } from './MediaCard';
 import { NewEntryDialog } from './NewEntryDialog';
+import type { Media } from '../types/index';
 import { useSearch } from '../context/SearchContext';
 
 interface DashboardProps {
@@ -107,9 +108,8 @@ export function Dashboard({ isDialogOpen, onCloseDialog }: DashboardProps) {
                     </div>
                 )}
 
-                {/* Responsive Grid Layout */}
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                    {mediaList?.map((media: any) => (
+                    {mediaList?.map((media: Media) => (
                         <MediaCard key={media.id} media={media} />
                     ))}
                 </div>

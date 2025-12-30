@@ -1,23 +1,13 @@
 import { Plus, ExternalLink, Minus, RefreshCw, Star } from 'lucide-react';
 import React, { useState } from 'react';
+import type { Media } from '../types/index';
 import { EditMediaDialog } from './EditMediaDialog';
 import { ConfirmDialog } from './ConfirmDialog';
 import { useUpdateProgress, useCheckUpdate, useUpdateMedia } from '../hooks/useMedia';
 import { useToastContext } from '../context/ToastContext';
 
 interface MediaCardProps {
-    media: {
-        id: number;
-        title: string;
-        type: "MANHUA" | "DONGHUA";
-        currentChapter: number;
-        totalChapters: number | null;
-        status: "READING" | "COMPLETED" | "PLAN_TO_READ" | "ON_HOLD" | "DROPPED";
-        sourceUrl: string | null;
-        coverUrl: string | null;
-        latestReleasedChapter: number | null;
-        isPinned?: boolean;
-    }
+    media: Media;
 }
 
 export const MediaCard = React.memo(function MediaCard({ media }: MediaCardProps) {
@@ -152,8 +142,8 @@ export const MediaCard = React.memo(function MediaCard({ media }: MediaCardProps
                             <button
                                 onClick={handleTogglePin}
                                 className={`p-1.5 rounded-full transition-all cursor-pointer ${media.isPinned
-                                        ? 'text-yellow-400 hover:text-yellow-300'
-                                        : 'text-slate-500 hover:text-yellow-400 hover:bg-white/5'
+                                    ? 'text-yellow-400 hover:text-yellow-300'
+                                    : 'text-slate-500 hover:text-yellow-400 hover:bg-white/5'
                                     }`}
                                 title={media.isPinned ? "Remove from favorites" : "Add to favorites"}
                             >

@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient, keepPreviousData } from "@tanstack/react-query";
 import { client } from "../lib/api";
 import { useToastContext } from "../context/ToastContext";
+import type { Media, PaginatedResponse } from "../types/index";
 
 export function useMediaList(page: number = 1, type?: "MANHUA" | "DONGHUA", limit: number = 12, sortBy?: "title" | "progress" | "recent" | "updates" | "type", search?: string) {
     return useQuery({
@@ -50,12 +51,12 @@ export function useUpdateProgress() {
             const previousData = queryClient.getQueriesData({ queryKey: ["media-list"] });
 
             // Optimistically update the cache
-            queryClient.setQueriesData({ queryKey: ["media-list"] }, (old: any) => {
+            queryClient.setQueriesData({ queryKey: ["media-list"] }, (old: PaginatedResponse<Media> | undefined) => {
                 if (!old?.data) return old;
 
                 return {
                     ...old,
-                    data: old.data.map((item: any) =>
+                    data: old.data.map((item: Media) =>
                         item.id === id
                             ? { ...item, currentChapter: currentChapter ?? item.currentChapter, status: status ?? item.status }
                             : item
@@ -182,7 +183,7 @@ export function useImportMedia() {
     const toast = useToastContext();
 
     return useMutation({
-        mutationFn: async (data: any[]) => {
+        mutationFn: async (data: Partial<Media>[]) => {
             const res = await client.api.import.$post({
                 json: data
             });

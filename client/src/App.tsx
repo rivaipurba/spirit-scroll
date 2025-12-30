@@ -8,6 +8,7 @@ import { Login } from './components/Login';
 import { ToastProvider } from './context/ToastContext';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { Plus, Loader2 } from 'lucide-react';
+import { ErrorBoundary } from './components/ErrorBoundary';
 
 const queryClient = new QueryClient();
 
@@ -60,7 +61,9 @@ function App() {
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
         <ToastProvider>
-          <AppContent />
+          <ErrorBoundary>
+            <AppContent />
+          </ErrorBoundary>
         </ToastProvider>
       </AuthProvider>
     </QueryClientProvider>
