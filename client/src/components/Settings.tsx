@@ -1,6 +1,7 @@
-import { Download, Upload, Loader2, Sparkles, Database, FileJson, RefreshCw, CheckCircle2, AlertCircle } from 'lucide-react';
+import { Download, Upload, Loader2, Sparkles, Database, FileJson, RefreshCw, CheckCircle2, AlertCircle, LogOut } from 'lucide-react';
 import { useMediaList as useMedia, useImportMedia, useScanAll, useUpdateMedia } from '../hooks/useMedia';
 import { useToastContext } from '../context/ToastContext';
+import { useAuth } from '../context/AuthContext';
 import { useRef, useState } from 'react';
 
 export function Settings() {
@@ -10,6 +11,7 @@ export function Settings() {
     const scanAll = useScanAll();
     const updateMedia = useUpdateMedia();
     const toast = useToastContext();
+    const { logout } = useAuth();
 
     const fileInputRef = useRef<HTMLInputElement>(null);
     const [scanResult, setScanResult] = useState<string | null>(null);
@@ -249,6 +251,30 @@ export function Settings() {
                             className="px-4 py-2 bg-white/5 hover:bg-white/10 text-white text-xs font-bold rounded-lg transition-colors disabled:opacity-50"
                         >
                             {isReScraping ? 'Scraping...' : 'Run Tool'}
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            {/* Account */}
+            <div className="bg-white/5 border border-white/10 rounded-xl p-6 backdrop-blur-sm">
+                <h3 className="text-xl font-semibold text-white mb-6">Account</h3>
+                <div className="bg-[#111] rounded-xl border border-white/5 overflow-hidden">
+                    <div className="p-4 flex items-center justify-between hover:bg-white/[0.02] transition-colors">
+                        <div className="flex items-center gap-3">
+                            <div className="p-2 bg-red-500/10 rounded-lg text-red-400">
+                                <LogOut size={20} />
+                            </div>
+                            <div className="text-sm">
+                                <p className="font-medium text-slate-200">Sign Out</p>
+                                <p className="text-xs text-slate-500">Log out of your account</p>
+                            </div>
+                        </div>
+                        <button
+                            onClick={logout}
+                            className="px-4 py-2 bg-red-500/10 hover:bg-red-500/20 text-red-400 text-xs font-bold rounded-lg transition-colors border border-red-500/20"
+                        >
+                            Sign Out
                         </button>
                     </div>
                 </div>

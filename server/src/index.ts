@@ -6,16 +6,45 @@ import { insertMediaSchema, patchMediaSchema } from "./db/zod";
 import { createDb } from "./db";
 import { media } from "./db/schema";
 import { eq, or, count, and, desc, asc, sql } from "drizzle-orm";
+import * as dotenv from "dotenv";
+import * as fs from "fs";
+import * as path from "path";
 
 import { fetchCoverImage } from "./utils/scraper";
 import { checkLatestChapter } from "./utils/update-checker";
+import { createToken, verifyToken, verifyPassword } from "./auth";
+
+// Load .dev.vars for local development
+const devVarsPath = path.join(import.meta.dir, "..", ".dev.vars");
+if (fs.existsSync(devVarsPath)) {
+    dotenv.config({ path: devVarsPath });
+}
 
 type Bindings = {
     DATABASE_URL: string;
     DATABASE_AUTH_TOKEN: string;
+    JWT_SECRET: string;
+    AUTH_PASSWORD_HASH: string;
 };
 
 const app = new Hono<{ Bindings: Bindings }>();
+
+// Middleware to inject env vars for local bun dev (Cloudflare Workers provides these automatically)
+app.use("/*", async (c, next) => {
+    if (!c.env.DATABASE_URL) {
+        c.env.DATABASE_URL = process.env.DATABASE_URL || "file:spirit_scroll.sqlite";
+    }
+    if (!c.env.DATABASE_AUTH_TOKEN) {
+        c.env.DATABASE_AUTH_TOKEN = process.env.DATABASE_AUTH_TOKEN || "";
+    }
+    if (!c.env.JWT_SECRET) {
+        c.env.JWT_SECRET = process.env.JWT_SECRET || "";
+    }
+    if (!c.env.AUTH_PASSWORD_HASH) {
+        c.env.AUTH_PASSWORD_HASH = process.env.AUTH_PASSWORD_HASH || "";
+    }
+    await next();
+});
 
 app.use(
     "/*",
@@ -65,7 +94,60 @@ app.use("/*", async (c, next) => {
     await next();
 });
 
+// Helper to verify auth token from Authorization header
+async function requireAuth(c: any): Promise<Response | null> {
+    const authHeader = c.req.header("Authorization");
+
+    if (!authHeader || !authHeader.startsWith("Bearer ")) {
+        return c.json({ error: "Unauthorized" }, 401);
+    }
+
+    const token = authHeader.substring(7);
+    const jwtSecret = c.env.JWT_SECRET;
+
+    if (!jwtSecret) {
+        console.error("JWT_SECRET not configured");
+        return c.json({ error: "Server configuration error" }, 500);
+    }
+
+    const valid = await verifyToken(token, jwtSecret);
+    if (!valid) {
+        return c.json({ error: "Invalid or expired token" }, 401);
+    }
+
+    return null; // Auth passed
+}
+
 const routes = app.basePath("/api")
+    // Auth routes
+    .post("/auth/login", zValidator("json", z.object({ password: z.string() })), async (c) => {
+        try {
+            const { password } = c.req.valid("json");
+            const passwordHash = c.env.AUTH_PASSWORD_HASH;
+            const jwtSecret = c.env.JWT_SECRET;
+
+            if (!passwordHash || !jwtSecret) {
+                console.error("Auth not configured: missing AUTH_PASSWORD_HASH or JWT_SECRET");
+                return c.json({ error: "Server configuration error" }, 500);
+            }
+
+            const isValid = await verifyPassword(password, passwordHash);
+            if (!isValid) {
+                return c.json({ error: "Invalid password" }, 401);
+            }
+
+            const token = await createToken(jwtSecret);
+            return c.json({ token });
+        } catch (e: any) {
+            console.error('[POST /auth/login] Error:', e);
+            return c.json({ error: "Login failed" }, 500);
+        }
+    })
+    .get("/auth/verify", async (c) => {
+        const authError = await requireAuth(c);
+        if (authError) return authError;
+        return c.json({ valid: true });
+    })
     .get("/media", async (c) => {
         try {
             const page = Number(c.req.query("page")) || 1;
@@ -143,6 +225,10 @@ const routes = app.basePath("/api")
         }
     })
     .post("/media", zValidator("json", insertMediaSchema), async (c) => {
+        // Require authentication for creating entries
+        const authError = await requireAuth(c);
+        if (authError) return authError;
+
         try {
             const data = c.req.valid("json");
 
@@ -178,6 +264,10 @@ const routes = app.basePath("/api")
         }
     })
     .patch("/media/:id", zValidator("json", patchMediaSchema), async (c) => {
+        // Require authentication for updating entries
+        const authError = await requireAuth(c);
+        if (authError) return authError;
+
         const id = Number(c.req.param("id"));
         if (isNaN(id)) return c.json({ error: "Invalid ID" }, 400);
         const data = c.req.valid("json");
@@ -204,6 +294,10 @@ const routes = app.basePath("/api")
         return c.json(result[0]);
     })
     .delete("/media/:id", async (c) => {
+        // Require authentication for deleting entries
+        const authError = await requireAuth(c);
+        if (authError) return authError;
+
         const id = Number(c.req.param("id"));
         if (isNaN(id)) return c.json({ error: "Invalid ID" }, 400);
 
@@ -275,6 +369,10 @@ const routes = app.basePath("/api")
         return response;
     })
     .post("/import", zValidator("json", z.array(insertMediaSchema)), async (c) => {
+        // Require authentication for importing data
+        const authError = await requireAuth(c);
+        if (authError) return authError;
+
         try {
             const data = c.req.valid("json");
 
