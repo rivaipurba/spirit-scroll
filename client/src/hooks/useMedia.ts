@@ -121,7 +121,7 @@ export function useUpdateMedia() {
     const toast = useToastContext();
 
     return useMutation({
-        mutationFn: async ({ id, ...data }: { id: number; title?: string; type?: "MANHUA" | "DONGHUA"; currentChapter?: number; totalChapters?: number | null; status?: "READING" | "COMPLETED" | "PLAN_TO_READ" | "ON_HOLD" | "DROPPED"; sourceUrl?: string | null }) => {
+        mutationFn: async ({ id, ...data }: { id: number; title?: string; type?: "MANHUA" | "DONGHUA"; currentChapter?: number; totalChapters?: number | null; status?: "READING" | "COMPLETED" | "PLAN_TO_READ" | "ON_HOLD" | "DROPPED"; sourceUrl?: string | null; isPinned?: boolean }) => {
             const res = await client.api.media[":id"].$patch({
                 param: { id: id.toString() },
                 json: data

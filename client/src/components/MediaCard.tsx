@@ -1,8 +1,8 @@
-import { Plus, ExternalLink, Minus, RefreshCw } from 'lucide-react';
+import { Plus, ExternalLink, Minus, RefreshCw, Star } from 'lucide-react';
 import React, { useState } from 'react';
 import { EditMediaDialog } from './EditMediaDialog';
 import { ConfirmDialog } from './ConfirmDialog';
-import { useUpdateProgress, useCheckUpdate } from '../hooks/useMedia';
+import { useUpdateProgress, useCheckUpdate, useUpdateMedia } from '../hooks/useMedia';
 import { useToastContext } from '../context/ToastContext';
 
 interface MediaCardProps {
@@ -16,6 +16,7 @@ interface MediaCardProps {
         sourceUrl: string | null;
         coverUrl: string | null;
         latestReleasedChapter: number | null;
+        isPinned?: boolean;
     }
 }
 
@@ -23,8 +24,24 @@ export const MediaCard = React.memo(function MediaCard({ media }: MediaCardProps
     const [isEditOpen, setIsEditOpen] = useState(false);
     const [isConfirmOpen, setIsConfirmOpen] = useState(false);
     const updateProgress = useUpdateProgress();
+    const updateMedia = useUpdateMedia();
     const checkUpdate = useCheckUpdate();
     const toast = useToastContext();
+
+    const handleTogglePin = (e: React.MouseEvent) => {
+        e.stopPropagation();
+        updateMedia.mutate({
+            id: media.id,
+            isPinned: !media.isPinned
+        }, {
+            onSuccess: () => {
+                toast.success(
+                    media.isPinned ? "Unpinned" : "Pinned",
+                    media.isPinned ? `"${media.title}" removed from favorites` : `"${media.title}" added to favorites`
+                );
+            }
+        });
+    };
 
     const handleQuickIncrement = (e: React.MouseEvent) => {
         e.stopPropagation();
@@ -131,6 +148,17 @@ export const MediaCard = React.memo(function MediaCard({ media }: MediaCardProps
 
                         {/* Action Buttons */}
                         <div className="flex items-center gap-1">
+                            {/* Pin/Favorite Button */}
+                            <button
+                                onClick={handleTogglePin}
+                                className={`p-1.5 rounded-full transition-all cursor-pointer ${media.isPinned
+                                        ? 'text-yellow-400 hover:text-yellow-300'
+                                        : 'text-slate-500 hover:text-yellow-400 hover:bg-white/5'
+                                    }`}
+                                title={media.isPinned ? "Remove from favorites" : "Add to favorites"}
+                            >
+                                <Star size={14} fill={media.isPinned ? "currentColor" : "none"} />
+                            </button>
                             {/* Refresh Button */}
                             {(media.sourceUrl || (media as any).source_url) && (
                                 <button

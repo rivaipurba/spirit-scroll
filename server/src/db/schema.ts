@@ -10,5 +10,6 @@ export const media = sqliteTable("media", {
     coverUrl: text("cover_url"),
     sourceUrl: text("source_url"),
     latestReleasedChapter: integer("latest_released_chapter"),
+    isPinned: integer("is_pinned", { mode: "boolean" }).default(false).notNull(),
 });
 

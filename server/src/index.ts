@@ -170,19 +170,20 @@ const routes = app.basePath("/api")
             const whereClause = conditions.length > 0 ? and(...conditions) : undefined;
 
             // Build order by clause based on sortBy parameter
-            let orderByClause;
+            // Pinned items always come first, then apply the selected sort
+            let baseOrderBy;
             switch (sortBy) {
                 case 'title':
-                    orderByClause = asc(media.title);
+                    baseOrderBy = sql`${media.title} ASC`;
                     break;
                 case 'progress':
-                    orderByClause = desc(sql`CASE WHEN ${media.totalChapters} > 0 THEN CAST(${media.currentChapter} AS REAL) / CAST(${media.totalChapters} AS REAL) ELSE 0 END`);
+                    baseOrderBy = sql`CASE WHEN ${media.totalChapters} > 0 THEN CAST(${media.currentChapter} AS REAL) / CAST(${media.totalChapters} AS REAL) ELSE 0 END DESC`;
                     break;
                 case 'recent':
-                    orderByClause = desc(media.id);
+                    baseOrderBy = sql`${media.id} DESC`;
                     break;
                 case 'updates':
-                    orderByClause = sql`
+                    baseOrderBy = sql`
                         CASE 
                             WHEN COALESCE(${media.latestReleasedChapter}, 0) > ${media.currentChapter} THEN 0
                             ELSE 1 
@@ -196,11 +197,14 @@ const routes = app.basePath("/api")
                     `;
                     break;
                 case 'type':
-                    orderByClause = sql`CASE WHEN ${media.type} = 'DONGHUA' THEN 0 ELSE 1 END, ${media.title} ASC`;
+                    baseOrderBy = sql`CASE WHEN ${media.type} = 'DONGHUA' THEN 0 ELSE 1 END, ${media.title} ASC`;
                     break;
                 default:
-                    orderByClause = asc(media.title);
+                    baseOrderBy = sql`${media.title} ASC`;
             }
+
+            // Pinned items first (is_pinned DESC so 1/true comes before 0/false), then base sort
+            const orderByClause = sql`${media.isPinned} DESC, ${baseOrderBy}`;
 
             const [data, totalResult] = await Promise.all([
                 db.select().from(media).where(whereClause).orderBy(orderByClause).limit(limit).offset(offset),

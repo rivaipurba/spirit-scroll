@@ -15,6 +15,7 @@ export const insertMediaSchema = createInsertSchema(media).omit({
         .optional(),
     sourceUrl: z.string().optional().nullable().transform((val: any) => val === "" ? null : val),
     latestReleasedChapter: z.number().optional().nullable(),
+    isPinned: z.boolean().optional(),
 });
 
 export const patchMediaSchema = insertMediaSchema.partial();
