@@ -6,18 +6,18 @@ import { insertMediaSchema, patchMediaSchema } from "./db/zod";
 import { createDb } from "./db";
 import { media } from "./db/schema";
 import { eq, or, count, and, desc, asc, sql } from "drizzle-orm";
-import * as dotenv from "dotenv";
-import * as fs from "fs";
-import * as path from "path";
 
 import { fetchCoverImage } from "./utils/scraper";
 import { checkLatestChapter } from "./utils/update-checker";
 import { createToken, verifyToken, verifyPassword } from "./auth";
 
-// Load .dev.vars for local development
-const devVarsPath = path.join(import.meta.dir, "..", ".dev.vars");
-if (fs.existsSync(devVarsPath)) {
-    dotenv.config({ path: devVarsPath });
+// Load .dev.vars for local Bun development (wrapped in try-catch for Cloudflare Workers compatibility)
+try {
+    // Dynamic import to avoid issues in Cloudflare Workers
+    const dotenv = await import("dotenv");
+    dotenv.config({ path: ".dev.vars" });
+} catch {
+    // Running in Cloudflare Workers - env vars are provided via bindings
 }
 
 type Bindings = {
