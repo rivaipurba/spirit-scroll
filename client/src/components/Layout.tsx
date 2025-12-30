@@ -12,6 +12,23 @@ interface LayoutProps {
 export function Layout({ children, currentView, onNavigate, headerAction }: LayoutProps) {
     const { searchQuery, setSearchQuery, isSearchOpen, setIsSearchOpen } = useSearch();
     const inputRef = useRef<HTMLInputElement>(null);
+    const [inputValue, setInputValue] = React.useState(searchQuery);
+
+    // Sync local state when external searchQuery changes (e.g. clear button)
+    useEffect(() => {
+        setInputValue(searchQuery);
+    }, [searchQuery]);
+
+    // Debounce search query update
+    useEffect(() => {
+        const timer = setTimeout(() => {
+            if (inputValue !== searchQuery) {
+                setSearchQuery(inputValue);
+            }
+        }, 300); // 300ms debounce
+
+        return () => clearTimeout(timer);
+    }, [inputValue, setSearchQuery, searchQuery]);
 
     useEffect(() => {
         if (isSearchOpen && inputRef.current) {
@@ -42,8 +59,8 @@ export function Layout({ children, currentView, onNavigate, headerAction }: Layo
                             <input
                                 ref={inputRef}
                                 type="text"
-                                value={searchQuery}
-                                onChange={(e) => setSearchQuery(e.target.value)}
+                                value={inputValue}
+                                onChange={(e) => setInputValue(e.target.value)}
                                 placeholder="Search titles..."
                                 autoFocus
                                 className="w-full bg-transparent border-none p-1 text-sm text-white placeholder:text-slate-500 focus:outline-none focus:ring-0"

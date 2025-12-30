@@ -1,16 +1,27 @@
 import { useState } from 'react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { Layout } from './components/Layout';
-import { Dashboard } from './components/Dashboard';
-import { Library } from './components/Library';
-import { Settings } from './components/Settings';
+import { Plus, Loader2 } from 'lucide-react';
+import { ErrorBoundary } from './components/ErrorBoundary';
+import { Suspense, lazy } from 'react';
 import { Login } from './components/Login';
 import { ToastProvider } from './context/ToastContext';
 import { AuthProvider, useAuth } from './context/AuthContext';
-import { Plus, Loader2 } from 'lucide-react';
-import { ErrorBoundary } from './components/ErrorBoundary';
 
-const queryClient = new QueryClient();
+// Lazy load components for code splitting
+const Dashboard = lazy(() => import('./components/Dashboard').then(module => ({ default: module.Dashboard })));
+const Library = lazy(() => import('./components/Library').then(module => ({ default: module.Library })));
+const Settings = lazy(() => import('./components/Settings').then(module => ({ default: module.Settings })));
+
+// Configure global cache settings (5 minutes stale time)
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: 5 * 60 * 1000,
+      refetchOnWindowFocus: false, // Don't refetch when switching tabs unless data is stale
+    },
+  },
+});
 
 function AuthenticatedApp() {
   const [currentView, setCurrentView] = useState<'home' | 'library' | 'settings'>('home');
@@ -31,9 +42,15 @@ function AuthenticatedApp() {
         ) : null
       }
     >
-      {currentView === 'home' && <Dashboard isDialogOpen={isDialogOpen} onCloseDialog={() => setIsDialogOpen(false)} />}
-      {currentView === 'library' && <Library />}
-      {currentView === 'settings' && <Settings />}
+      <Suspense fallback={
+        <div className="h-full flex items-center justify-center">
+          <Loader2 className="w-8 h-8 animate-spin text-indigo-500" />
+        </div>
+      }>
+        {currentView === 'home' && <Dashboard isDialogOpen={isDialogOpen} onCloseDialog={() => setIsDialogOpen(false)} />}
+        {currentView === 'library' && <Library />}
+        {currentView === 'settings' && <Settings />}
+      </Suspense>
     </Layout>
   );
 }
