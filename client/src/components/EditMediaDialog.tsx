@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { X, Book, Youtube, Trash2 } from 'lucide-react';
-import { useUpdateMedia, useDeleteMedia } from '../hooks/useMedia';
+import { X, Book, Youtube, Trash2, Star, RefreshCw } from 'lucide-react';
+import { useUpdateMedia, useDeleteMedia, useCheckUpdate } from '../hooks/useMedia';
 import { ConfirmDialog } from './ConfirmDialog';
 import type { Media } from '../types/index';
 
@@ -21,6 +21,7 @@ export function EditMediaDialog({ isOpen, onClose, media }: EditMediaDialogProps
 
     const updateMedia = useUpdateMedia();
     const deleteMedia = useDeleteMedia();
+    const checkUpdate = useCheckUpdate();
 
     useEffect(() => {
         if (isOpen) {
@@ -177,14 +178,39 @@ export function EditMediaDialog({ isOpen, onClose, media }: EditMediaDialogProps
                         type="button"
                         onClick={handleDelete}
                         disabled={deleteMedia.isPending}
-                        className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl border border-red-500/20 text-red-500 hover:bg-red-500/10 transition-colors"
+                        aria-label="Delete entry"
+                        className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl border border-red-500/20 text-red-500 hover:bg-red-500/10 transition-colors cursor-pointer"
                     >
                         <Trash2 size={20} />
                     </button>
                     <button
+                        type="button"
+                        onClick={() => updateMedia.mutate({ id: media.id, isPinned: !media.isPinned })}
+                        aria-label={media.isPinned ? "Unpin" : "Pin to top"}
+                        title={media.isPinned ? "Unpin" : "Pin to top"}
+                        className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-xl border transition-colors cursor-pointer ${media.isPinned
+                            ? 'border-yellow-500/40 text-yellow-400 bg-yellow-500/10'
+                            : 'border-white/10 text-neutral-500 hover:text-yellow-400 hover:border-yellow-500/30 hover:bg-yellow-500/5'
+                            }`}
+                    >
+                        <Star size={18} fill={media.isPinned ? "currentColor" : "none"} />
+                    </button>
+                    {(media.sourceUrl || (media as any).source_url) && (
+                        <button
+                            type="button"
+                            onClick={() => checkUpdate.mutate(media.id)}
+                            disabled={checkUpdate.isPending}
+                            aria-label="Check for updates"
+                            title="Check for updates"
+                            className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl border border-white/10 text-neutral-500 hover:text-indigo-400 hover:border-indigo-500/30 hover:bg-indigo-500/5 transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                        >
+                            <RefreshCw size={18} className={checkUpdate.isPending ? 'animate-spin' : ''} />
+                        </button>
+                    )}
+                    <button
                         onClick={handleSubmit}
                         disabled={updateMedia.isPending}
-                        className="flex-1 h-12 rounded-xl bg-indigo-600 font-medium text-white hover:bg-indigo-500 transition-colors shadow-lg shadow-indigo-500/20 disabled:opacity-50 disabled:cursor-not-allowed"
+                        className="flex-1 h-12 rounded-xl bg-indigo-600 font-medium text-white hover:bg-indigo-500 transition-colors shadow-lg shadow-indigo-500/20 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
                     >
                         {updateMedia.isPending ? 'Saving...' : 'Save Changes'}
                     </button>

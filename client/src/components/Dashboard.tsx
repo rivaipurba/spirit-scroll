@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Loader2, ArrowUpDown, Book, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Loader2, Book, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useMediaList } from '../hooks/useMedia';
 import { MediaCard } from './MediaCard';
 import { NewEntryDialog } from './NewEntryDialog';
@@ -11,30 +11,36 @@ interface DashboardProps {
     onCloseDialog: () => void;
 }
 
-type SortOption = 'updates' | 'title' | 'progress' | 'recent' | 'type';
+type SortOption = 'updates' | 'title';
+type TypeFilter = 'ALL' | 'MANHUA' | 'DONGHUA';
 
-const SORT_OPTIONS = [
-    { value: 'updates', label: 'Updates First', icon: '🔥', desc: 'Items with new chapters first' },
-    { value: 'title', label: 'Title A-Z', icon: '📝', desc: 'Alphabetical order' },
-    { value: 'progress', label: 'Progress %', icon: '📊', desc: 'Most completed first' },
-    { value: 'recent', label: 'Recently Updated', icon: '⏰', desc: 'Last modified first' },
-    { value: 'type', label: 'Type (Anime/Manga)', icon: '🎭', desc: 'Group by content type' },
-] as const;
+const TYPE_TABS: { id: TypeFilter; label: string }[] = [
+    { id: 'ALL', label: 'All' },
+    { id: 'MANHUA', label: 'Manhua' },
+    { id: 'DONGHUA', label: 'Donghua' },
+];
 
 export function Dashboard({ isDialogOpen, onCloseDialog }: DashboardProps) {
     const [page, setPage] = useState(1);
     const [sortBy, setSortBy] = useState<SortOption>('updates');
+    const [typeFilter, setTypeFilter] = useState<TypeFilter>('ALL');
     const { searchQuery } = useSearch();
 
     // Use 12 items per page
-    const { data: paginatedMedia, isLoading, error, isPlaceholderData } = useMediaList(page, undefined, 12, sortBy, searchQuery);
+    const { data: paginatedMedia, isLoading, error, isPlaceholderData } = useMediaList(
+        page,
+        typeFilter === 'ALL' ? undefined : typeFilter,
+        12,
+        sortBy,
+        searchQuery
+    );
     const mediaList = paginatedMedia?.data || [];
     const meta = paginatedMedia?.meta;
 
-    // Reset to page 1 when search query changes
+    // Reset to page 1 when search/filter changes
     useEffect(() => {
         setPage(1);
-    }, [searchQuery]);
+    }, [searchQuery, typeFilter, sortBy]);
 
     if (isLoading) {
         return (
@@ -61,44 +67,46 @@ export function Dashboard({ isDialogOpen, onCloseDialog }: DashboardProps) {
 
     return (
         <div className="pb-24">
-            {/* Sorting Options */}
+            {/* Filter & Sort Bar */}
             <div className="px-4 pt-4 pb-2">
-                <div className="flex items-center justify-between mb-4">
-                    <div className="flex items-center gap-3">
-                        <ArrowUpDown size={16} className="text-slate-400" />
-                        <span className="text-sm font-medium text-slate-300">Sort by:</span>
+                <div className="flex items-center justify-between gap-3">
+                    {/* Type filter tabs */}
+                    <div className="flex gap-1.5">
+                        {TYPE_TABS.map((tab) => (
+                            <button
+                                key={tab.id}
+                                onClick={() => setTypeFilter(tab.id)}
+                                className={`px-3 py-1.5 rounded-full text-xs font-semibold transition-all cursor-pointer ${typeFilter === tab.id
+                                    ? 'bg-white text-black'
+                                    : 'bg-white/5 text-slate-400 hover:bg-white/10 hover:text-slate-200'
+                                    }`}
+                            >
+                                {tab.label}
+                            </button>
+                        ))}
                     </div>
-                    <span className="text-xs text-slate-400">
-                        {meta ? `${meta.total} total • Page ${meta.page}/${meta.totalPages}` : `${mediaList.length} items`}
-                    </span>
-                </div>
-                {meta && meta.totalPages > 1 && searchQuery && (
-                    <div className="mb-2">
-                        <p className="text-xs text-slate-400 text-center">
-                            Search results • Sorting applies to current page only
-                        </p>
-                    </div>
-                )}
 
-                <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-none">
-                    {SORT_OPTIONS.map((option) => (
+                    {/* Sort toggle */}
+                    <div className="flex items-center gap-1 bg-white/5 rounded-lg p-0.5">
                         <button
-                            key={option.value}
-                            onClick={() => {
-                                setSortBy(option.value as SortOption);
-                                setPage(1); // Reset to first page when sorting changes
-                            }}
-                            title={option.desc}
-                            aria-label={`Sort by ${option.label}`}
-                            className={`flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-medium whitespace-nowrap transition-all cursor-pointer ${sortBy === option.value
-                                ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-500/25'
-                                : 'bg-white/5 text-slate-400 hover:bg-white/10 hover:text-slate-200'
+                            onClick={() => setSortBy('updates')}
+                            className={`px-2.5 py-1 rounded-md text-xs font-medium transition-all cursor-pointer ${sortBy === 'updates'
+                                ? 'bg-white/10 text-white'
+                                : 'text-slate-500 hover:text-slate-300'
                                 }`}
                         >
-                            <span>{option.icon}</span>
-                            <span>{option.label}</span>
+                            Updates
                         </button>
-                    ))}
+                        <button
+                            onClick={() => setSortBy('title')}
+                            className={`px-2.5 py-1 rounded-md text-xs font-medium transition-all cursor-pointer ${sortBy === 'title'
+                                ? 'bg-white/10 text-white'
+                                : 'text-slate-500 hover:text-slate-300'
+                                }`}
+                        >
+                            A–Z
+                        </button>
+                    </div>
                 </div>
             </div>
 

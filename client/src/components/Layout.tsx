@@ -1,11 +1,11 @@
 import React, { useRef, useEffect, useCallback } from 'react';
-import { Home, Library, Settings, Search, X } from 'lucide-react';
+import { Home, Settings, Search, X } from 'lucide-react';
 import { useSearch } from '../context/SearchContext';
 
 interface LayoutProps {
     children: React.ReactNode;
-    currentView: 'home' | 'library' | 'settings';
-    onNavigate: (view: 'home' | 'library' | 'settings') => void;
+    currentView: 'home' | 'settings';
+    onNavigate: (view: 'home' | 'settings') => void;
     headerAction?: React.ReactNode;
 }
 
@@ -104,12 +104,6 @@ export function Layout({ children, currentView, onNavigate, headerAction }: Layo
                             label="Home"
                             active={currentView === 'home'}
                             onClick={() => onNavigate('home')}
-                        />
-                        <NavButton
-                            icon={<Library size={24} />}
-                            label="Library"
-                            active={currentView === 'library'}
-                            onClick={() => onNavigate('library')}
                         />
                         <NavButton
                             icon={<Settings size={24} />}

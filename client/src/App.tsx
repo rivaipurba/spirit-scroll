@@ -10,7 +10,6 @@ import { AuthProvider, useAuth } from './context/AuthContext';
 
 // Lazy load components for code splitting
 const Dashboard = lazy(() => import('./components/Dashboard').then(module => ({ default: module.Dashboard })));
-const Library = lazy(() => import('./components/Library').then(module => ({ default: module.Library })));
 const Settings = lazy(() => import('./components/Settings').then(module => ({ default: module.Settings })));
 
 // Configure global cache settings (5 minutes stale time)
@@ -24,7 +23,7 @@ const queryClient = new QueryClient({
 });
 
 function AuthenticatedApp() {
-  const [currentView, setCurrentView] = useState<'home' | 'library' | 'settings'>('home');
+  const [currentView, setCurrentView] = useState<'home' | 'settings'>('home');
   const [isDialogOpen, setIsDialogOpen] = useState(false);
 
   return (
@@ -49,7 +48,6 @@ function AuthenticatedApp() {
         </div>
       }>
         {currentView === 'home' && <Dashboard isDialogOpen={isDialogOpen} onCloseDialog={() => setIsDialogOpen(false)} />}
-        {currentView === 'library' && <Library />}
         {currentView === 'settings' && <Settings />}
       </Suspense>
     </Layout>

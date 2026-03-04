@@ -2,11 +2,12 @@ import { createContext, useContext } from 'react';
 import type { ReactNode } from 'react';
 import { useToast } from '../hooks/useToast';
 import { ToastContainer } from '../components/ToastContainer';
+import type { ToastAction } from '../components/Toast';
 
 interface ToastContextType {
-    success: (title: string, message?: string, duration?: number) => string;
-    error: (title: string, message?: string, duration?: number) => string;
-    info: (title: string, message?: string, duration?: number) => string;
+    success: (title: string, message?: string, duration?: number, action?: ToastAction) => string;
+    error: (title: string, message?: string, duration?: number, action?: ToastAction) => string;
+    info: (title: string, message?: string, duration?: number, action?: ToastAction) => string;
 }
 
 const ToastContext = createContext<ToastContextType | undefined>(undefined);

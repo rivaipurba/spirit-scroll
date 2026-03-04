@@ -1,9 +1,8 @@
-import { Plus, ExternalLink, Minus, RefreshCw, Star } from 'lucide-react';
+import { Plus, ExternalLink, Minus } from 'lucide-react';
 import React, { useState } from 'react';
 import type { Media } from '../types/index';
 import { EditMediaDialog } from './EditMediaDialog';
-import { ConfirmDialog } from './ConfirmDialog';
-import { useUpdateProgress, useCheckUpdate, useUpdateMedia } from '../hooks/useMedia';
+import { useUpdateProgress } from '../hooks/useMedia';
 import { useToastContext } from '../context/ToastContext';
 
 interface MediaCardProps {
@@ -13,52 +12,28 @@ interface MediaCardProps {
 
 export const MediaCard = React.memo(function MediaCard({ media, priority = false }: MediaCardProps) {
     const [isEditOpen, setIsEditOpen] = useState(false);
-    const [isConfirmOpen, setIsConfirmOpen] = useState(false);
     const updateProgress = useUpdateProgress();
-    const updateMedia = useUpdateMedia();
-    const checkUpdate = useCheckUpdate();
     const toast = useToastContext();
-
-    const handleTogglePin = (e: React.MouseEvent) => {
-        e.stopPropagation();
-        updateMedia.mutate({
-            id: media.id,
-            isPinned: !media.isPinned
-        }, {
-            onSuccess: () => {
-                toast.success(
-                    media.isPinned ? "Unpinned" : "Pinned",
-                    media.isPinned ? `"${media.title}" removed from favorites` : `"${media.title}" added to favorites`
-                );
-            }
-        });
-    };
 
     const handleQuickIncrement = (e: React.MouseEvent) => {
         e.stopPropagation();
-        setIsConfirmOpen(true);
-    };
-
-    const handleConfirmIncrement = () => {
+        const prevChapter = media.currentChapter;
         const nextChapter = media.currentChapter + 1;
-        const chapterType = media.type === 'DONGHUA' ? 'episode' : 'chapter';
+        const label = media.type === 'DONGHUA' ? 'Ep.' : 'Ch.';
 
-        updateProgress.mutate({
-            id: media.id,
-            currentChapter: nextChapter
-        }, {
+        updateProgress.mutate({ id: media.id, currentChapter: nextChapter }, {
             onSuccess: () => {
                 toast.success(
-                    "Progress Updated",
-                    `Marked ${chapterType} ${nextChapter} as read`
+                    `${label} ${nextChapter} marked as read`,
+                    undefined,
+                    5000,
+                    {
+                        label: 'Undo',
+                        onClick: () => updateProgress.mutate({ id: media.id, currentChapter: prevChapter }),
+                    }
                 );
             }
         });
-        setIsConfirmOpen(false);
-    };
-
-    const handleCancelIncrement = () => {
-        setIsConfirmOpen(false);
     };
 
     const handleQuickDecrement = (e: React.MouseEvent) => {
@@ -69,11 +44,6 @@ export const MediaCard = React.memo(function MediaCard({ media, priority = false
                 currentChapter: media.currentChapter - 1
             });
         }
-    };
-
-    const handleCheckUpdate = (e: React.MouseEvent) => {
-        e.stopPropagation();
-        checkUpdate.mutate(media.id);
     };
 
     const hasUpdate = media.latestReleasedChapter != null && media.latestReleasedChapter > media.currentChapter;
@@ -121,8 +91,8 @@ export const MediaCard = React.memo(function MediaCard({ media, priority = false
 
                 {/* Content */}
                 <div className="flex-1 min-w-0 py-1">
-                    <div className="flex justify-between items-start mb-1">
-                        <h3 className="font-semibold text-slate-100 text-base leading-tight line-clamp-2 group-hover:text-white transition-colors max-w-[80%]">
+                    <div className="mb-1">
+                        <h3 className="font-semibold text-slate-100 text-base leading-tight line-clamp-2 group-hover:text-white transition-colors">
                             {(media.sourceUrl || (media as any).source_url) ? (
                                 <a
                                     href={media.sourceUrl || (media as any).source_url}
@@ -138,34 +108,6 @@ export const MediaCard = React.memo(function MediaCard({ media, priority = false
                                 media.title
                             )}
                         </h3>
-
-                        {/* Action Buttons */}
-                        <div className="flex items-center gap-1">
-                            {/* Pin/Favorite Button */}
-                            <button
-                                onClick={handleTogglePin}
-                                aria-label={media.isPinned ? "Remove from favorites" : "Add to favorites"}
-                                className={`p-1.5 rounded-full transition-all cursor-pointer ${media.isPinned
-                                    ? 'text-yellow-400 hover:text-yellow-300'
-                                    : 'text-slate-400 hover:text-yellow-400 hover:bg-white/5'
-                                    }`}
-                                title={media.isPinned ? "Remove from favorites" : "Add to favorites"}
-                            >
-                                <Star size={14} fill={media.isPinned ? "currentColor" : "none"} />
-                            </button>
-                            {/* Refresh Button */}
-                            {(media.sourceUrl || (media as any).source_url) && (
-                                <button
-                                    onClick={handleCheckUpdate}
-                                    disabled={checkUpdate.isPending}
-                                    aria-label="Check for updates"
-                                    className={`p-1.5 rounded-full text-slate-400 hover:text-indigo-400 hover:bg-white/5 transition-all cursor-pointer disabled:cursor-not-allowed ${checkUpdate.isPending ? 'animate-spin text-indigo-400' : ''}`}
-                                    title="Check for updates"
-                                >
-                                    <RefreshCw size={14} />
-                                </button>
-                            )}
-                        </div>
                     </div>
 
                     <div className="flex items-center text-xs text-slate-400 mb-3 space-x-2">
@@ -219,16 +161,6 @@ export const MediaCard = React.memo(function MediaCard({ media, priority = false
                 isOpen={isEditOpen}
                 onClose={() => setIsEditOpen(false)}
                 media={media}
-            />
-
-            <ConfirmDialog
-                isOpen={isConfirmOpen}
-                title="Mark as Read"
-                message={`Mark ${media.type === 'DONGHUA' ? 'episode' : 'chapter'} ${media.currentChapter + 1} as read?`}
-                confirmText="Mark Read"
-                cancelText="Cancel"
-                onConfirm={handleConfirmIncrement}
-                onCancel={handleCancelIncrement}
             />
         </>
     );

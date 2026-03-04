@@ -1,5 +1,5 @@
 import { Toast } from './Toast';
-import type { ToastType } from './Toast';
+import type { ToastType, ToastAction } from './Toast';
 
 export interface ToastData {
     id: string;
@@ -7,6 +7,7 @@ export interface ToastData {
     title: string;
     message?: string;
     duration?: number;
+    action?: ToastAction;
 }
 
 interface ToastContainerProps {
@@ -27,6 +28,7 @@ export function ToastContainer({ toasts, onRemoveToast }: ToastContainerProps) {
                         title={toast.title}
                         message={toast.message}
                         duration={toast.duration}
+                        action={toast.action}
                         onClose={onRemoveToast}
                     />
                 </div>
