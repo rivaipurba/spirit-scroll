@@ -49,7 +49,15 @@ app.use("/*", async (c, next) => {
 app.use(
     "/*",
     cors({
-        origin: ['https://spirit-scroll.vercel.app', 'http://localhost:5173'],
+        origin: (origin) => {
+            const allowed = ['https://spirit-scroll.vercel.app', 'http://localhost:5173'];
+            if (!origin) return '*';
+            if (allowed.includes(origin)) return origin;
+            // Allow browser extension origins (personal use)
+            if (origin.startsWith('chrome-extension://') || origin.startsWith('moz-extension://')) return origin;
+            // Fallback: allow all origins (reads are public anyway; writes require JWT auth)
+            return origin;
+        },
         allowHeaders: ["X-Custom-Header", "Upgrade-Insecure-Requests", "Content-Type", "Authorization"],
         allowMethods: ["POST", "GET", "OPTIONS", "PATCH", "DELETE"],
         exposeHeaders: ["Content-Length", "X-Kuma-Revision"],
@@ -95,21 +103,17 @@ app.use("/*", async (c, next) => {
 });
 
 // Helper to verify auth token from Authorization header
+// When JWT_SECRET is not set (local dev), auth is bypassed
 async function requireAuth(c: any): Promise<Response | null> {
-    const authHeader = c.req.header("Authorization");
+    const jwtSecret = c.env.JWT_SECRET;
+    if (!jwtSecret) return null; // local dev: no auth
 
+    const authHeader = c.req.header("Authorization");
     if (!authHeader || !authHeader.startsWith("Bearer ")) {
         return c.json({ error: "Unauthorized" }, 401);
     }
 
     const token = authHeader.substring(7);
-    const jwtSecret = c.env.JWT_SECRET;
-
-    if (!jwtSecret) {
-        console.error("JWT_SECRET not configured");
-        return c.json({ error: "Server configuration error" }, 500);
-    }
-
     const valid = await verifyToken(token, jwtSecret);
     if (!valid) {
         return c.json({ error: "Invalid or expired token" }, 401);
@@ -335,42 +339,6 @@ const routes = app.basePath("/api")
         }
 
         return c.json({ error: "Could not find chapter info" }, 404);
-    })
-    .post("/check-all", async (c) => {
-        const db = createDb(c.env.DATABASE_URL, c.env.DATABASE_AUTH_TOKEN);
-        const items = await db.select().from(media).where(
-            or(eq(media.status, "READING"), eq(media.status, "ON_HOLD"))
-        );
-
-        const targets = items.filter(m => m.status === 'READING' && m.sourceUrl);
-
-        let updatedCount = 0;
-
-        for (const item of targets) {
-            if (!item.sourceUrl) continue;
-
-            try {
-                await new Promise(r => setTimeout(r, 1500));
-
-                const latest = await checkLatestChapter(item.sourceUrl);
-                if (latest !== null) {
-                    await db.update(media)
-                        .set({ latestReleasedChapter: latest })
-                        .where(eq(media.id, item.id));
-                    if (latest > item.currentChapter) {
-                        updatedCount++;
-                    }
-                }
-            } catch (e) {
-                console.error(`Failed to check ${item.title}:`, e);
-            }
-        }
-
-        const response = c.json({ success: true, updated: updatedCount });
-        response.headers.set("Access-Control-Allow-Origin", "*");
-        response.headers.set("Access-Control-Allow-Methods", "POST, OPTIONS");
-        response.headers.set("Access-Control-Allow-Headers", "Content-Type");
-        return response;
     })
     .post("/import", zValidator("json", z.array(insertMediaSchema)), async (c) => {
         // Require authentication for importing data

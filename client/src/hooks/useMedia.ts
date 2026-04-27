@@ -1,5 +1,6 @@
 import { useQuery, useMutation, useQueryClient, keepPreviousData } from "@tanstack/react-query";
-import { client } from "../lib/api";
+import { useRef, useState } from "react";
+import { client, BASE_URL, getAuthToken } from "../lib/api";
 import { useToastContext } from "../context/ToastContext";
 import type { Media, PaginatedResponse } from "../types/index";
 
@@ -246,30 +247,67 @@ export function useCheckUpdate() {
     });
 }
 
-export function useScanAll() {
+export function useScanUpdates() {
     const queryClient = useQueryClient();
-    const toast = useToastContext();
+    const [isScanning, setIsScanning] = useState(false);
+    const [progress, setProgress] = useState<{ current: number; total: number; currentTitle: string } | null>(null);
+    const [result, setResult] = useState<{ updated: number } | null>(null);
+    const cancelRef = useRef(false);
 
-    return useMutation({
-        mutationFn: async () => {
-            const res = await client.api["check-all"].$post();
-            if (!res.ok) {
-                throw new Error("Failed to scan for updates");
+    const startScan = async () => {
+        if (isScanning) return;
+        cancelRef.current = false;
+        setIsScanning(true);
+        setResult(null);
+        setProgress(null);
+
+        let targets: Media[] = [];
+        try {
+            const token = getAuthToken();
+            const headers: HeadersInit = token ? { Authorization: `Bearer ${token}` } : {};
+            const res = await fetch(`${BASE_URL}api/media?limit=1000`, { headers });
+            if (res.ok) {
+                const data = await res.json();
+                targets = (data.data || []).filter((m: Media) => m.status === 'READING' && m.sourceUrl);
             }
-            return await res.json();
-        },
-        onSuccess: (data) => {
-            queryClient.invalidateQueries({ queryKey: ["media-list"] });
-            toast.success(
-                "Scan Complete",
-                `Found updates for ${data.updated} entries`
-            );
-        },
-        onError: (error) => {
-            toast.error(
-                "Scan Failed",
-                error.message || "Failed to scan for updates"
-            );
-        },
-    });
+        } catch {
+            setIsScanning(false);
+            return;
+        }
+
+        let updatedCount = 0;
+
+        for (let i = 0; i < targets.length; i++) {
+            if (cancelRef.current) break;
+
+            const item = targets[i];
+            setProgress({ current: i + 1, total: targets.length, currentTitle: item.title });
+
+            try {
+                const token = getAuthToken();
+                const headers: HeadersInit = token ? { Authorization: `Bearer ${token}` } : {};
+                const res = await fetch(`${BASE_URL}api/media/${item.id}/check`, { method: 'POST', headers });
+                if (res.ok) {
+                    const data = await res.json();
+                    if (data.has_update) updatedCount++;
+                }
+            } catch {
+                // skip failed items
+            }
+        }
+
+        setIsScanning(false);
+        if (!cancelRef.current) {
+            setResult({ updated: updatedCount });
+            queryClient.invalidateQueries({ queryKey: ['media-list'] });
+            setTimeout(() => setResult(null), 5000);
+        }
+        setProgress(null);
+    };
+
+    const cancelScan = () => {
+        cancelRef.current = true;
+    };
+
+    return { startScan, cancelScan, isScanning, progress, result };
 }

@@ -1,8 +1,9 @@
-import { useState, useEffect } from 'react';
-import { Loader2, Book, ChevronLeft, ChevronRight } from 'lucide-react';
-import { useMediaList } from '../hooks/useMedia';
+import { useState } from 'react';
+import { Loader2, Book, Sparkles } from 'lucide-react';
+import { useMediaList, useScanUpdates } from '../hooks/useMedia';
 import { MediaCard } from './MediaCard';
 import { NewEntryDialog } from './NewEntryDialog';
+import { ScanProgressBar } from './ScanProgressBar';
 import type { Media } from '../types/index';
 import { useSearch } from '../context/SearchContext';
 
@@ -12,35 +13,27 @@ interface DashboardProps {
 }
 
 type SortOption = 'updates' | 'title';
-type TypeFilter = 'ALL' | 'MANHUA' | 'DONGHUA';
+type TypeFilter = 'MANHUA' | 'DONGHUA';
 
 const TYPE_TABS: { id: TypeFilter; label: string }[] = [
-    { id: 'ALL', label: 'All' },
     { id: 'MANHUA', label: 'Manhua' },
     { id: 'DONGHUA', label: 'Donghua' },
 ];
 
 export function Dashboard({ isDialogOpen, onCloseDialog }: DashboardProps) {
-    const [page, setPage] = useState(1);
     const [sortBy, setSortBy] = useState<SortOption>('updates');
-    const [typeFilter, setTypeFilter] = useState<TypeFilter>('ALL');
+    const [typeFilter, setTypeFilter] = useState<TypeFilter>('DONGHUA');
     const { searchQuery } = useSearch();
+    const { startScan, cancelScan, isScanning, progress, result } = useScanUpdates();
 
-    // Use 12 items per page
-    const { data: paginatedMedia, isLoading, error, isPlaceholderData } = useMediaList(
-        page,
-        typeFilter === 'ALL' ? undefined : typeFilter,
-        12,
+    const { data: paginatedMedia, isLoading, error } = useMediaList(
+        1,
+        typeFilter,
+        1000,
         sortBy,
         searchQuery
     );
     const mediaList = paginatedMedia?.data || [];
-    const meta = paginatedMedia?.meta;
-
-    // Reset to page 1 when search/filter changes
-    useEffect(() => {
-        setPage(1);
-    }, [searchQuery, typeFilter, sortBy]);
 
     if (isLoading) {
         return (
@@ -86,35 +79,50 @@ export function Dashboard({ isDialogOpen, onCloseDialog }: DashboardProps) {
                         ))}
                     </div>
 
-                    {/* Sort toggle */}
-                    <div className="flex items-center gap-1 bg-white/5 rounded-lg p-0.5">
+                    <div className="flex items-center gap-2">
+                        {/* Sort toggle */}
+                        <div className="flex items-center gap-1 bg-white/5 rounded-lg p-0.5">
+                            <button
+                                onClick={() => setSortBy('updates')}
+                                className={`px-2.5 py-1 rounded-md text-xs font-medium transition-all cursor-pointer ${sortBy === 'updates'
+                                    ? 'bg-white/10 text-white'
+                                    : 'text-slate-500 hover:text-slate-300'
+                                    }`}
+                            >
+                                Updates
+                            </button>
+                            <button
+                                onClick={() => setSortBy('title')}
+                                className={`px-2.5 py-1 rounded-md text-xs font-medium transition-all cursor-pointer ${sortBy === 'title'
+                                    ? 'bg-white/10 text-white'
+                                    : 'text-slate-500 hover:text-slate-300'
+                                    }`}
+                            >
+                                A–Z
+                            </button>
+                        </div>
+
+                        {/* Scan button */}
                         <button
-                            onClick={() => setSortBy('updates')}
-                            className={`px-2.5 py-1 rounded-md text-xs font-medium transition-all cursor-pointer ${sortBy === 'updates'
-                                ? 'bg-white/10 text-white'
-                                : 'text-slate-500 hover:text-slate-300'
-                                }`}
+                            onClick={startScan}
+                            disabled={isScanning}
+                            className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold bg-indigo-500/15 text-indigo-400 hover:bg-indigo-500/25 hover:text-indigo-300 transition-all disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
                         >
-                            Updates
-                        </button>
-                        <button
-                            onClick={() => setSortBy('title')}
-                            className={`px-2.5 py-1 rounded-md text-xs font-medium transition-all cursor-pointer ${sortBy === 'title'
-                                ? 'bg-white/10 text-white'
-                                : 'text-slate-500 hover:text-slate-300'
-                                }`}
-                        >
-                            A–Z
+                            <Sparkles size={11} className={isScanning ? 'animate-pulse' : ''} />
+                            {isScanning ? 'Scanning...' : 'Scan'}
                         </button>
                     </div>
                 </div>
             </div>
 
             <div className="px-4">
-                {isPlaceholderData && (
-                    <div className="flex items-center justify-center py-8">
-                        <Loader2 className="w-6 h-6 animate-spin text-indigo-500" />
-                    </div>
+                {(isScanning || result) && (
+                    <ScanProgressBar
+                        isScanning={isScanning}
+                        progress={progress}
+                        result={result}
+                        onCancel={cancelScan}
+                    />
                 )}
 
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -130,39 +138,10 @@ export function Dashboard({ isDialogOpen, onCloseDialog }: DashboardProps) {
                         ) : (
                             <>
                                 <Book size={48} className="mb-4 text-slate-600" />
-                                <p className="text-sm font-medium text-slate-400">No items to display</p>
-                                <p className="text-xs text-slate-500 mt-2">Add some manga or anime to get started!</p>
+                                <p className="text-sm font-medium text-slate-400">No {typeFilter.toLowerCase()} entries yet</p>
+                                <p className="text-xs text-slate-500 mt-2">Add your first {typeFilter === 'MANHUA' ? 'manhua' : 'donghua'} to get started!</p>
                             </>
                         )}
-                    </div>
-                )}
-
-                {/* Pagination Controls */}
-                {meta && meta.totalPages > 1 && (
-                    <div className="col-span-full flex items-center justify-center gap-4 mt-8 pb-4">
-                        <button
-                            onClick={() => setPage(p => Math.max(1, p - 1))}
-                            disabled={page === 1}
-                            aria-label="Previous page"
-                            className="p-2 rounded-full bg-white/5 hover:bg-white/10 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer transition-colors"
-                        >
-                            <ChevronLeft size={20} className="text-slate-300" />
-                        </button>
-
-                        <div className="flex items-center gap-2">
-                            <span className="text-xs font-bold text-slate-400">
-                                Page {meta.page} of {meta.totalPages}
-                            </span>
-                        </div>
-
-                        <button
-                            onClick={() => setPage(p => Math.min(meta.totalPages, p + 1))}
-                            disabled={page === meta.totalPages || isPlaceholderData}
-                            aria-label="Next page"
-                            className="p-2 rounded-full bg-white/5 hover:bg-white/10 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer transition-colors"
-                        >
-                            <ChevronRight size={20} className="text-slate-300" />
-                        </button>
                     </div>
                 )}
             </div>

@@ -1,5 +1,5 @@
-import { Download, Upload, Loader2, Sparkles, Database, FileJson, RefreshCw, CheckCircle2, AlertCircle, LogOut } from 'lucide-react';
-import { useMediaList as useMedia, useImportMedia, useScanAll, useUpdateMedia } from '../hooks/useMedia';
+import { Download, Upload, Database, FileJson, RefreshCw, CheckCircle2, AlertCircle, LogOut } from 'lucide-react';
+import { useMediaList as useMedia, useImportMedia, useUpdateMedia } from '../hooks/useMedia';
 import { useToastContext } from '../context/ToastContext';
 import { useAuth } from '../context/AuthContext';
 import { useRef, useState } from 'react';
@@ -8,13 +8,10 @@ export function Settings() {
     const { data: paginatedMedia } = useMedia(1, undefined, 10000);
     const media = paginatedMedia?.data;
     const importMedia = useImportMedia();
-    const scanAll = useScanAll();
     const updateMedia = useUpdateMedia();
     const toast = useToastContext();
     const { logout } = useAuth();
-
     const fileInputRef = useRef<HTMLInputElement>(null);
-    const [scanResult, setScanResult] = useState<string | null>(null);
     const [importStatus, setImportStatus] = useState<{ type: 'success' | 'error', message: string } | null>(null);
     const [isReScraping, setIsReScraping] = useState(false);
 
@@ -67,19 +64,6 @@ export function Settings() {
         reader.readAsText(file);
     };
 
-    const handleScanAll = () => {
-        setScanResult(null);
-        scanAll.mutate(undefined, {
-            onSuccess: (data: any) => {
-                setScanResult(`Scan Complete! Found ${data.updated} updates.`);
-                setTimeout(() => setScanResult(null), 5000);
-            },
-            onError: () => {
-                setScanResult("Scan failed. Please try again.");
-            }
-        });
-    };
-
     const handleReScrape = async () => {
         if (!media) return;
         setIsReScraping(true);
@@ -130,44 +114,6 @@ export function Settings() {
                     <p className="text-4xl font-bold text-indigo-400">{totalChapters}</p>
                 </div>
             </div>
-
-            {/* Scan All Section */}
-            <div className="bg-gradient-to-br from-indigo-900/20 to-purple-900/20 border border-indigo-500/20 rounded-xl p-6 backdrop-blur-sm">
-                <h3 className="text-xl font-semibold text-white mb-4 flex items-center gap-2">
-                    <Sparkles className="text-yellow-400" size={20} />
-                    Check for Updates
-                </h3>
-                <p className="text-slate-400 mb-6 text-sm">
-                    Automatically scan all "Reading" series for new chapters. This process checks each series sequentially.
-                </p>
-
-                <div className="flex items-center gap-4">
-                    <button
-                        onClick={handleScanAll}
-                        disabled={scanAll.isPending}
-                        className="flex items-center gap-2 px-6 py-3 bg-indigo-600 hover:bg-indigo-500 disabled:bg-indigo-600/50 text-white rounded-lg font-medium transition-all shadow-lg hover:shadow-indigo-500/25"
-                    >
-                        {scanAll.isPending ? (
-                            <>
-                                <Loader2 className="animate-spin" size={18} />
-                                Scanning...
-                            </>
-                        ) : (
-                            <>
-                                <Sparkles size={18} />
-                                Scan All Now
-                            </>
-                        )}
-                    </button>
-
-                    {scanResult && (
-                        <div className="text-sm font-medium text-emerald-400 animate-in fade-in slide-in-from-left-2">
-                            {scanResult}
-                        </div>
-                    )}
-                </div>
-            </div>
-
 
             {/* Data Management */}
             <div className="bg-white/5 border border-white/10 rounded-xl p-6 backdrop-blur-sm">
@@ -279,6 +225,7 @@ export function Settings() {
                     </div>
                 </div>
             </div>
+
         </div>
     );
 }

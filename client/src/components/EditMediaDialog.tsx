@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { X, Book, Youtube, Trash2, Star, RefreshCw } from 'lucide-react';
-import { useUpdateMedia, useDeleteMedia, useCheckUpdate } from '../hooks/useMedia';
+import { X, Book, Youtube, Trash2, Star } from 'lucide-react';
+import { useUpdateMedia, useDeleteMedia } from '../hooks/useMedia';
 import { ConfirmDialog } from './ConfirmDialog';
 import type { Media } from '../types/index';
 
@@ -21,7 +21,6 @@ export function EditMediaDialog({ isOpen, onClose, media }: EditMediaDialogProps
 
     const updateMedia = useUpdateMedia();
     const deleteMedia = useDeleteMedia();
-    const checkUpdate = useCheckUpdate();
 
     useEffect(() => {
         if (isOpen) {
@@ -195,18 +194,6 @@ export function EditMediaDialog({ isOpen, onClose, media }: EditMediaDialogProps
                     >
                         <Star size={18} fill={media.isPinned ? "currentColor" : "none"} />
                     </button>
-                    {(media.sourceUrl || (media as any).source_url) && (
-                        <button
-                            type="button"
-                            onClick={() => checkUpdate.mutate(media.id)}
-                            disabled={checkUpdate.isPending}
-                            aria-label="Check for updates"
-                            title="Check for updates"
-                            className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl border border-white/10 text-neutral-500 hover:text-indigo-400 hover:border-indigo-500/30 hover:bg-indigo-500/5 transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
-                        >
-                            <RefreshCw size={18} className={checkUpdate.isPending ? 'animate-spin' : ''} />
-                        </button>
-                    )}
                     <button
                         onClick={handleSubmit}
                         disabled={updateMedia.isPending}
