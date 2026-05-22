@@ -1,11 +1,12 @@
-# Zero Cost Deployment Guide
+# SpiritScroll Deployment Guide
 
-This guide explains how to deploy **SpiritScroll** for $0/month using **Turso** (Database), **Vercel** (Frontend), and **Cloudflare Workers** or **Vercel** (Backend).
+This guide explains how to deploy **SpiritScroll** using **Turso** for the database, **Cloudflare Workers** or **Vercel** for the backend, and **Vercel** for the frontend.
 
 ## Prerequisites
 - [GitHub Account](https://github.com/)
 - [Turso Account](https://turso.tech/)
 - [Vercel Account](https://vercel.com/) (or Cloudflare)
+- [Bun](https://bun.sh/) installed locally
 
 ---
 
@@ -32,10 +33,25 @@ This guide explains how to deploy **SpiritScroll** for $0/month using **Turso** 
     # Copy the Auth Token
     ```
 
-4.  **Push Schema to Turso**:
+4.  **Configure local environment**:
+    Create `server/.dev.vars` for local development. Do not commit this file.
+    ```env
+    DATABASE_URL=libsql://your-database.turso.io
+    DATABASE_AUTH_TOKEN=your_turso_token
+    JWT_SECRET=replace_with_a_long_random_secret
+    AUTH_PASSWORD_HASH=replace_with_the_sha256_password_hash
+    ```
+
+    Generate the current password hash with Bun:
+    ```bash
+    bun -e "const p='your-password'; const b=await crypto.subtle.digest('SHA-256', new TextEncoder().encode(p)); console.log([...new Uint8Array(b)].map(x=>x.toString(16).padStart(2,'0')).join(''))"
+    ```
+
+5.  **Push Schema to Turso**:
     In your local `server` directory, run:
     ```bash
-    # Set vars temporarily or use a .env file
+    # Windows PowerShell
+    cd server
     set DATABASE_URL=libsql://...
     set DATABASE_AUTH_TOKEN=...
     
@@ -63,6 +79,8 @@ You can deploy the Hono server to **Cloudflare Workers** (Recommended for speed)
     Add:
     - `DATABASE_URL`: Your Turso URL
     - `DATABASE_AUTH_TOKEN`: Your Turso Token
+    - `JWT_SECRET`: A long random string used to sign auth tokens
+    - `AUTH_PASSWORD_HASH`: The SHA-256 hash of your login password
 
 ### Option B: Vercel
 1.  Create `vercel.json` in `server/`:
@@ -73,7 +91,11 @@ You can deploy the Hono server to **Cloudflare Workers** (Recommended for speed)
     }
     ```
 2.  Deploy using Vercel CLI or Git integration.
-    - Set Environment Variables (`DATABASE_URL`, `DATABASE_AUTH_TOKEN`) in Vercel Project Settings.
+    - Set Environment Variables in Vercel Project Settings:
+      - `DATABASE_URL`
+      - `DATABASE_AUTH_TOKEN`
+      - `JWT_SECRET`
+      - `AUTH_PASSWORD_HASH`
 
 ---
 
@@ -90,9 +112,26 @@ You can deploy the Hono server to **Cloudflare Workers** (Recommended for speed)
 
 ---
 
+## 4. Production Smoke Check
+
+After deployment, verify the backend from the project root:
+
+```bash
+SPIRIT_SCROLL_API_URL=https://your-api.example.com bun scripts/check-prod.js
+```
+
+On Windows PowerShell:
+
+```powershell
+$env:SPIRIT_SCROLL_API_URL="https://your-api.example.com"
+bun scripts/check-prod.js
+```
+
+---
+
 ## Summary
 - **Database**: Turso (Free Tier: 9B reads/mo)
 - **Backend**: Cloudflare Workers (Free Tier: 100k req/day)
 - **Frontend**: Vercel (Free Tier: Generous bandwidth)
 
-**Total Cost: $0.**
+Avoid committing local secrets (`.dev.vars`, `.env*`) or local databases (`*.sqlite`).

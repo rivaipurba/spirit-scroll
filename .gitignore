@@ -1,0 +1,35 @@
+# dependencies
+node_modules/
+
+# build output
+dist/
+out/
+coverage/
+
+# logs and reports
+logs/
+*.log
+report.*.json
+
+# environment files
+.env
+.env.*
+!.env.example
+.dev.vars
+
+# local databases
+*.sqlite
+*.sqlite-*
+*.db
+*.db-*
+
+# caches
+.cache/
+.eslintcache
+*.tsbuildinfo
+
+# editor and OS files
+.vscode/*
+!.vscode/extensions.json
+.idea/
+.DS_Store
