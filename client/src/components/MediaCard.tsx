@@ -14,6 +14,9 @@ export const MediaCard = React.memo(function MediaCard({ media, priority = false
     const [isEditOpen, setIsEditOpen] = useState(false);
     const updateProgress = useUpdateProgress();
     const toast = useToastContext();
+    const isComplete = Boolean(media.totalChapters && media.currentChapter >= media.totalChapters);
+    const statusBadgeLabel = isComplete ? 'FINISHED' : media.type === 'DONGHUA' ? 'WATCHING' : 'READING';
+    const statusBadgeClass = isComplete ? 'bg-emerald-600/90' : 'bg-indigo-600/90';
 
     const handleQuickIncrement = (e: React.MouseEvent) => {
         e.stopPropagation();
@@ -78,12 +81,8 @@ export const MediaCard = React.memo(function MediaCard({ media, priority = false
                                 NEW
                             </span>
                         ) : (
-                            <span className="rounded-md bg-indigo-600/90 px-1.5 py-0.5 text-[9px] font-bold text-white shadow-sm backdrop-blur-sm">
-                                {(() => {
-                                    const isComplete = media.totalChapters && media.currentChapter >= media.totalChapters;
-                                    if (isComplete) return 'FINISHED';
-                                    return media.type === 'DONGHUA' ? 'WATCHING' : 'READING';
-                                })()}
+                            <span className={`rounded-md ${statusBadgeClass} px-1.5 py-0.5 text-[9px] font-bold text-white shadow-sm backdrop-blur-sm`}>
+                                {statusBadgeLabel}
                             </span>
                         )}
                     </div>
