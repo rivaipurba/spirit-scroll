@@ -14,9 +14,21 @@ export const MediaCard = React.memo(function MediaCard({ media, priority = false
     const [isEditOpen, setIsEditOpen] = useState(false);
     const updateProgress = useUpdateProgress();
     const toast = useToastContext();
-    const isComplete = Boolean(media.totalChapters && media.currentChapter >= media.totalChapters);
-    const statusBadgeLabel = isComplete ? 'FINISHED' : media.type === 'DONGHUA' ? 'WATCHING' : 'READING';
-    const statusBadgeClass = isComplete ? 'bg-emerald-600/90' : 'bg-indigo-600/90';
+    const hasUpdate = media.latestReleasedChapter != null && media.latestReleasedChapter > media.currentChapter;
+    const isFinished = media.status === 'COMPLETED' || Boolean(media.totalChapters && media.currentChapter >= media.totalChapters);
+    const statusBadgeLabel = isFinished ? 'FINISHED' : media.type === 'DONGHUA' ? 'WATCHING' : 'READING';
+    const statusBadgeClass = isFinished ? 'bg-emerald-600/90' : 'bg-indigo-600/90';
+    const cardToneClass = hasUpdate
+        ? 'bg-red-950/20 hover:bg-red-950/30 border-red-500/15 hover:border-red-500/25'
+        : isFinished
+            ? 'bg-emerald-950/20 hover:bg-emerald-950/30 border-emerald-500/15 hover:border-emerald-500/25'
+            : media.status === 'ON_HOLD'
+                ? 'bg-amber-950/20 hover:bg-amber-950/30 border-amber-500/15 hover:border-amber-500/25'
+                : media.status === 'DROPPED'
+                    ? 'bg-rose-950/20 hover:bg-rose-950/30 border-rose-500/15 hover:border-rose-500/25'
+                    : media.status === 'PLAN_TO_READ'
+                        ? 'bg-cyan-950/20 hover:bg-cyan-950/30 border-cyan-500/15 hover:border-cyan-500/25'
+                        : 'bg-white/5 hover:bg-white/10 border-white/5 hover:border-white/10';
 
     const handleQuickIncrement = (e: React.MouseEvent) => {
         e.stopPropagation();
@@ -49,12 +61,10 @@ export const MediaCard = React.memo(function MediaCard({ media, priority = false
         }
     };
 
-    const hasUpdate = media.latestReleasedChapter != null && media.latestReleasedChapter > media.currentChapter;
-
     return (
         <>
             <div
-                className="group relative flex items-center bg-white/5 hover:bg-white/10 rounded-xl p-3 border border-white/5 hover:border-white/10 transition-all duration-300 backdrop-blur-sm cursor-pointer"
+                className={`group relative flex items-center rounded-xl p-3 border transition-all duration-300 backdrop-blur-sm cursor-pointer ${cardToneClass}`}
                 onClick={() => setIsEditOpen(true)}
             >
                 {/* Cover Image */}
@@ -128,7 +138,7 @@ export const MediaCard = React.memo(function MediaCard({ media, priority = false
                     <div className="flex items-center gap-3">
                         <div className="flex-1 h-1.5 bg-white/5 rounded-full overflow-hidden">
                             <div
-                                className={`h-full rounded-full transition-all duration-500 ${media.status === 'COMPLETED' ? 'bg-emerald-500' : 'bg-indigo-500'
+                                className={`h-full rounded-full transition-all duration-500 ${isFinished ? 'bg-emerald-500' : 'bg-indigo-500'
                                     }`}
                                 style={{ width: `${media.totalChapters ? Math.min((media.currentChapter / media.totalChapters) * 100, 100) : 0}%` }}
                             />
