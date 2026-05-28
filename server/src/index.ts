@@ -29,6 +29,64 @@ type Bindings = {
 
 const app = new Hono<{ Bindings: Bindings }>();
 
+function getDatabaseConfig(env: Bindings) {
+    const runtimeEnv = typeof process !== "undefined" ? process.env : {};
+
+    return {
+        url: env.DATABASE_URL || runtimeEnv.DATABASE_URL || "file:spirit_scroll.sqlite",
+        authToken: env.DATABASE_AUTH_TOKEN || runtimeEnv.DATABASE_AUTH_TOKEN || "",
+    };
+}
+
+async function scanReadingMediaForUpdates(env: Bindings, limit = 1000) {
+    const { url, authToken } = getDatabaseConfig(env);
+    const db = createDb(url, authToken);
+
+    const targets = await db
+        .select()
+        .from(media)
+        .where(and(
+            eq(media.status, "READING"),
+            sql`${media.sourceUrl} IS NOT NULL`,
+            sql`${media.sourceUrl} <> ''`
+        ))
+        .limit(limit);
+
+    let updated = 0;
+    let failed = 0;
+
+    for (const item of targets) {
+        if (!item.sourceUrl) continue;
+
+        try {
+            const latestChapter = await checkLatestChapter(item.sourceUrl);
+
+            if (latestChapter === null) {
+                failed++;
+                continue;
+            }
+
+            await db
+                .update(media)
+                .set({ latestReleasedChapter: latestChapter })
+                .where(eq(media.id, item.id));
+
+            if (latestChapter > item.currentChapter) {
+                updated++;
+            }
+        } catch (error) {
+            failed++;
+            console.error(`[AUTO SCAN] Failed to check "${item.title}" (${item.id}):`, error);
+        }
+    }
+
+    return {
+        checked: targets.length,
+        updated,
+        failed,
+    };
+}
+
 // Middleware to inject env vars for local bun dev (Cloudflare Workers provides these automatically)
 app.use("/*", async (c, next) => {
     if (!c.env.DATABASE_URL) {
@@ -396,4 +454,9 @@ export default {
     port: 3000,
     hostname: '0.0.0.0',
     fetch: app.fetch,
+    scheduled: async (_controller: any, env: Bindings) => {
+        console.log("[AUTO SCAN] Starting scheduled update scan");
+        const result = await scanReadingMediaForUpdates(env);
+        console.log("[AUTO SCAN] Finished scheduled update scan", result);
+    },
 };

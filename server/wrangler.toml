@@ -8,3 +8,6 @@ enabled = true
 
 [placement]
 mode = "smart"
+
+[triggers]
+crons = ["0 */6 * * *"]
