@@ -373,30 +373,45 @@ const routes = app.basePath("/api")
         return c.json({ success: true, deletedId: result[0]?.id });
     })
     .post("/media/:id/check", async (c) => {
-        const id = Number(c.req.param("id"));
-        if (isNaN(id)) return c.json({ error: "Invalid ID" }, 400);
+        try {
+            const id = Number(c.req.param("id"));
+            if (isNaN(id)) return c.json({ error: "Invalid ID" }, 400);
 
-        const db = createDb(c.env.DATABASE_URL, c.env.DATABASE_AUTH_TOKEN);
-        const item = await db.select().from(media).where(eq(media.id, id)).limit(1);
-        if (item.length === 0) return c.json({ error: "Not found" }, 404);
+            const db = createDb(c.env.DATABASE_URL, c.env.DATABASE_AUTH_TOKEN);
+            const item = await db.select().from(media).where(eq(media.id, id)).limit(1);
+            if (item.length === 0) return c.json({ error: "Not found" }, 404);
 
-        const sourceUrl = item[0]?.sourceUrl;
-        if (!sourceUrl) return c.json({ error: "No source URL found" }, 400);
+            const sourceUrl = item[0]?.sourceUrl;
+            if (!sourceUrl) {
+                return c.json({
+                    new_chapter: null,
+                    has_update: false,
+                    error: "No source URL found"
+                });
+            }
 
-        const latestChapter = await checkLatestChapter(sourceUrl);
+            const latestChapter = await checkLatestChapter(sourceUrl);
 
-        if (latestChapter !== null) {
-            await db.update(media)
-                .set({ latestReleasedChapter: latestChapter })
-                .where(eq(media.id, id));
+            if (latestChapter !== null) {
+                await db.update(media)
+                    .set({ latestReleasedChapter: latestChapter })
+                    .where(eq(media.id, id));
+
+                return c.json({
+                    new_chapter: latestChapter,
+                    has_update: latestChapter > (item[0]?.currentChapter || 0)
+                });
+            }
 
             return c.json({
-                new_chapter: latestChapter,
-                has_update: latestChapter > (item[0]?.currentChapter || 0)
+                new_chapter: null,
+                has_update: false,
+                error: "Could not find chapter info"
             });
+        } catch (error) {
+            console.error("[CHECK UPDATE] Unexpected error:", error);
+            return c.json({ error: "Failed to check for updates" }, 500);
         }
-
-        return c.json({ error: "Could not find chapter info" }, 404);
     })
     .post("/import", zValidator("json", z.array(insertMediaSchema)), async (c) => {
         // Require authentication for importing data
