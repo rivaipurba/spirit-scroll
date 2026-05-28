@@ -25,11 +25,3 @@ export function MediaCardSkeleton() {
     );
 }
 
-export function LibraryCardSkeleton() {
-    return (
-        <div className="flex flex-col gap-2 animate-pulse">
-            <div className="aspect-[2/3] rounded-xl bg-white/10" />
-            <div className="h-3 bg-white/10 rounded w-3/4" />
-        </div>
-    );
-}
