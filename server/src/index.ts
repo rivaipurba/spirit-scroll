@@ -40,6 +40,12 @@ function getDatabaseConfig(env: Bindings) {
 
 async function scanReadingMediaForUpdates(env: Bindings, limit = 1000) {
     const { url, authToken } = getDatabaseConfig(env);
+
+    if (!url || url === "file:spirit_scroll.sqlite") {
+        console.error("[AUTO SCAN] No DATABASE_URL binding configured — using local fallback, scan aborted");
+        return { checked: 0, updated: 0, failed: 0, error: "missing DATABASE_URL" };
+    }
+
     const db = createDb(url, authToken);
 
     const targets = await db
@@ -52,8 +58,15 @@ async function scanReadingMediaForUpdates(env: Bindings, limit = 1000) {
         ))
         .limit(limit);
 
+    console.log(`[AUTO SCAN] Found ${targets.length} READY entries with source URLs`);
+
+    if (targets.length === 0) {
+        return { checked: 0, updated: 0, failed: 0 };
+    }
+
     let updated = 0;
     let failed = 0;
+    const checkedItems: string[] = [];
 
     for (const item of targets) {
         if (!item.sourceUrl) continue;
@@ -63,6 +76,7 @@ async function scanReadingMediaForUpdates(env: Bindings, limit = 1000) {
 
             if (latestChapter === null) {
                 failed++;
+                console.warn(`[AUTO SCAN] No chapter found for "${item.title}" (${item.sourceUrl})`);
                 continue;
             }
 
@@ -73,12 +87,17 @@ async function scanReadingMediaForUpdates(env: Bindings, limit = 1000) {
 
             if (latestChapter > item.currentChapter) {
                 updated++;
+                console.log(`[AUTO SCAN] UPDATE: "${item.title}" — ${item.currentChapter} → ${latestChapter}`);
             }
+
+            checkedItems.push(`${item.title}:${latestChapter}`);
         } catch (error) {
             failed++;
             console.error(`[AUTO SCAN] Failed to check "${item.title}" (${item.id}):`, error);
         }
     }
+
+    console.log(`[AUTO SCAN] Results: ${checkedItems.length} checked, ${updated} updated, ${failed} failed`);
 
     return {
         checked: targets.length,
@@ -469,9 +488,13 @@ export default {
     port: 3000,
     hostname: '0.0.0.0',
     fetch: app.fetch,
-    scheduled: async (_controller: any, env: Bindings) => {
-        console.log("[AUTO SCAN] Starting scheduled update scan");
-        const result = await scanReadingMediaForUpdates(env);
-        console.log("[AUTO SCAN] Finished scheduled update scan", result);
+    scheduled: async (_event: any, env: Bindings, ctx: any) => {
+        console.log("[AUTO SCAN] Cron triggered, starting update scan");
+        ctx.waitUntil(
+            (async () => {
+                const result = await scanReadingMediaForUpdates(env);
+                console.log("[AUTO SCAN] Finished scheduled update scan", JSON.stringify(result));
+            })()
+        );
     },
 };
