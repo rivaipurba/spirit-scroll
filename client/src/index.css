@@ -3,19 +3,20 @@
 
 @theme {
   --font-sans: "Outfit", sans-serif;
-  --color-mal-blue: #2e51a2;
-  --color-mal-blue-dark: #1a3a7a;
-  --color-mal-blue-light: #3b6bc5;
-  --color-mal-page: #f0f2f5;
-  --color-mal-card: #ffffff;
-  --color-mal-text: #1a1a1a;
-  --color-mal-text-secondary: #666666;
-  --color-mal-border: #e5e5e5;
-  --color-mal-green: #4caf50;
-  --color-mal-blue-status: #2196f3;
-  --color-mal-yellow: #ff9800;
-  --color-mal-red: #f44336;
-  --color-mal-gray: #9e9e9e;
+  --color-mal-blue: #3b82f6;
+  --color-mal-blue-dark: #2563eb;
+  --color-mal-page: #0f0f0f;
+  --color-mal-panel: #1a1a1a;
+  --color-mal-card: #222222;
+  --color-mal-border: rgba(255, 255, 255, 0.08);
+  --color-mal-hover: rgba(255, 255, 255, 0.05);
+  --color-mal-text: #e0e0e0;
+  --color-mal-text-secondary: #888888;
+  --color-mal-green: #4ade80;
+  --color-mal-blue-status: #60a5fa;
+  --color-mal-yellow: #fbbf24;
+  --color-mal-red: #f87171;
+  --color-mal-gray: #6b7280;
 }
 
 body {
@@ -23,7 +24,6 @@ body {
   margin: 0;
 }
 
-/* Custom Scrollbar for Webkit */
 ::-webkit-scrollbar {
   width: 6px;
   height: 6px;
@@ -34,9 +34,9 @@ body {
 }
 
 ::-webkit-scrollbar-thumb {
-  @apply bg-gray-300 rounded-full;
+  @apply bg-gray-700 rounded-full;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  @apply bg-gray-400;
+  @apply bg-gray-600;
 }

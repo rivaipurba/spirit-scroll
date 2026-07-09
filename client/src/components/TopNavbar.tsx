@@ -51,11 +51,10 @@ export function TopNavbar({ currentView, onNavigate, headerAction, isScanning, o
     };
 
     return (
-        <header className="bg-mal-blue text-white shadow-md sticky top-0 z-30">
+        <header className="bg-mal-panel border-b border-mal-border shadow-sm sticky top-0 z-30">
             <div className="mx-auto flex items-center justify-between px-4 h-14 max-w-[1400px]">
-                {/* Left: Logo + Nav Links */}
                 <div className="flex items-center gap-6">
-                    <h1 className="text-lg font-bold tracking-wide whitespace-nowrap">
+                    <h1 className="text-lg font-bold tracking-wide whitespace-nowrap text-mal-text">
                         SpiritScroll
                     </h1>
                     <nav className="hidden md:flex items-center gap-1">
@@ -63,8 +62,8 @@ export function TopNavbar({ currentView, onNavigate, headerAction, isScanning, o
                             onClick={() => onNavigate('home')}
                             className={`px-3 py-1.5 rounded text-sm font-medium transition-colors cursor-pointer ${
                                 currentView === 'home'
-                                    ? 'bg-white/20 text-white'
-                                    : 'text-white/70 hover:text-white hover:bg-white/10'
+                                    ? 'bg-mal-hover text-white'
+                                    : 'text-mal-text-secondary hover:text-white hover:bg-mal-hover'
                             }`}
                         >
                             Home
@@ -73,8 +72,8 @@ export function TopNavbar({ currentView, onNavigate, headerAction, isScanning, o
                             onClick={() => onNavigate('settings')}
                             className={`px-3 py-1.5 rounded text-sm font-medium transition-colors cursor-pointer ${
                                 currentView === 'settings'
-                                    ? 'bg-white/20 text-white'
-                                    : 'text-white/70 hover:text-white hover:bg-white/10'
+                                    ? 'bg-mal-hover text-white'
+                                    : 'text-mal-text-secondary hover:text-white hover:bg-mal-hover'
                             }`}
                         >
                             Settings
@@ -82,22 +81,21 @@ export function TopNavbar({ currentView, onNavigate, headerAction, isScanning, o
                     </nav>
                 </div>
 
-                {/* Right: Search + Actions */}
                 <div className="flex items-center gap-2">
                     {isSearchOpen ? (
-                        <div className="flex items-center bg-white/15 rounded px-2.5 py-1.5 border border-white/20 focus-within:bg-white/20 transition-colors">
-                            <Search size={16} className="text-white/60 mr-2 shrink-0" />
+                        <div className="flex items-center bg-mal-card rounded px-2.5 py-1.5 border border-mal-border focus-within:border-mal-blue/50 transition-colors">
+                            <Search size={16} className="text-mal-text-secondary mr-2 shrink-0" />
                             <input
                                 ref={inputRef}
                                 type="text"
                                 value={inputValue}
                                 onChange={(e) => setInputValue(e.target.value)}
                                 placeholder="Search titles..."
-                                className="w-40 sm:w-56 bg-transparent border-none p-0 text-sm text-white placeholder:text-white/50 focus:outline-none focus:ring-0"
+                                className="w-40 sm:w-56 bg-transparent border-none p-0 text-sm text-mal-text placeholder:text-mal-text-secondary/50 focus:outline-none focus:ring-0"
                             />
                             <button
                                 onClick={handleSearchToggle}
-                                className="ml-1 p-0.5 rounded text-white/50 hover:text-white cursor-pointer"
+                                className="ml-1 p-0.5 rounded text-mal-text-secondary hover:text-white cursor-pointer"
                             >
                                 <span className="text-xs font-bold">✕</span>
                             </button>
@@ -105,7 +103,7 @@ export function TopNavbar({ currentView, onNavigate, headerAction, isScanning, o
                     ) : (
                         <button
                             onClick={handleSearchToggle}
-                            className="p-2 rounded-lg text-white/70 hover:text-white hover:bg-white/10 transition-colors cursor-pointer"
+                            className="p-2 rounded-lg text-mal-text-secondary hover:text-white hover:bg-mal-hover transition-colors cursor-pointer"
                             title="Search"
                         >
                             <Search size={20} />
@@ -115,7 +113,7 @@ export function TopNavbar({ currentView, onNavigate, headerAction, isScanning, o
                     <button
                         onClick={onScan}
                         disabled={isScanning}
-                        className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-white/15 hover:bg-white/25 text-white transition-all disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+                        className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-mal-blue/20 text-mal-blue hover:bg-mal-blue/30 transition-all disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
                     >
                         <Sparkles size={14} className={isScanning ? 'animate-pulse' : ''} />
                         {isScanning ? 'Scanning...' : 'Scan'}
@@ -123,12 +121,11 @@ export function TopNavbar({ currentView, onNavigate, headerAction, isScanning, o
 
                     {headerAction}
 
-                    {/* Mobile nav buttons */}
                     <div className="flex md:hidden items-center gap-1">
                         <button
                             onClick={() => onNavigate('home')}
                             className={`p-2 rounded-lg transition-colors cursor-pointer ${
-                                currentView === 'home' ? 'text-white' : 'text-white/50 hover:text-white'
+                                currentView === 'home' ? 'text-white' : 'text-mal-text-secondary hover:text-white'
                             }`}
                         >
                             <span className="text-xs font-bold">HOME</span>
@@ -136,7 +133,7 @@ export function TopNavbar({ currentView, onNavigate, headerAction, isScanning, o
                         <button
                             onClick={() => onNavigate('settings')}
                             className={`p-2 rounded-lg transition-colors cursor-pointer ${
-                                currentView === 'settings' ? 'text-white' : 'text-white/50 hover:text-white'
+                                currentView === 'settings' ? 'text-white' : 'text-mal-text-secondary hover:text-white'
                             }`}
                         >
                             <SettingsIcon size={18} />

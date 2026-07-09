@@ -34,7 +34,6 @@ export class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoun
             const FallbackComponent = this.props.fallback || DefaultErrorFallback;
             return <FallbackComponent error={this.state.error} resetError={this.resetError} />;
         }
-
         return this.props.children;
     }
 }
@@ -42,11 +41,11 @@ export class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoun
 function DefaultErrorFallback({ error, resetError }: { error?: Error; resetError: () => void }) {
     return (
         <div className="min-h-[50vh] flex flex-col items-center justify-center p-8 text-center">
-            <div className="bg-red-50 rounded-full p-4 mb-4">
+            <div className="bg-mal-red/15 rounded-full p-4 mb-4">
                 <AlertTriangle className="w-8 h-8 text-mal-red" />
             </div>
-            <h2 className="text-xl font-bold text-gray-800 mb-2">Something went wrong</h2>
-            <p className="text-gray-500 mb-4 max-w-md">
+            <h2 className="text-xl font-bold text-mal-text mb-2">Something went wrong</h2>
+            <p className="text-mal-text-secondary mb-4 max-w-md">
                 {error?.message || "An unexpected error occurred. Please try refreshing the page."}
             </p>
             <button

@@ -14,7 +14,6 @@ export function RightSidebar({ mediaList }: RightSidebarProps) {
         m => m.latestReleasedChapter != null && m.latestReleasedChapter > m.currentChapter
     );
 
-    // Top 5 latest updated entries
     const latestUpdates = [...mediaList]
         .sort((a, b) => {
             const aGap = (a.latestReleasedChapter ?? 0) - a.currentChapter;
@@ -27,28 +26,26 @@ export function RightSidebar({ mediaList }: RightSidebarProps) {
 
     return (
         <aside className="hidden lg:block w-64 shrink-0 p-4 space-y-5">
-            {/* Stats Card */}
-            <div className="bg-white rounded-lg border border-gray-200 p-4">
-                <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3 flex items-center gap-1.5">
+            <div className="bg-mal-panel rounded-lg border border-mal-border p-4">
+                <h3 className="text-xs font-semibold text-mal-text-secondary uppercase tracking-wider mb-3 flex items-center gap-1.5">
                     <TrendingUp size={14} />
                     Stats
                 </h3>
                 <div className="space-y-3">
                     <div className="flex items-center justify-between">
-                        <span className="text-sm text-gray-600">Total Entries</span>
-                        <span className="text-sm font-bold text-gray-800">{totalEntries}</span>
+                        <span className="text-sm text-mal-text-secondary">Total Entries</span>
+                        <span className="text-sm font-bold text-mal-text">{totalEntries}</span>
                     </div>
                     <div className="flex items-center justify-between">
-                        <span className="text-sm text-gray-600">Chapters Read</span>
-                        <span className="text-sm font-bold text-gray-800">{totalChapters}</span>
+                        <span className="text-sm text-mal-text-secondary">Chapters Read</span>
+                        <span className="text-sm font-bold text-mal-text">{totalChapters}</span>
                     </div>
                     <div className="flex items-center justify-between">
-                        <span className="text-sm text-gray-600">With Updates</span>
+                        <span className="text-sm text-mal-text-secondary">With Updates</span>
                         <span className="text-sm font-bold text-mal-red">{hasUpdates.length}</span>
                     </div>
                 </div>
 
-                {/* Status Distribution */}
                 <div className="mt-4 space-y-2">
                     <StatusBar label="Reading" count={readingCount} max={maxCount} color="bg-mal-green" />
                     <StatusBar label="Completed" count={completedCount} max={maxCount} color="bg-mal-blue-status" />
@@ -58,10 +55,9 @@ export function RightSidebar({ mediaList }: RightSidebarProps) {
                 </div>
             </div>
 
-            {/* Latest Updates */}
             {latestUpdates.length > 0 && (
-                <div className="bg-white rounded-lg border border-gray-200 p-4">
-                    <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3 flex items-center gap-1.5">
+                <div className="bg-mal-panel rounded-lg border border-mal-border p-4">
+                    <h3 className="text-xs font-semibold text-mal-text-secondary uppercase tracking-wider mb-3 flex items-center gap-1.5">
                         <ArrowUpRight size={14} />
                         Latest Updates
                     </h3>
@@ -70,17 +66,17 @@ export function RightSidebar({ mediaList }: RightSidebarProps) {
                             const gap = (m.latestReleasedChapter ?? 0) - m.currentChapter;
                             return gap > 0 ? (
                                 <div key={m.id} className="flex items-start gap-2.5">
-                                    <div className="w-[30px] h-[42px] rounded overflow-hidden bg-gray-100 shrink-0 shadow-sm">
+                                    <div className="w-[30px] h-[42px] rounded overflow-hidden bg-mal-card shrink-0 shadow-sm">
                                         {m.coverUrl ? (
                                             <img src={m.coverUrl} alt="" className="w-full h-full object-cover" loading="lazy" width="30" height="42" />
                                         ) : (
-                                            <div className="w-full h-full flex items-center justify-center bg-gray-200 text-gray-400 text-[7px] font-semibold">
+                                            <div className="w-full h-full flex items-center justify-center bg-mal-card text-mal-text-secondary/50 text-[7px] font-semibold">
                                                 {m.type === 'DONGHUA' ? 'A' : 'M'}
                                             </div>
                                         )}
                                     </div>
                                     <div className="min-w-0">
-                                        <p className="text-xs font-medium text-gray-700 truncate leading-tight">
+                                        <p className="text-xs font-medium text-mal-text truncate leading-tight">
                                             {m.title}
                                         </p>
                                         <p className="text-[11px] text-mal-red font-semibold mt-0.5">
@@ -102,10 +98,10 @@ function StatusBar({ label, count, max, color }: { label: string; count: number;
     return (
         <div>
             <div className="flex items-center justify-between text-xs">
-                <span className="text-gray-500">{label}</span>
-                <span className="font-medium text-gray-700">{count}</span>
+                <span className="text-mal-text-secondary">{label}</span>
+                <span className="font-medium text-mal-text">{count}</span>
             </div>
-            <div className="w-full h-1.5 bg-gray-100 rounded-full mt-0.5 overflow-hidden">
+            <div className="w-full h-1.5 bg-mal-card rounded-full mt-0.5 overflow-hidden">
                 <div
                     className={`h-full rounded-full ${color} transition-all duration-500`}
                     style={{ width: `${pct}%` }}

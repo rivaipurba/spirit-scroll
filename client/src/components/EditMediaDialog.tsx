@@ -62,95 +62,95 @@ export function EditMediaDialog({ isOpen, onClose, media }: EditMediaDialogProps
     return (
         <>
             <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-                <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={onClose} />
-                <div className="bg-white rounded-xl border border-gray-200 p-6 w-full max-w-md relative shadow-xl animate-in zoom-in-95 duration-200">
+                <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onClose} />
+                <div className="bg-mal-panel border border-mal-border rounded-xl p-6 w-full max-w-md relative shadow-xl animate-in zoom-in-95 duration-200">
                     <div className="flex items-center justify-between mb-5">
                         <div className="flex items-center gap-3">
-                            <div className="p-2 bg-mal-blue/10 rounded-lg">
+                            <div className="p-2 bg-mal-blue/15 rounded-lg">
                                 {media.type === 'DONGHUA' ? (
                                     <Youtube size={20} className="text-mal-blue" />
                                 ) : (
                                     <Book size={20} className="text-mal-blue" />
                                 )}
                             </div>
-                            <h3 className="text-lg font-semibold text-gray-800">Edit Entry</h3>
+                            <h3 className="text-lg font-semibold text-mal-text">Edit Entry</h3>
                         </div>
-                        <button onClick={onClose} className="p-1.5 rounded-lg text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-colors cursor-pointer">
+                        <button onClick={onClose} className="p-1.5 rounded-lg text-mal-text-secondary hover:text-white hover:bg-mal-hover transition-colors cursor-pointer">
                             <X size={20} />
                         </button>
                     </div>
 
                     <form onSubmit={handleSubmit} className="space-y-4">
                         <div>
-                            <label className="block text-xs font-medium text-gray-500 mb-1">Title</label>
+                            <label className="block text-xs font-medium text-mal-text-secondary/80 mb-1">Title</label>
                             <input
                                 type="text"
                                 value={title}
                                 onChange={(e) => setTitle(e.target.value)}
-                                className="w-full px-3 py-2.5 bg-gray-50 border border-gray-200 rounded-lg text-gray-800 text-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-mal-blue/30 focus:border-mal-blue transition-all"
+                                className="w-full px-3 py-2.5 bg-mal-card border border-mal-border rounded-lg text-mal-text text-sm placeholder-mal-text-secondary/50 focus:outline-none focus:ring-2 focus:ring-mal-blue/30 focus:border-mal-blue transition-all"
                                 placeholder="Title"
                             />
                         </div>
 
                         <div className="grid grid-cols-2 gap-3">
                             <div>
-                                <label className="block text-xs font-medium text-gray-500 mb-1">Type</label>
+                                <label className="block text-xs font-medium text-mal-text-secondary/80 mb-1">Type</label>
                                 <select
                                     value={type}
                                     onChange={(e) => setType(e.target.value as "MANHUA" | "DONGHUA")}
-                                    className="w-full px-3 py-2.5 bg-gray-50 border border-gray-200 rounded-lg text-gray-800 text-sm focus:outline-none focus:ring-2 focus:ring-mal-blue/30 focus:border-mal-blue transition-all"
+                                    className="w-full px-3 py-2.5 bg-mal-card border border-mal-border rounded-lg text-mal-text text-sm focus:outline-none focus:ring-2 focus:ring-mal-blue/30 focus:border-mal-blue transition-all"
                                 >
                                     <option value="MANHUA">Manhua</option>
                                     <option value="DONGHUA">Donghua</option>
                                 </select>
                             </div>
                             <div>
-                                <label className="block text-xs font-medium text-gray-500 mb-1">Status</label>
+                                <label className="block text-xs font-medium text-mal-text-secondary/80 mb-1">Status</label>
                                 <select
                                     value={status}
                                     onChange={(e) => setStatus(e.target.value as any)}
-                                    className="w-full px-3 py-2.5 bg-gray-50 border border-gray-200 rounded-lg text-gray-800 text-sm focus:outline-none focus:ring-2 focus:ring-mal-blue/30 focus:border-mal-blue transition-all"
+                                    className="w-full px-3 py-2.5 bg-mal-card border border-mal-border rounded-lg text-mal-text text-sm focus:outline-none focus:ring-2 focus:ring-mal-blue/30 focus:border-mal-blue transition-all"
                                 >
-                                    <option value="READING">Reading</option>
+                                    <option value="READING">Reading / Watching</option>
                                     <option value="COMPLETED">Completed</option>
                                     <option value="ON_HOLD">On Hold</option>
                                     <option value="DROPPED">Dropped</option>
-                                    <option value="PLAN_TO_READ">Plan to Read</option>
+                                    <option value="PLAN_TO_READ">Plan to Read / Watch</option>
                                 </select>
                             </div>
                         </div>
 
                         <div className="grid grid-cols-2 gap-3">
                             <div>
-                                <label className="block text-xs font-medium text-gray-500 mb-1">Current Ch./Ep.</label>
+                                <label className="block text-xs font-medium text-mal-text-secondary/80 mb-1">Current Ch./Ep.</label>
                                 <input
                                     type="number"
                                     value={currentChapter}
                                     onChange={(e) => setCurrentChapter(e.target.value)}
                                     min="0"
-                                    className="w-full px-3 py-2.5 bg-gray-50 border border-gray-200 rounded-lg text-gray-800 text-sm focus:outline-none focus:ring-2 focus:ring-mal-blue/30 focus:border-mal-blue transition-all"
+                                    className="w-full px-3 py-2.5 bg-mal-card border border-mal-border rounded-lg text-mal-text text-sm focus:outline-none focus:ring-2 focus:ring-mal-blue/30 focus:border-mal-blue transition-all"
                                 />
                             </div>
                             <div>
-                                <label className="block text-xs font-medium text-gray-500 mb-1">Total Ch./Ep.</label>
+                                <label className="block text-xs font-medium text-mal-text-secondary/80 mb-1">Total Ch./Ep.</label>
                                 <input
                                     type="number"
                                     value={totalChapters}
                                     onChange={(e) => setTotalChapters(e.target.value)}
                                     min="0"
-                                    className="w-full px-3 py-2.5 bg-gray-50 border border-gray-200 rounded-lg text-gray-800 text-sm focus:outline-none focus:ring-2 focus:ring-mal-blue/30 focus:border-mal-blue transition-all"
+                                    className="w-full px-3 py-2.5 bg-mal-card border border-mal-border rounded-lg text-mal-text text-sm focus:outline-none focus:ring-2 focus:ring-mal-blue/30 focus:border-mal-blue transition-all"
                                     placeholder="Optional"
                                 />
                             </div>
                         </div>
 
                         <div>
-                            <label className="block text-xs font-medium text-gray-500 mb-1">Source URL</label>
+                            <label className="block text-xs font-medium text-mal-text-secondary/80 mb-1">Source URL</label>
                             <input
                                 type="url"
                                 value={sourceUrl}
                                 onChange={(e) => setSourceUrl(e.target.value)}
-                                className="w-full px-3 py-2.5 bg-gray-50 border border-gray-200 rounded-lg text-gray-800 text-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-mal-blue/30 focus:border-mal-blue transition-all"
+                                className="w-full px-3 py-2.5 bg-mal-card border border-mal-border rounded-lg text-mal-text text-sm placeholder-mal-text-secondary/50 focus:outline-none focus:ring-2 focus:ring-mal-blue/30 focus:border-mal-blue transition-all"
                                 placeholder="https://..."
                             />
                         </div>
@@ -159,7 +159,7 @@ export function EditMediaDialog({ isOpen, onClose, media }: EditMediaDialogProps
                             <button
                                 type="button"
                                 onClick={() => setIsDeleteConfirmOpen(true)}
-                                className="flex items-center gap-1.5 px-3 py-2 text-sm text-mal-red hover:bg-red-50 rounded-lg transition-colors cursor-pointer"
+                                className="flex items-center gap-1.5 px-3 py-2 text-sm text-mal-red hover:bg-mal-red/15 rounded-lg transition-colors cursor-pointer"
                             >
                                 <Trash2 size={16} />
                                 Delete
@@ -168,7 +168,7 @@ export function EditMediaDialog({ isOpen, onClose, media }: EditMediaDialogProps
                                 <button
                                     type="button"
                                     onClick={onClose}
-                                    className="px-4 py-2.5 text-sm font-medium text-gray-600 hover:bg-gray-100 rounded-lg transition-colors cursor-pointer"
+                                    className="px-4 py-2.5 text-sm font-medium text-mal-text-secondary hover:bg-mal-hover rounded-lg transition-colors cursor-pointer"
                                 >
                                     Cancel
                                 </button>

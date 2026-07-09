@@ -11,37 +11,30 @@ export function Login() {
 
     const handleSubmit = async (e: FormEvent) => {
         e.preventDefault();
-
         if (!password.trim()) {
             setError('Please enter your password');
             return;
         }
-
         setIsLoading(true);
         setError('');
-
         const result = await login(password);
-
         if (!result.success) {
             setError(result.error || 'Invalid password');
         }
-
         setIsLoading(false);
     };
 
     return (
         <div className="min-h-screen bg-mal-page flex items-center justify-center p-4">
             <div className="w-full max-w-sm">
-                {/* Logo/Title */}
                 <div className="text-center mb-8">
                     <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-mal-blue shadow-lg shadow-mal-blue/25 mb-4">
                         <Lock size={28} className="text-white" />
                     </div>
-                    <h1 className="text-2xl font-bold text-gray-800 mb-1">SpiritScroll</h1>
-                    <p className="text-gray-500 text-sm">Enter your password to continue</p>
+                    <h1 className="text-2xl font-bold text-mal-text mb-1">SpiritScroll</h1>
+                    <p className="text-mal-text-secondary text-sm">Enter your password to continue</p>
                 </div>
 
-                {/* Login Form */}
                 <form onSubmit={handleSubmit} className="space-y-4">
                     <div className="relative">
                         <input
@@ -49,14 +42,14 @@ export function Login() {
                             value={password}
                             onChange={(e) => setPassword(e.target.value)}
                             placeholder="Password"
-                            className="w-full px-4 py-3 bg-white border border-gray-200 rounded-xl text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-mal-blue/30 focus:border-mal-blue transition-all pr-12 shadow-sm"
+                            className="w-full px-4 py-3 bg-mal-card border border-mal-border rounded-xl text-mal-text placeholder-mal-text-secondary/50 focus:outline-none focus:ring-2 focus:ring-mal-blue/30 focus:border-mal-blue transition-all pr-12 shadow-sm"
                             autoFocus
                             disabled={isLoading}
                         />
                         <button
                             type="button"
                             onClick={() => setShowPassword(!showPassword)}
-                            className="absolute right-3 top-1/2 -translate-y-1/2 p-1.5 text-gray-400 hover:text-gray-600 transition-colors cursor-pointer"
+                            className="absolute right-3 top-1/2 -translate-y-1/2 p-1.5 text-mal-text-secondary hover:text-white transition-colors cursor-pointer"
                             tabIndex={-1}
                         >
                             {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
@@ -64,7 +57,7 @@ export function Login() {
                     </div>
 
                     {error && (
-                        <div className="flex items-center gap-2 px-4 py-3 bg-red-50 border border-red-200 rounded-xl text-mal-red text-sm">
+                        <div className="flex items-center gap-2 px-4 py-3 bg-mal-red/15 border border-mal-red/30 rounded-xl text-mal-red text-sm">
                             <AlertCircle size={16} />
                             <span>{error}</span>
                         </div>
@@ -86,7 +79,7 @@ export function Login() {
                     </button>
                 </form>
 
-                <p className="text-center text-gray-400 text-xs mt-6">
+                <p className="text-center text-mal-text-secondary/50 text-xs mt-6">
                     Personal media tracker
                 </p>
             </div>

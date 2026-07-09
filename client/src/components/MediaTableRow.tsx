@@ -18,13 +18,16 @@ const STATUS_COLORS: Record<string, string> = {
     PLAN_TO_READ: 'bg-mal-gray',
 };
 
-const STATUS_LABELS: Record<string, string> = {
-    READING: 'Reading',
-    COMPLETED: 'Completed',
-    ON_HOLD: 'On Hold',
-    DROPPED: 'Dropped',
-    PLAN_TO_READ: 'Plan to Read',
-};
+function getStatusLabel(status: string, type: string): string {
+    switch (status) {
+        case 'COMPLETED': return 'Completed';
+        case 'ON_HOLD': return 'On Hold';
+        case 'DROPPED': return 'Dropped';
+        case 'PLAN_TO_READ': return 'Plan to Read';
+        case 'READING': return type === 'DONGHUA' ? 'Watching' : 'Reading';
+        default: return status;
+    }
+}
 
 export function MediaTableRow({ media, rank }: MediaTableRowProps) {
     const [isEditOpen, setIsEditOpen] = useState(false);
@@ -66,16 +69,14 @@ export function MediaTableRow({ media, rank }: MediaTableRowProps) {
         <>
             <tr
                 onClick={() => setIsEditOpen(true)}
-                className="border-b border-gray-100 hover:bg-blue-50/40 transition-colors cursor-pointer group"
+                className="border-b border-mal-border hover:bg-mal-hover transition-colors cursor-pointer group"
             >
-                {/* Rank */}
-                <td className="py-3 px-3 text-center text-sm text-gray-400 font-medium w-10">
+                <td className="py-3 px-3 text-center text-sm text-mal-text-secondary/60 font-medium w-10">
                     {rank}
                 </td>
 
-                {/* Cover */}
                 <td className="py-3 w-[60px]">
-                    <div className="w-[50px] h-[70px] rounded overflow-hidden bg-gray-100 flex-shrink-0 shadow-sm">
+                    <div className="w-[50px] h-[70px] rounded overflow-hidden bg-mal-card flex-shrink-0 shadow-sm">
                         {media.coverUrl ? (
                             <img
                                 src={media.coverUrl}
@@ -86,16 +87,15 @@ export function MediaTableRow({ media, rank }: MediaTableRowProps) {
                                 height="70"
                             />
                         ) : (
-                            <div className="w-full h-full flex items-center justify-center bg-gray-200 text-gray-400 text-[9px] font-semibold">
+                            <div className="w-full h-full flex items-center justify-center bg-mal-card text-mal-text-secondary/40 text-[9px] font-semibold">
                                 {media.type === 'DONGHUA' ? 'ANIME' : 'MANGA'}
                             </div>
                         )}
                     </div>
                 </td>
 
-                {/* Title + Meta */}
                 <td className="py-3 pr-4">
-                    <div className="text-sm font-semibold text-gray-800 leading-tight group-hover:text-mal-blue transition-colors">
+                    <div className="text-sm font-semibold text-mal-text leading-tight group-hover:text-mal-blue transition-colors">
                         {media.sourceUrl ? (
                             <a
                                 href={media.sourceUrl}
@@ -111,7 +111,7 @@ export function MediaTableRow({ media, rank }: MediaTableRowProps) {
                             media.title
                         )}
                     </div>
-                    <div className="text-xs text-gray-500 mt-0.5">
+                    <div className="text-xs text-mal-text-secondary/60 mt-0.5">
                         {media.type === 'DONGHUA' ? 'Donghua' : 'Manhua'}
                         {hasUpdate && media.latestReleasedChapter != null && (
                             <span className="ml-2 text-mal-red font-medium">
@@ -121,14 +121,13 @@ export function MediaTableRow({ media, rank }: MediaTableRowProps) {
                     </div>
                 </td>
 
-                {/* Progress */}
                 <td className="py-3 pr-4 w-32">
-                    <div className="text-sm font-medium text-gray-700">
+                    <div className="text-sm font-medium text-mal-text">
                         {label} {media.currentChapter}
                         {media.totalChapters ? ` / ${media.totalChapters}` : ''}
                     </div>
                     {media.totalChapters ? (
-                        <div className="w-full h-1.5 bg-gray-200 rounded-full mt-1 overflow-hidden">
+                        <div className="w-full h-1.5 bg-mal-card rounded-full mt-1 overflow-hidden">
                             <div
                                 className="h-full rounded-full bg-mal-blue transition-all duration-500"
                                 style={{ width: `${progress}%` }}
@@ -137,19 +136,17 @@ export function MediaTableRow({ media, rank }: MediaTableRowProps) {
                     ) : null}
                 </td>
 
-                {/* Status */}
                 <td className="py-3 pr-4 w-28">
-                    <span className={`inline-block px-2.5 py-0.5 rounded text-xs font-bold text-white ${STATUS_COLORS[media.status] || 'bg-gray-400'}`}>
-                        {STATUS_LABELS[media.status] || media.status}
+                    <span className={`inline-block px-2.5 py-0.5 rounded text-xs font-bold text-black ${STATUS_COLORS[media.status] || 'bg-mal-gray'}`}>
+                        {getStatusLabel(media.status, media.type)}
                     </span>
                 </td>
 
-                {/* Actions */}
                 <td className="py-3 w-24">
                     <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                         <button
                             onClick={handleQuickDecrement}
-                            className="p-1.5 rounded-md border border-gray-200 text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-colors cursor-pointer"
+                            className="p-1.5 rounded-md border border-mal-border text-mal-text-secondary hover:text-white hover:bg-mal-hover transition-colors cursor-pointer"
                             title={`Previous ${label}`}
                         >
                             <Minus size={12} strokeWidth={2.5} />

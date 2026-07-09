@@ -10,25 +10,35 @@ interface MediaCardProps {
     priority?: boolean;
 }
 
+function getStatusLabel(status: string, type: string): string {
+    switch (status) {
+        case 'COMPLETED': return 'FINISHED';
+        case 'ON_HOLD': return 'ON HOLD';
+        case 'DROPPED': return 'DROPPED';
+        case 'PLAN_TO_READ': return 'PLAN TO READ';
+        case 'READING': return type === 'DONGHUA' ? 'WATCHING' : 'READING';
+        default: return status;
+    }
+}
+
 export const MediaCard = React.memo(function MediaCard({ media, priority = false }: MediaCardProps) {
     const [isEditOpen, setIsEditOpen] = useState(false);
     const updateProgress = useUpdateProgress();
     const toast = useToastContext();
     const hasUpdate = media.latestReleasedChapter != null && media.latestReleasedChapter > media.currentChapter;
     const isFinished = media.status === 'COMPLETED' || Boolean(media.totalChapters && media.currentChapter >= media.totalChapters);
-    const statusBadgeLabel = isFinished ? 'FINISHED' : media.type === 'DONGHUA' ? 'WATCHING' : 'READING';
     const statusBadgeClass = isFinished ? 'bg-mal-green' : 'bg-mal-blue';
     const cardBorderClass = hasUpdate
-        ? 'border-red-200 hover:border-red-300'
+        ? 'border-mal-red/30 hover:border-mal-red/50'
         : isFinished
-            ? 'border-mal-green/30 hover:border-mal-green/50'
+            ? 'border-mal-green/20 hover:border-mal-green/40'
             : media.status === 'ON_HOLD'
-                ? 'border-mal-yellow/30 hover:border-mal-yellow/50'
+                ? 'border-mal-yellow/20 hover:border-mal-yellow/40'
                 : media.status === 'DROPPED'
-                    ? 'border-mal-red/30 hover:border-mal-red/50'
+                    ? 'border-mal-red/20 hover:border-mal-red/40'
                     : media.status === 'PLAN_TO_READ'
-                        ? 'border-mal-gray/30 hover:border-mal-gray/50'
-                        : 'border-gray-200 hover:border-gray-300';
+                        ? 'border-mal-gray/20 hover:border-mal-gray/40'
+                        : 'border-mal-border hover:border-mal-text-secondary/30';
 
     const handleQuickIncrement = (e: React.MouseEvent) => {
         e.stopPropagation();
@@ -61,14 +71,15 @@ export const MediaCard = React.memo(function MediaCard({ media, priority = false
         }
     };
 
+    const statusBadgeLabel = isFinished ? 'FINISHED' : getStatusLabel(media.status, media.type);
+
     return (
         <>
             <div
-                className={`group relative flex items-center rounded-xl p-3 border bg-white shadow-sm transition-all duration-200 cursor-pointer ${cardBorderClass}`}
+                className={`group relative flex items-center rounded-xl p-3 border bg-mal-card shadow-sm transition-all duration-200 cursor-pointer ${cardBorderClass}`}
                 onClick={() => setIsEditOpen(true)}
             >
-                {/* Cover Image */}
-                <div className="relative w-16 h-24 sm:w-20 sm:h-28 rounded-lg overflow-hidden flex-shrink-0 shadow-sm bg-gray-100 mr-4">
+                <div className="relative w-16 h-24 sm:w-20 sm:h-28 rounded-lg overflow-hidden flex-shrink-0 shadow-sm bg-mal-card mr-4">
                     {media.coverUrl ? (
                         <img
                             src={media.coverUrl}
@@ -79,7 +90,7 @@ export const MediaCard = React.memo(function MediaCard({ media, priority = false
                             height="112"
                         />
                     ) : (
-                        <div className="w-full h-full flex items-center justify-center bg-gray-100 text-gray-400 text-xs font-medium">
+                        <div className="w-full h-full flex items-center justify-center bg-mal-card text-mal-text-secondary/40 text-xs font-medium">
                             {media.type === 'DONGHUA' ? 'ANIME' : 'MANGA'}
                         </div>
                     )}
@@ -97,10 +108,9 @@ export const MediaCard = React.memo(function MediaCard({ media, priority = false
                     </div>
                 </div>
 
-                {/* Content */}
                 <div className="flex-1 min-w-0 py-1">
                     <div className="mb-1">
-                        <h3 className="font-semibold text-gray-800 text-base leading-tight line-clamp-2 group-hover:text-mal-blue transition-colors">
+                        <h3 className="font-semibold text-mal-text text-base leading-tight line-clamp-2 group-hover:text-mal-blue transition-colors">
                             {(media.sourceUrl || (media as any).source_url) ? (
                                 <a
                                     href={media.sourceUrl || (media as any).source_url}
@@ -118,7 +128,7 @@ export const MediaCard = React.memo(function MediaCard({ media, priority = false
                         </h3>
                     </div>
 
-                    <div className="flex items-center text-xs text-gray-500 mb-3 space-x-2">
+                    <div className="flex items-center text-xs text-mal-text-secondary/70 mb-3 space-x-2">
                         <span className={hasUpdate ? "text-mal-red font-medium" : ""}>
                             {media.type === 'DONGHUA' ? 'Ep.' : 'Ch.'} {media.currentChapter}
                             {hasUpdate && media.latestReleasedChapter != null && media.latestReleasedChapter > 0 && (
@@ -127,15 +137,14 @@ export const MediaCard = React.memo(function MediaCard({ media, priority = false
                         </span>
                         {(media.totalChapters || 0) > 0 && (
                             <>
-                                <span className="text-gray-300">•</span>
+                                <span className="text-mal-border">•</span>
                                 <span>Total: {media.totalChapters}</span>
                             </>
                         )}
                     </div>
 
-                    {/* Progress Bar & Actions */}
                     <div className="flex items-center gap-3">
-                        <div className="flex-1 h-1.5 bg-gray-100 rounded-full overflow-hidden">
+                        <div className="flex-1 h-1.5 bg-mal-border rounded-full overflow-hidden">
                             <div
                                 className={`h-full rounded-full transition-all duration-500 ${isFinished ? 'bg-mal-green' : 'bg-mal-blue'}`}
                                 style={{ width: `${media.totalChapters ? Math.min((media.currentChapter / media.totalChapters) * 100, 100) : 0}%` }}
@@ -146,7 +155,7 @@ export const MediaCard = React.memo(function MediaCard({ media, priority = false
                             <button
                                 onClick={handleQuickDecrement}
                                 aria-label="Go back one chapter"
-                                className="p-1.5 rounded-lg border border-gray-200 text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-colors cursor-pointer"
+                                className="p-1.5 rounded-lg border border-mal-border text-mal-text-secondary hover:text-white hover:bg-mal-hover transition-colors cursor-pointer"
                                 title="Go back one chapter"
                             >
                                 <Minus size={14} strokeWidth={2.5} />

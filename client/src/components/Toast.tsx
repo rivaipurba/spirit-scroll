@@ -23,7 +23,6 @@ export function Toast({ id, type, title, message, duration = 4000, action, onClo
         const timer = setTimeout(() => {
             onClose(id);
         }, duration);
-
         return () => clearTimeout(timer);
     }, [id, duration, onClose]);
 
@@ -35,19 +34,19 @@ export function Toast({ id, type, title, message, duration = 4000, action, onClo
 
     const styles = {
         success: {
-            bg: 'bg-mal-green/10 border-mal-green/30',
+            bg: 'bg-mal-green/15 border-mal-green/30',
             icon: 'text-mal-green',
-            title: 'text-gray-800',
+            title: 'text-mal-text',
         },
         error: {
-            bg: 'bg-red-50 border-red-200',
+            bg: 'bg-mal-red/15 border-mal-red/30',
             icon: 'text-mal-red',
-            title: 'text-gray-800',
+            title: 'text-mal-text',
         },
         info: {
-            bg: 'bg-blue-50 border-blue-200',
+            bg: 'bg-mal-blue/15 border-mal-blue/30',
             icon: 'text-mal-blue',
-            title: 'text-gray-800',
+            title: 'text-mal-text',
         },
     };
 
@@ -61,7 +60,7 @@ export function Toast({ id, type, title, message, duration = 4000, action, onClo
                 <div className="flex-1 min-w-0">
                     <h4 className={`font-medium ${style.title} text-sm`}>{title}</h4>
                     {message && (
-                        <p className="text-gray-500 text-xs mt-1 leading-relaxed">{message}</p>
+                        <p className="text-mal-text-secondary text-xs mt-1 leading-relaxed">{message}</p>
                     )}
                     {action && (
                         <button
@@ -74,7 +73,7 @@ export function Toast({ id, type, title, message, duration = 4000, action, onClo
                 </div>
                 <button
                     onClick={() => onClose(id)}
-                    className="text-gray-400 hover:text-gray-600 transition-colors p-1 -m-1 cursor-pointer"
+                    className="text-mal-text-secondary hover:text-white transition-colors p-1 -m-1 cursor-pointer"
                 >
                     <X size={16} />
                 </button>

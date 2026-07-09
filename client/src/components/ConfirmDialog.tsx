@@ -1,4 +1,4 @@
-import { CheckCircle } from 'lucide-react';
+import { AlertTriangle } from 'lucide-react';
 
 interface ConfirmDialogProps {
     isOpen: boolean;
@@ -25,25 +25,25 @@ export function ConfirmDialog({
 
     return (
         <div className="fixed inset-0 z-[200] flex items-center justify-center p-4">
-            <div className="absolute inset-0 bg-black/30 backdrop-blur-sm" onClick={onCancel} />
-            <div className="bg-white border border-gray-200 rounded-xl p-6 w-full max-w-sm relative shadow-xl animate-in zoom-in-95 duration-200">
+            <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onCancel} />
+            <div className="bg-mal-panel border border-mal-border rounded-xl p-6 w-full max-w-sm relative shadow-xl animate-in zoom-in-95 duration-200">
                 <div className="flex items-center gap-3 mb-4">
                     <div className={`p-2 rounded-lg ${
-                        variant === 'danger' ? 'bg-red-50' : 'bg-mal-blue/10'
+                        variant === 'danger' ? 'bg-mal-red/15' : 'bg-mal-blue/15'
                     }`}>
-                        <CheckCircle size={20} className={
+                        <AlertTriangle size={20} className={
                             variant === 'danger' ? 'text-mal-red' : 'text-mal-blue'
                         } />
                     </div>
-                    <h3 className="text-lg font-semibold text-gray-800">{title}</h3>
+                    <h3 className="text-lg font-semibold text-mal-text">{title}</h3>
                 </div>
                 
-                <p className="text-gray-600 mb-6 leading-relaxed">{message}</p>
+                <p className="text-mal-text-secondary mb-6 leading-relaxed">{message}</p>
                 
                 <div className="flex gap-3">
                     <button
                         onClick={onCancel}
-                        className="flex-1 px-4 py-2.5 bg-gray-50 hover:bg-gray-100 text-gray-600 rounded-lg font-medium transition-colors border border-gray-200 cursor-pointer"
+                        className="flex-1 px-4 py-2.5 bg-mal-card hover:bg-mal-hover text-mal-text-secondary rounded-lg font-medium transition-colors border border-mal-border cursor-pointer"
                     >
                         {cancelText}
                     </button>
