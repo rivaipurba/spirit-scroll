@@ -9,31 +9,33 @@ export function ScanProgressBar({ isScanning, progress, result, onCancel }: Scan
     const percent = progress ? Math.round((progress.current / progress.total) * 100) : 100;
 
     return (
-        <div className="mb-3 animate-in fade-in slide-in-from-top-1 duration-200">
-            <div className="h-1 bg-white/5 rounded-full overflow-hidden">
-                <div
-                    className="h-full bg-indigo-500 rounded-full transition-all duration-500"
-                    style={{ width: `${percent}%` }}
-                />
-            </div>
-            <div className="flex items-center justify-between mt-1.5">
-                {isScanning && progress ? (
-                    <>
-                        <span className="text-xs text-slate-500 truncate max-w-[80%]">
-                            Checking {progress.current}/{progress.total}: <span className="text-slate-400">{progress.currentTitle}</span>
+        <div className="mb-4 animate-in fade-in duration-200">
+            <div className="bg-white rounded-lg border border-gray-200 p-3 shadow-sm">
+                <div className="h-1.5 bg-gray-100 rounded-full overflow-hidden">
+                    <div
+                        className="h-full bg-mal-blue rounded-full transition-all duration-500"
+                        style={{ width: `${percent}%` }}
+                    />
+                </div>
+                <div className="flex items-center justify-between mt-2">
+                    {isScanning && progress ? (
+                        <>
+                            <span className="text-xs text-gray-500 truncate max-w-[80%]">
+                                Checking {progress.current}/{progress.total}: <span className="text-gray-700 font-medium">{progress.currentTitle}</span>
+                            </span>
+                            <button
+                                onClick={onCancel}
+                                className="text-xs text-gray-400 hover:text-gray-600 transition-colors shrink-0 ml-2 font-medium cursor-pointer"
+                            >
+                                Cancel
+                            </button>
+                        </>
+                    ) : result ? (
+                        <span className="text-xs text-mal-green font-medium">
+                            Scan complete — {result.updated} update{result.updated !== 1 ? 's' : ''} found
                         </span>
-                        <button
-                            onClick={onCancel}
-                            className="text-xs text-slate-600 hover:text-slate-400 transition-colors shrink-0 ml-2"
-                        >
-                            Cancel
-                        </button>
-                    </>
-                ) : result ? (
-                    <span className="text-xs text-emerald-400">
-                        Scan complete — {result.updated} update{result.updated !== 1 ? 's' : ''} found
-                    </span>
-                ) : null}
+                    ) : null}
+                </div>
             </div>
         </div>
     );

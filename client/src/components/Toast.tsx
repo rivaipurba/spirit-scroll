@@ -35,19 +35,19 @@ export function Toast({ id, type, title, message, duration = 4000, action, onClo
 
     const styles = {
         success: {
-            bg: 'bg-emerald-500/10 border-emerald-500/20',
-            icon: 'text-emerald-400',
-            title: 'text-emerald-100',
+            bg: 'bg-mal-green/10 border-mal-green/30',
+            icon: 'text-mal-green',
+            title: 'text-gray-800',
         },
         error: {
-            bg: 'bg-red-500/10 border-red-500/20',
-            icon: 'text-red-400',
-            title: 'text-red-100',
+            bg: 'bg-red-50 border-red-200',
+            icon: 'text-mal-red',
+            title: 'text-gray-800',
         },
         info: {
-            bg: 'bg-blue-500/10 border-blue-500/20',
-            icon: 'text-blue-400',
-            title: 'text-blue-100',
+            bg: 'bg-blue-50 border-blue-200',
+            icon: 'text-mal-blue',
+            title: 'text-gray-800',
         },
     };
 
@@ -55,18 +55,18 @@ export function Toast({ id, type, title, message, duration = 4000, action, onClo
     const style = styles[type];
 
     return (
-        <div className={`${style.bg} border rounded-xl p-4 shadow-lg backdrop-blur-sm animate-in slide-in-from-right duration-300 w-full sm:min-w-[300px] sm:max-w-[400px]`}>
+        <div className={`${style.bg} border rounded-xl p-4 shadow-lg animate-in slide-in-from-right duration-200 w-full sm:min-w-[300px] sm:max-w-[400px]`}>
             <div className="flex items-start gap-3">
                 <Icon size={20} className={`${style.icon} flex-shrink-0 mt-0.5`} />
                 <div className="flex-1 min-w-0">
                     <h4 className={`font-medium ${style.title} text-sm`}>{title}</h4>
                     {message && (
-                        <p className="text-slate-400 text-xs mt-1 leading-relaxed">{message}</p>
+                        <p className="text-gray-500 text-xs mt-1 leading-relaxed">{message}</p>
                     )}
                     {action && (
                         <button
                             onClick={() => { action.onClick(); onClose(id); }}
-                            className="mt-2 text-xs font-semibold text-indigo-400 hover:text-indigo-300 transition-colors underline underline-offset-2"
+                            className="mt-2 text-xs font-semibold text-mal-blue hover:text-mal-blue-dark transition-colors underline underline-offset-2 cursor-pointer"
                         >
                             {action.label}
                         </button>
@@ -74,7 +74,7 @@ export function Toast({ id, type, title, message, duration = 4000, action, onClo
                 </div>
                 <button
                     onClick={() => onClose(id)}
-                    className="text-slate-500 hover:text-slate-300 transition-colors p-1 -m-1"
+                    className="text-gray-400 hover:text-gray-600 transition-colors p-1 -m-1 cursor-pointer"
                 >
                     <X size={16} />
                 </button>

@@ -2,6 +2,7 @@ import { Download, Upload, Database, FileJson, RefreshCw, CheckCircle2, AlertCir
 import { useMediaList as useMedia, useImportMedia, useUpdateMedia } from '../hooks/useMedia';
 import { useToastContext } from '../context/ToastContext';
 import { useAuth } from '../context/AuthContext';
+import type { Media } from '../types/index';
 import { useRef, useState } from 'react';
 
 export function Settings() {
@@ -39,193 +40,149 @@ export function Settings() {
         const reader = new FileReader();
         reader.onload = (event) => {
             try {
-                const json = JSON.parse(event.target?.result as string);
-                if (Array.isArray(json)) {
-                    // Strip IDs to avoid conflicts
-                    const cleanData = json.map(({ id, ...rest }) => rest);
-
-                    importMedia.mutate(cleanData, {
-                        onSuccess: (data) => {
-                            setImportStatus({ type: 'success', message: `Successfully imported ${data.count} entries.` });
-                            if (fileInputRef.current) fileInputRef.current.value = '';
+                const data = JSON.parse(event.target?.result as string);
+                if (Array.isArray(data)) {
+                    importMedia.mutate(data, {
+                        onSuccess: () => {
+                            setImportStatus({ type: 'success', message: `Successfully imported ${data.length} entries` });
                             setTimeout(() => setImportStatus(null), 5000);
                         },
-                        onError: () => {
-                            setImportStatus({ type: 'error', message: "Failed to import data." });
+                        onError: (err) => {
+                            setImportStatus({ type: 'error', message: `Import failed: ${err.message}` });
+                            setTimeout(() => setImportStatus(null), 5000);
                         }
                     });
                 } else {
-                    setImportStatus({ type: 'error', message: "Invalid backup file format" });
+                    setImportStatus({ type: 'error', message: 'Invalid JSON format: expected an array of entries' });
+                    setTimeout(() => setImportStatus(null), 5000);
                 }
-            } catch (err) {
-                setImportStatus({ type: 'error', message: "Failed to parse JSON file" });
+            } catch {
+                setImportStatus({ type: 'error', message: 'Failed to parse JSON file' });
+                setTimeout(() => setImportStatus(null), 5000);
             }
         };
         reader.readAsText(file);
+        e.target.value = '';
     };
 
-    const handleReScrape = async () => {
-        if (!media) return;
+    const handleReScrapeCovers = async () => {
         setIsReScraping(true);
-
-        const targets = media.filter((m: any) => m.sourceUrl && !m.coverUrl);
-        let processed = 0;
-
-        for (const item of targets) {
-            try {
-                await updateMedia.mutateAsync({
-                    id: item.id,
-                    sourceUrl: item.sourceUrl
-                });
-                processed++;
-            } catch (error) {
-                console.error(`Failed to scrape ${item.title}`, error);
+        try {
+            for (let i = 0; i < (media?.length || 0); i++) {
+                const item = media[i];
+                if (!item.coverUrl && item.sourceUrl) {
+                    await updateMedia.mutateAsync({
+                        id: item.id,
+                        sourceUrl: item.sourceUrl,
+                    });
+                }
             }
+            toast.success("Covers refreshed", "All missing covers have been re-scraped");
+        } catch {
+            toast.error("Refresh failed", "Something went wrong while re-scraping covers");
         }
-
         setIsReScraping(false);
-        toast.success(
-            'Re-scrape Complete',
-            `Processed ${processed} items successfully.`
-        );
     };
 
-    const totalSeries = media?.length || 0;
-    const totalChapters = media?.reduce((acc: any, curr: any) => acc + curr.currentChapter, 0) || 0;
+    const stats = {
+        total: media?.length || 0,
+        chapters: ((media as any[])?.reduce((sum: number, m: any) => sum + (m.currentChapter || 0), 0) || 0) as number,
+        reading: media?.filter((m: Media) => m.status === 'READING').length || 0,
+        completed: media?.filter((m: Media) => m.status === 'COMPLETED').length || 0,
+    };
 
     return (
-        <div className="p-6 max-w-4xl mx-auto space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
-            <h2 className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-indigo-400 to-cyan-400">Settings</h2>
+        <div className="max-w-3xl mx-auto space-y-6">
+            <h2 className="text-xl font-bold text-gray-800">Settings</h2>
 
             {/* Stats Card */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="bg-white/5 border border-white/10 rounded-xl p-6 backdrop-blur-sm relative overflow-hidden group">
-                    <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
-                        <Database size={40} />
-                    </div>
-                    <h3 className="text-sm font-medium text-slate-400 uppercase tracking-wider mb-2">Total Series Tracked</h3>
-                    <p className="text-4xl font-bold text-white">{totalSeries}</p>
-                </div>
-                <div className="bg-white/5 border border-white/10 rounded-xl p-6 backdrop-blur-sm relative overflow-hidden group">
-                    <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
-                        <FileJson size={40} />
-                    </div>
-                    <h3 className="text-sm font-medium text-slate-400 uppercase tracking-wider mb-2">Total Chapters Consumed</h3>
-                    <p className="text-4xl font-bold text-indigo-400">{totalChapters}</p>
+            <div className="bg-white rounded-lg border border-gray-200 p-6 shadow-sm">
+                <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-4 flex items-center gap-2">
+                    <Database size={16} />
+                    Library Stats
+                </h3>
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                    <StatBox label="Total Series" value={stats.total} />
+                    <StatBox label="Total Chapters" value={stats.chapters} />
+                    <StatBox label="Reading" value={stats.reading} />
+                    <StatBox label="Completed" value={stats.completed} />
                 </div>
             </div>
 
-            {/* Data Management */}
-            <div className="bg-white/5 border border-white/10 rounded-xl p-6 backdrop-blur-sm">
-                <h3 className="text-xl font-semibold text-white mb-6">Data Management</h3>
-
-                <div className="flex flex-col gap-4">
-                    {/* Export */}
-                    <div className="flex items-center justify-between p-3 bg-white/5 rounded-lg border border-white/5">
-                        <div className="flex items-center gap-3">
-                            <div className="p-2 bg-indigo-500/10 rounded-lg text-indigo-400">
-                                <Download size={20} />
-                            </div>
-                            <div className="text-sm">
-                                <p className="font-medium text-slate-200">Export Data</p>
-                                <p className="text-xs text-slate-500">Download backup as JSON</p>
-                            </div>
-                        </div>
-                        <button
-                            onClick={handleExport}
-                            className="px-4 py-2 bg-white/5 hover:bg-white/10 text-slate-200 rounded-lg border border-white/10 transition-colors text-sm font-medium"
-                        >
-                            Export
-                        </button>
-                    </div>
-
-                    {/* Import */}
-                    <div className="flex items-center justify-between p-3 bg-white/5 rounded-lg border border-white/5">
-                        <div className="flex items-center gap-3">
-                            <div className="p-2 bg-emerald-500/10 rounded-lg text-emerald-400">
-                                <Upload size={20} />
-                            </div>
-                            <div className="text-sm">
-                                <p className="font-medium text-slate-200">Import Data</p>
-                                <p className="text-xs text-slate-500">Restore from JSON backup</p>
-                            </div>
-                        </div>
-                        <button
-                            onClick={handleImportClick}
-                            disabled={importMedia.isPending}
-                            className="px-4 py-2 bg-white/5 hover:bg-white/10 text-slate-200 rounded-lg border border-white/10 transition-colors text-sm font-medium"
-                        >
-                            {importMedia.isPending ? 'Importing...' : 'Import'}
-                        </button>
-                        <input
-                            type="file"
-                            ref={fileInputRef}
-                            onChange={handleFileChange}
-                            accept=".json"
-                            className="hidden"
-                        />
-                    </div>
+            {/* Import / Export */}
+            <div className="bg-white rounded-lg border border-gray-200 p-6 shadow-sm">
+                <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-4 flex items-center gap-2">
+                    <FileJson size={16} />
+                    Backup & Restore
+                </h3>
+                <div className="flex flex-wrap gap-3">
+                    <button
+                        onClick={handleExport}
+                        className="flex items-center gap-2 px-4 py-2.5 bg-mal-blue text-white rounded-lg text-sm font-medium hover:bg-mal-blue-dark transition-colors shadow-sm cursor-pointer"
+                    >
+                        <Download size={16} />
+                        Export JSON
+                    </button>
+                    <button
+                        onClick={handleImportClick}
+                        className="flex items-center gap-2 px-4 py-2.5 border border-gray-200 text-gray-700 rounded-lg text-sm font-medium hover:bg-gray-50 transition-colors cursor-pointer"
+                    >
+                        <Upload size={16} />
+                        Import JSON
+                    </button>
+                    <input
+                        ref={fileInputRef}
+                        type="file"
+                        accept=".json"
+                        onChange={handleFileChange}
+                        className="hidden"
+                    />
                 </div>
+
                 {importStatus && (
-                    <div className={`mt-3 p-3 rounded-lg flex items-center gap-2 text-xs font-medium border ${importStatus.type === 'success'
-                        ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400'
-                        : 'bg-red-500/10 border-red-500/20 text-red-400'
-                        }`}>
-                        {importStatus.type === 'success' ? <CheckCircle2 size={14} /> : <AlertCircle size={14} />}
+                    <div className={`mt-3 flex items-center gap-2 px-4 py-3 rounded-lg text-sm ${
+                        importStatus.type === 'success'
+                            ? 'bg-mal-green/10 text-mal-green'
+                            : 'bg-red-50 text-mal-red'
+                    }`}>
+                        {importStatus.type === 'success' ? <CheckCircle2 size={16} /> : <AlertCircle size={16} />}
                         {importStatus.message}
                     </div>
                 )}
             </div>
 
-            {/* Maintenance */}
-            <div className="bg-white/5 border border-white/10 rounded-xl p-6 backdrop-blur-sm">
-                <h3 className="text-xl font-semibold text-white mb-6">Maintenance</h3>
-                <div className="bg-[#111] rounded-xl border border-white/5 overflow-hidden">
-                    <div className="p-4 flex items-center justify-between hover:bg-white/[0.02] transition-colors">
-                        <div className="flex items-center gap-3">
-                            <div className="p-2 bg-orange-500/10 rounded-lg text-orange-400">
-                                <RefreshCw size={20} className={isReScraping ? "animate-spin" : ""} />
-                            </div>
-                            <div className="text-sm">
-                                <p className="font-medium text-slate-200">Refresh Covers</p>
-                                <p className="text-xs text-slate-500">Re-scrape missing cover images</p>
-                            </div>
-                        </div>
-                        <button
-                            onClick={handleReScrape}
-                            disabled={isReScraping}
-                            className="px-4 py-2 bg-white/5 hover:bg-white/10 text-white text-xs font-bold rounded-lg transition-colors disabled:opacity-50"
-                        >
-                            {isReScraping ? 'Scraping...' : 'Run Tool'}
-                        </button>
-                    </div>
-                </div>
+            {/* Tools */}
+            <div className="bg-white rounded-lg border border-gray-200 p-6 shadow-sm">
+                <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-4">Tools</h3>
+                <button
+                    onClick={handleReScrapeCovers}
+                    disabled={isReScraping}
+                    className="flex items-center gap-2 px-4 py-2.5 border border-gray-200 text-gray-700 rounded-lg text-sm font-medium hover:bg-gray-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+                >
+                    <RefreshCw size={16} className={isReScraping ? 'animate-spin' : ''} />
+                    {isReScraping ? 'Re-scraping...' : 'Re-scrape Missing Covers'}
+                </button>
             </div>
 
-            {/* Account */}
-            <div className="bg-white/5 border border-white/10 rounded-xl p-6 backdrop-blur-sm">
-                <h3 className="text-xl font-semibold text-white mb-6">Account</h3>
-                <div className="bg-[#111] rounded-xl border border-white/5 overflow-hidden">
-                    <div className="p-4 flex items-center justify-between hover:bg-white/[0.02] transition-colors">
-                        <div className="flex items-center gap-3">
-                            <div className="p-2 bg-red-500/10 rounded-lg text-red-400">
-                                <LogOut size={20} />
-                            </div>
-                            <div className="text-sm">
-                                <p className="font-medium text-slate-200">Sign Out</p>
-                                <p className="text-xs text-slate-500">Log out of your account</p>
-                            </div>
-                        </div>
-                        <button
-                            onClick={logout}
-                            className="px-4 py-2 bg-red-500/10 hover:bg-red-500/20 text-red-400 text-xs font-bold rounded-lg transition-colors border border-red-500/20"
-                        >
-                            Sign Out
-                        </button>
-                    </div>
-                </div>
+            {/* Logout */}
+            <div className="bg-white rounded-lg border border-gray-200 p-6 shadow-sm">
+                <button
+                    onClick={logout}
+                    className="flex items-center gap-2 px-4 py-2.5 bg-red-50 text-mal-red rounded-lg text-sm font-medium hover:bg-red-100 transition-colors cursor-pointer"
+                >
+                    <LogOut size={16} />
+                    Log Out
+                </button>
             </div>
+        </div>
+    );
+}
 
+function StatBox({ label, value }: { label: string; value: number }) {
+    return (
+        <div className="text-center p-3 bg-gray-50 rounded-lg">
+            <div className="text-2xl font-bold text-gray-800">{value}</div>
+            <div className="text-xs text-gray-500 mt-0.5">{label}</div>
         </div>
     );
 }

@@ -17,18 +17,18 @@ export const MediaCard = React.memo(function MediaCard({ media, priority = false
     const hasUpdate = media.latestReleasedChapter != null && media.latestReleasedChapter > media.currentChapter;
     const isFinished = media.status === 'COMPLETED' || Boolean(media.totalChapters && media.currentChapter >= media.totalChapters);
     const statusBadgeLabel = isFinished ? 'FINISHED' : media.type === 'DONGHUA' ? 'WATCHING' : 'READING';
-    const statusBadgeClass = isFinished ? 'bg-emerald-600/90' : 'bg-indigo-600/90';
-    const cardToneClass = hasUpdate
-        ? 'bg-red-950/20 hover:bg-red-950/30 border-red-500/15 hover:border-red-500/25'
+    const statusBadgeClass = isFinished ? 'bg-mal-green' : 'bg-mal-blue';
+    const cardBorderClass = hasUpdate
+        ? 'border-red-200 hover:border-red-300'
         : isFinished
-            ? 'bg-emerald-950/20 hover:bg-emerald-950/30 border-emerald-500/15 hover:border-emerald-500/25'
+            ? 'border-mal-green/30 hover:border-mal-green/50'
             : media.status === 'ON_HOLD'
-                ? 'bg-amber-950/20 hover:bg-amber-950/30 border-amber-500/15 hover:border-amber-500/25'
+                ? 'border-mal-yellow/30 hover:border-mal-yellow/50'
                 : media.status === 'DROPPED'
-                    ? 'bg-rose-950/20 hover:bg-rose-950/30 border-rose-500/15 hover:border-rose-500/25'
+                    ? 'border-mal-red/30 hover:border-mal-red/50'
                     : media.status === 'PLAN_TO_READ'
-                        ? 'bg-cyan-950/20 hover:bg-cyan-950/30 border-cyan-500/15 hover:border-cyan-500/25'
-                        : 'bg-white/5 hover:bg-white/10 border-white/5 hover:border-white/10';
+                        ? 'border-mal-gray/30 hover:border-mal-gray/50'
+                        : 'border-gray-200 hover:border-gray-300';
 
     const handleQuickIncrement = (e: React.MouseEvent) => {
         e.stopPropagation();
@@ -64,34 +64,33 @@ export const MediaCard = React.memo(function MediaCard({ media, priority = false
     return (
         <>
             <div
-                className={`group relative flex items-center rounded-xl p-3 border transition-all duration-300 backdrop-blur-sm cursor-pointer ${cardToneClass}`}
+                className={`group relative flex items-center rounded-xl p-3 border bg-white shadow-sm transition-all duration-200 cursor-pointer ${cardBorderClass}`}
                 onClick={() => setIsEditOpen(true)}
             >
                 {/* Cover Image */}
-                <div className="relative w-16 h-24 sm:w-20 sm:h-28 rounded-lg overflow-hidden flex-shrink-0 shadow-lg bg-black/40 mr-4">
+                <div className="relative w-16 h-24 sm:w-20 sm:h-28 rounded-lg overflow-hidden flex-shrink-0 shadow-sm bg-gray-100 mr-4">
                     {media.coverUrl ? (
                         <img
                             src={media.coverUrl}
                             alt={media.title}
-                            className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                            className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
                             loading={priority ? "eager" : "lazy"}
                             width="80"
                             height="112"
                         />
                     ) : (
-                        <div className="w-full h-full flex items-center justify-center bg-indigo-900/20 text-indigo-200/40 text-xs font-medium">
-                            {media.type === 'DONGHUA' ? 'ANIME' : 'MANHUA'}
+                        <div className="w-full h-full flex items-center justify-center bg-gray-100 text-gray-400 text-xs font-medium">
+                            {media.type === 'DONGHUA' ? 'ANIME' : 'MANGA'}
                         </div>
                     )}
 
-                    {/* Badge Logic: Priority given to NEW updates */}
                     <div className="absolute top-1 left-1 z-10 flex flex-col items-start gap-1">
                         {hasUpdate ? (
-                            <span className="rounded-md bg-red-600 px-1.5 py-0.5 text-[9px] font-bold text-white shadow-md animate-pulse">
+                            <span className="rounded-md bg-mal-red px-1.5 py-0.5 text-[9px] font-bold text-white shadow-sm">
                                 NEW
                             </span>
                         ) : (
-                            <span className={`rounded-md ${statusBadgeClass} px-1.5 py-0.5 text-[9px] font-bold text-white shadow-sm backdrop-blur-sm`}>
+                            <span className={`rounded-md ${statusBadgeClass} px-1.5 py-0.5 text-[9px] font-bold text-white shadow-sm`}>
                                 {statusBadgeLabel}
                             </span>
                         )}
@@ -101,17 +100,17 @@ export const MediaCard = React.memo(function MediaCard({ media, priority = false
                 {/* Content */}
                 <div className="flex-1 min-w-0 py-1">
                     <div className="mb-1">
-                        <h3 className="font-semibold text-slate-100 text-base leading-tight line-clamp-2 group-hover:text-white transition-colors">
+                        <h3 className="font-semibold text-gray-800 text-base leading-tight line-clamp-2 group-hover:text-mal-blue transition-colors">
                             {(media.sourceUrl || (media as any).source_url) ? (
                                 <a
                                     href={media.sourceUrl || (media as any).source_url}
                                     target="_blank"
                                     rel="noopener noreferrer"
-                                    className="hover:text-indigo-400 transition-colors inline cursor-pointer"
+                                    className="hover:text-mal-blue transition-colors inline cursor-pointer"
                                     onClick={(e) => e.stopPropagation()}
                                 >
                                     {media.title}
-                                    <ExternalLink className="w-3 h-3 ml-1 opacity-50 inline align-baseline" />
+                                    <ExternalLink className="w-3 h-3 ml-1 opacity-40 inline align-baseline" />
                                 </a>
                             ) : (
                                 media.title
@@ -119,8 +118,8 @@ export const MediaCard = React.memo(function MediaCard({ media, priority = false
                         </h3>
                     </div>
 
-                    <div className="flex items-center text-xs text-slate-400 mb-3 space-x-2">
-                        <span className={hasUpdate ? "text-orange-400 font-medium" : ""}>
+                    <div className="flex items-center text-xs text-gray-500 mb-3 space-x-2">
+                        <span className={hasUpdate ? "text-mal-red font-medium" : ""}>
                             {media.type === 'DONGHUA' ? 'Ep.' : 'Ch.'} {media.currentChapter}
                             {hasUpdate && media.latestReleasedChapter != null && media.latestReleasedChapter > 0 && (
                                 ` / ${media.latestReleasedChapter} (${media.latestReleasedChapter - media.currentChapter})`
@@ -128,7 +127,7 @@ export const MediaCard = React.memo(function MediaCard({ media, priority = false
                         </span>
                         {(media.totalChapters || 0) > 0 && (
                             <>
-                                <span className="text-slate-600">•</span>
+                                <span className="text-gray-300">•</span>
                                 <span>Total: {media.totalChapters}</span>
                             </>
                         )}
@@ -136,10 +135,9 @@ export const MediaCard = React.memo(function MediaCard({ media, priority = false
 
                     {/* Progress Bar & Actions */}
                     <div className="flex items-center gap-3">
-                        <div className="flex-1 h-1.5 bg-white/5 rounded-full overflow-hidden">
+                        <div className="flex-1 h-1.5 bg-gray-100 rounded-full overflow-hidden">
                             <div
-                                className={`h-full rounded-full transition-all duration-500 ${isFinished ? 'bg-emerald-500' : 'bg-indigo-500'
-                                    }`}
+                                className={`h-full rounded-full transition-all duration-500 ${isFinished ? 'bg-mal-green' : 'bg-mal-blue'}`}
                                 style={{ width: `${media.totalChapters ? Math.min((media.currentChapter / media.totalChapters) * 100, 100) : 0}%` }}
                             />
                         </div>
@@ -148,7 +146,7 @@ export const MediaCard = React.memo(function MediaCard({ media, priority = false
                             <button
                                 onClick={handleQuickDecrement}
                                 aria-label="Go back one chapter"
-                                className="p-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-slate-400 hover:text-white transition-colors cursor-pointer"
+                                className="p-1.5 rounded-lg border border-gray-200 text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-colors cursor-pointer"
                                 title="Go back one chapter"
                             >
                                 <Minus size={14} strokeWidth={2.5} />
@@ -156,7 +154,7 @@ export const MediaCard = React.memo(function MediaCard({ media, priority = false
                             <button
                                 onClick={handleQuickIncrement}
                                 aria-label="Mark next chapter as read"
-                                className="p-1.5 rounded-lg bg-indigo-500/20 hover:bg-indigo-500 text-indigo-400 hover:text-white transition-all shadow-[0_0_10px_rgba(99,102,241,0.2)] hover:shadow-[0_0_15px_rgba(99,102,241,0.5)] cursor-pointer"
+                                className="p-1.5 rounded-lg bg-mal-blue text-white hover:bg-mal-blue-dark transition-all shadow-sm cursor-pointer"
                                 title="Mark next chapter as read"
                             >
                                 <Plus size={14} strokeWidth={2.5} />

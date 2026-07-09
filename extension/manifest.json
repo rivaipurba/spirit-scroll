@@ -1,0 +1,32 @@
+{
+  "manifest_version": 3,
+  "name": "SpiritScroll Tracker",
+  "version": "1.0.0",
+  "description": "Auto-track donghua and manhua episodes to your SpiritScroll library",
+  "permissions": [
+    "storage",
+    "notifications"
+  ],
+  "host_permissions": [
+    "<all_urls>"
+  ],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "content_scripts": [
+    {
+      "matches": [
+        "*://*.animexin.dev/*",
+        "*://*.animexin.vip/*",
+        "*://asuracomic.net/*",
+        "*://*.asuracomic.net/*"
+      ],
+      "js": ["content.js"],
+      "run_at": "document_idle"
+    }
+  ],
+  "action": {
+    "default_popup": "popup.html",
+    "default_title": "SpiritScroll Tracker"
+  }
+}

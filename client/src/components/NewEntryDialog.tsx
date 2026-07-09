@@ -40,107 +40,126 @@ export function NewEntryDialog({ isOpen, onClose }: NewEntryDialogProps) {
 
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center pointer-events-none p-2 sm:p-4">
-            <div className="absolute inset-0 bg-[#0a0a0a]/80 backdrop-blur-sm pointer-events-auto transition-opacity" onClick={onClose} />
-            <div 
-                className="bg-[#111] border border-white/10 w-full max-w-md max-h-[95vh] sm:max-h-[90vh] rounded-2xl relative pointer-events-auto shadow-2xl animate-in slide-in-from-bottom duration-300 overflow-hidden"
+            <div className="absolute inset-0 bg-black/40 backdrop-blur-sm pointer-events-auto" onClick={onClose} />
+            <div
+                className="bg-white border border-gray-200 w-full max-w-md max-h-[95vh] sm:max-h-[90vh] rounded-xl relative pointer-events-auto shadow-xl animate-in slide-in-from-bottom duration-200 overflow-hidden"
                 onClick={(e) => e.stopPropagation()}
             >
-                <div className="flex items-center justify-between p-4 sm:p-6 border-b border-white/10">
-                    <h2 className="text-xl font-bold text-white">New Entry</h2>
-                    <button onClick={onClose} className="text-slate-500 hover:text-white transition-colors p-1 hover:bg-white/10 rounded-full cursor-pointer">
+                <div className="flex items-center justify-between p-4 sm:p-6 border-b border-gray-100">
+                    <div className="flex items-center gap-3">
+                        <div className="p-2 bg-mal-blue/10 rounded-lg">
+                            {type === 'DONGHUA' ? (
+                                <Youtube size={20} className="text-mal-blue" />
+                            ) : (
+                                <Book size={20} className="text-mal-blue" />
+                            )}
+                        </div>
+                        <h2 className="text-lg font-semibold text-gray-800">New Entry</h2>
+                    </div>
+                    <button onClick={onClose} className="text-gray-400 hover:text-gray-600 transition-colors p-1 hover:bg-gray-100 rounded-lg cursor-pointer">
                         <X size={20} />
                     </button>
                 </div>
 
                 <div className="overflow-y-auto max-h-[calc(95vh-140px)] sm:max-h-[calc(90vh-140px)] p-4 sm:p-6 pb-8">
                     <form id="new-entry-form" onSubmit={handleSubmit} className="space-y-5">
-                    <div>
-                        <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Title</label>
-                        <input
-                            type="text"
-                            required
-                            value={title}
-                            onChange={(e) => setTitle(e.target.value)}
-                            className="w-full px-4 py-3 bg-black/20 border border-white/10 rounded-xl focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500/50 outline-none text-white placeholder-slate-600 transition-all font-medium"
-                            placeholder="Enter series title"
-                        />
-                    </div>
+                        <div>
+                            <label className="block text-xs font-medium text-gray-500 mb-1">Title</label>
+                            <input
+                                type="text"
+                                value={title}
+                                onChange={(e) => setTitle(e.target.value)}
+                                placeholder="Enter title"
+                                required
+                                className="w-full px-3 py-2.5 bg-gray-50 border border-gray-200 rounded-lg text-gray-800 text-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-mal-blue/30 focus:border-mal-blue transition-all"
+                            />
+                        </div>
 
-                    <div>
-                        <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Type</label>
+                        <div>
+                            <label className="block text-xs font-medium text-gray-500 mb-1">Type</label>
+                            <div className="flex gap-2">
+                                <button
+                                    type="button"
+                                    onClick={() => setType('MANHUA')}
+                                    className={`flex-1 flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg text-sm font-medium transition-all cursor-pointer ${
+                                        type === 'MANHUA'
+                                            ? 'bg-mal-blue text-white shadow-sm'
+                                            : 'bg-gray-50 text-gray-600 border border-gray-200 hover:bg-gray-100'
+                                    }`}
+                                >
+                                    <Book size={16} />
+                                    Manhua
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={() => setType('DONGHUA')}
+                                    className={`flex-1 flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg text-sm font-medium transition-all cursor-pointer ${
+                                        type === 'DONGHUA'
+                                            ? 'bg-mal-blue text-white shadow-sm'
+                                            : 'bg-gray-50 text-gray-600 border border-gray-200 hover:bg-gray-100'
+                                    }`}
+                                >
+                                    <Youtube size={16} />
+                                    Donghua
+                                </button>
+                            </div>
+                        </div>
+
                         <div className="grid grid-cols-2 gap-3">
-                            <button
-                                type="button"
-                                onClick={() => setType('MANHUA')}
-                                className={`py-3 px-4 rounded-xl text-sm font-semibold border flex items-center justify-center gap-2 transition-all ${type === 'MANHUA'
-                                    ? 'bg-orange-500/10 border-orange-500/50 text-orange-400 shadow-[0_0_15px_rgba(249,115,22,0.1)]'
-                                    : 'bg-black/20 border-white/5 text-slate-400 hover:bg-white/5 hover:text-slate-300'
-                                    }`}
-                            >
-                                <Book size={18} strokeWidth={2.5} />
-                                Manhua
-                            </button>
-                            <button
-                                type="button"
-                                onClick={() => setType('DONGHUA')}
-                                className={`py-3 px-4 rounded-xl text-sm font-semibold border flex items-center justify-center gap-2 transition-all ${type === 'DONGHUA'
-                                    ? 'bg-blue-500/10 border-blue-500/50 text-blue-400 shadow-[0_0_15px_rgba(59,130,246,0.1)]'
-                                    : 'bg-black/20 border-white/5 text-slate-400 hover:bg-white/5 hover:text-slate-300'
-                                    }`}
-                            >
-                                <Youtube size={18} strokeWidth={2.5} />
-                                Donghua
-                            </button>
+                            <div>
+                                <label className="block text-xs font-medium text-gray-500 mb-1">Current Ch./Ep.</label>
+                                <input
+                                    type="number"
+                                    value={currentChapter}
+                                    onChange={(e) => setCurrentChapter(e.target.value)}
+                                    min="0"
+                                    placeholder="0"
+                                    className="w-full px-3 py-2.5 bg-gray-50 border border-gray-200 rounded-lg text-gray-800 text-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-mal-blue/30 focus:border-mal-blue transition-all"
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-xs font-medium text-gray-500 mb-1">Total</label>
+                                <input
+                                    type="number"
+                                    value={totalChapters}
+                                    onChange={(e) => setTotalChapters(e.target.value)}
+                                    min="0"
+                                    placeholder="Optional"
+                                    className="w-full px-3 py-2.5 bg-gray-50 border border-gray-200 rounded-lg text-gray-800 text-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-mal-blue/30 focus:border-mal-blue transition-all"
+                                />
+                            </div>
                         </div>
-                    </div>
 
-                    <div className="grid grid-cols-2 gap-4">
                         <div>
-                            <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Current Ch. / Ep.</label>
+                            <label className="block text-xs font-medium text-gray-500 mb-1">
+                                Source URL <span className="text-gray-400 font-normal">(optional)</span>
+                            </label>
                             <input
-                                type="number"
-                                min="0"
-                                value={currentChapter}
-                                onChange={(e) => setCurrentChapter(e.target.value)}
-                                className="w-full px-4 py-3 bg-black/20 border border-white/10 rounded-xl focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500/50 outline-none text-white placeholder-slate-600 transition-all font-medium"
-                                placeholder="0"
+                                type="url"
+                                value={sourceUrl}
+                                onChange={(e) => setSourceUrl(e.target.value)}
+                                placeholder="https://..."
+                                className="w-full px-3 py-2.5 bg-gray-50 border border-gray-200 rounded-lg text-gray-800 text-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-mal-blue/30 focus:border-mal-blue transition-all"
                             />
                         </div>
-                        <div>
-                            <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Total Chapters (Optional)</label>
-                            <input
-                                type="number"
-                                value={totalChapters}
-                                onChange={(e) => setTotalChapters(e.target.value)}
-                                className="w-full px-4 py-3 bg-black/20 border border-white/10 rounded-xl focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500/50 outline-none text-white placeholder-slate-600 transition-all font-medium"
-                                placeholder="Leave empty if ongoing"
-                            />
-                        </div>
-                    </div>
-
-                    <div>
-                        <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Link to Series (Optional)</label>
-                        <input
-                            type="url"
-                            value={sourceUrl}
-                            onChange={(e) => setSourceUrl(e.target.value)}
-                            className="w-full px-4 py-3 bg-black/20 border border-white/10 rounded-xl focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500/50 outline-none text-white placeholder-slate-600 transition-all font-medium"
-                            placeholder="https://..."
-                        />
-                    </div>
-
                     </form>
                 </div>
 
-                {/* Fixed Submit Button */}
-                <div className="border-t border-white/10 p-4 sm:p-6 bg-[#111]">
+                <div className="flex items-center justify-end gap-2 p-4 sm:p-6 border-t border-gray-100">
+                    <button
+                        type="button"
+                        onClick={onClose}
+                        className="px-4 py-2.5 text-sm font-medium text-gray-600 hover:bg-gray-100 rounded-lg transition-colors cursor-pointer"
+                    >
+                        Cancel
+                    </button>
                     <button
                         type="submit"
                         form="new-entry-form"
-                        disabled={createMedia.isPending}
-                        className="w-full bg-gradient-to-r from-indigo-600 to-indigo-700 text-white py-3.5 rounded-xl font-bold shadow-lg shadow-indigo-500/20 active:scale-[0.98] transition-all hover:brightness-110 disabled:opacity-50 disabled:cursor-not-allowed"
+                        disabled={createMedia.isPending || !title.trim()}
+                        className="px-4 py-2.5 text-sm font-medium bg-mal-blue text-white rounded-lg hover:bg-mal-blue-dark transition-colors disabled:opacity-50 disabled:cursor-not-allowed shadow-sm cursor-pointer"
                     >
-                        {createMedia.isPending ? 'Creating...' : 'Create Entry'}
+                        {createMedia.isPending ? 'Adding...' : 'Add Entry'}
                     </button>
                 </div>
             </div>

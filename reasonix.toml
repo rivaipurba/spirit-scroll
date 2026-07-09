@@ -1,0 +1,2 @@
+[permissions]
+allow = ["Edit", "Bash(cd /home/rivaihpurba/Documents/projects/spirit-scroll/client && bun run build 2>&1 | head -80)", "Bash(cd /home/rivaihpurba/Documents/projects/spirit-scroll/client && bun run build 2>&1 | head -60)", "Bash(cd /home/rivaihpurba/Documents/projects/spirit-scroll/client && bun run build 2>&1 | head -40)"]

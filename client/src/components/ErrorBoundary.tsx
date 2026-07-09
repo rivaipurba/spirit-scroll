@@ -42,16 +42,16 @@ export class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoun
 function DefaultErrorFallback({ error, resetError }: { error?: Error; resetError: () => void }) {
     return (
         <div className="min-h-[50vh] flex flex-col items-center justify-center p-8 text-center">
-            <div className="bg-red-500/10 rounded-full p-4 mb-4">
-                <AlertTriangle className="w-8 h-8 text-red-400" />
+            <div className="bg-red-50 rounded-full p-4 mb-4">
+                <AlertTriangle className="w-8 h-8 text-mal-red" />
             </div>
-            <h2 className="text-xl font-bold text-white mb-2">Something went wrong</h2>
-            <p className="text-slate-400 mb-4 max-w-md">
+            <h2 className="text-xl font-bold text-gray-800 mb-2">Something went wrong</h2>
+            <p className="text-gray-500 mb-4 max-w-md">
                 {error?.message || "An unexpected error occurred. Please try refreshing the page."}
             </p>
             <button
                 onClick={resetError}
-                className="flex items-center gap-2 px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg font-medium transition-colors"
+                className="flex items-center gap-2 px-4 py-2.5 bg-mal-blue hover:bg-mal-blue-dark text-white rounded-lg font-medium transition-colors shadow-sm cursor-pointer"
             >
                 <RefreshCw size={16} />
                 Try Again

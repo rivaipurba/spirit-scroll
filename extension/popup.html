@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SpiritScroll Tracker</title>
+    <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+    <div class="header">
+        <span class="logo">SpiritScroll</span>
+        <span class="badge" id="status-badge">...</span>
+    </div>
+
+    <div class="tabs">
+        <button class="tab active" data-tab="activity">Activity</button>
+        <button class="tab" data-tab="settings">Settings</button>
+    </div>
+
+    <div id="activity-tab" class="tab-content">
+        <div id="activity-list">
+            <p class="empty">No recent activity.</p>
+        </div>
+    </div>
+
+    <div id="settings-tab" class="tab-content hidden">
+        <div class="form-group">
+            <label for="api-url">API URL</label>
+            <input type="url" id="api-url" placeholder="https://spirit-scroll-api.workers.dev" autocomplete="off">
+        </div>
+        <div class="form-group">
+            <label for="password">Password</label>
+            <input type="password" id="password" placeholder="Your SpiritScroll password" autocomplete="current-password">
+        </div>
+        <button id="login-btn" class="btn primary">Login</button>
+        <p id="login-msg" class="msg hidden"></p>
+
+        <hr>
+
+        <label class="toggle-row">
+            <span>Auto-add new series</span>
+            <input type="checkbox" id="auto-add">
+        </label>
+        <p class="hint">When on, series not in your library are automatically added when you watch/read them.</p>
+    </div>
+
+    <script src="popup.js"></script>
+</body>
+</html>

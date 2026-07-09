@@ -25,30 +25,34 @@ export function ConfirmDialog({
 
     return (
         <div className="fixed inset-0 z-[200] flex items-center justify-center p-4">
-            <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onCancel} />
-            <div className="bg-[#111] border border-white/20 rounded-2xl p-6 w-full max-w-sm relative shadow-2xl animate-in zoom-in-95 duration-200">
+            <div className="absolute inset-0 bg-black/30 backdrop-blur-sm" onClick={onCancel} />
+            <div className="bg-white border border-gray-200 rounded-xl p-6 w-full max-w-sm relative shadow-xl animate-in zoom-in-95 duration-200">
                 <div className="flex items-center gap-3 mb-4">
-                    <div className="p-2 bg-indigo-500/20 rounded-full">
-                        <CheckCircle size={20} className="text-indigo-400" />
+                    <div className={`p-2 rounded-lg ${
+                        variant === 'danger' ? 'bg-red-50' : 'bg-mal-blue/10'
+                    }`}>
+                        <CheckCircle size={20} className={
+                            variant === 'danger' ? 'text-mal-red' : 'text-mal-blue'
+                        } />
                     </div>
-                    <h3 className="text-lg font-semibold text-white">{title}</h3>
+                    <h3 className="text-lg font-semibold text-gray-800">{title}</h3>
                 </div>
                 
-                <p className="text-slate-300 mb-6 leading-relaxed">{message}</p>
+                <p className="text-gray-600 mb-6 leading-relaxed">{message}</p>
                 
                 <div className="flex gap-3">
                     <button
                         onClick={onCancel}
-                        className="flex-1 px-4 py-3 bg-white/5 hover:bg-white/10 text-slate-300 rounded-xl font-medium transition-colors border border-white/10"
+                        className="flex-1 px-4 py-2.5 bg-gray-50 hover:bg-gray-100 text-gray-600 rounded-lg font-medium transition-colors border border-gray-200 cursor-pointer"
                     >
                         {cancelText}
                     </button>
                     <button
                         onClick={onConfirm}
-                        className={`flex-1 px-4 py-3 text-white rounded-xl font-medium transition-colors shadow-lg ${
+                        className={`flex-1 px-4 py-2.5 text-white rounded-lg font-medium transition-colors shadow-sm cursor-pointer ${
                             variant === 'danger' 
-                                ? 'bg-red-600 hover:bg-red-500 shadow-red-500/25' 
-                                : 'bg-indigo-600 hover:bg-indigo-500 shadow-indigo-500/25'
+                                ? 'bg-mal-red hover:bg-red-500' 
+                                : 'bg-mal-blue hover:bg-mal-blue-dark'
                         }`}
                     >
                         {confirmText}

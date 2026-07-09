@@ -1,150 +1,178 @@
-import { useState } from 'react';
-import { Loader2, Book, Sparkles } from 'lucide-react';
+import { useState, useCallback, useEffect } from 'react';
+import { Loader2, Book } from 'lucide-react';
 import { useMediaList, useScanUpdates } from '../hooks/useMedia';
-import { MediaCard } from './MediaCard';
-import { NewEntryDialog } from './NewEntryDialog';
+import { MediaTable } from './MediaTable';
 import { ScanProgressBar } from './ScanProgressBar';
-import type { Media } from '../types/index';
+import { NewEntryDialog } from './NewEntryDialog';
 import { useSearch } from '../context/SearchContext';
+import { useFilters } from '../context/FilterContext';
+import type { Media } from '../types/index';
 
 interface DashboardProps {
     isDialogOpen: boolean;
     onCloseDialog: () => void;
+    onCountsChange: (counts: Record<string, number>, total: number, allMedia: Media[]) => void;
+    registerScanFn: (fn: () => void) => void;
+    onScanningChange: (scanning: boolean) => void;
 }
 
 type SortOption = 'updates' | 'title';
-type TypeFilter = 'MANHUA' | 'DONGHUA';
 
-const TYPE_TABS: { id: TypeFilter; label: string }[] = [
-    { id: 'MANHUA', label: 'Manhua' },
-    { id: 'DONGHUA', label: 'Donghua' },
-];
+const PAGE_SIZE = 50;
 
-export function Dashboard({ isDialogOpen, onCloseDialog }: DashboardProps) {
+export function Dashboard({ isDialogOpen, onCloseDialog, onCountsChange, registerScanFn, onScanningChange }: DashboardProps) {
     const [sortBy, setSortBy] = useState<SortOption>('updates');
-    const [typeFilter, setTypeFilter] = useState<TypeFilter>('DONGHUA');
+    const [page, setPage] = useState(1);
     const { searchQuery } = useSearch();
+    const { statusFilter, typeFilter } = useFilters();
+
+    const apiType = typeFilter === 'ALL' ? undefined : typeFilter as 'MANHUA' | 'DONGHUA';
+
+    const { data: allData, isLoading } = useMediaList(1, apiType, 10000, sortBy, searchQuery);
+    const { data: paginatedData, isLoading: isPageLoading } = useMediaList(page, apiType, PAGE_SIZE, sortBy, searchQuery);
+
     const { startScan, cancelScan, isScanning, progress, result } = useScanUpdates();
 
-    const { data: paginatedMedia, isLoading, error } = useMediaList(
-        1,
-        typeFilter,
-        1000,
-        sortBy,
-        searchQuery
-    );
-    const mediaList = paginatedMedia?.data || [];
+    useEffect(() => {
+        registerScanFn(startScan);
+    }, [registerScanFn, startScan]);
+
+    useEffect(() => {
+        onScanningChange(isScanning);
+    }, [isScanning, onScanningChange]);
+
+    const allMedia = (allData?.data || []) as Media[];
+    const paginatedMedia = (paginatedData?.data || []) as Media[];
+    const totalItems = allData?.meta?.total || allMedia.length;
+    const totalPages = Math.max(1, Math.ceil(totalItems / PAGE_SIZE));
+
+    // Compute counts and pass to parent
+    useCallback(() => {
+        const counts: Record<string, number> = {
+            ALL: allMedia.length,
+            READING: 0,
+            COMPLETED: 0,
+            ON_HOLD: 0,
+            DROPPED: 0,
+            PLAN_TO_READ: 0,
+            MANHUA: 0,
+            DONGHUA: 0,
+        };
+
+        for (const m of allMedia) {
+            if (counts[m.status] !== undefined) counts[m.status]++;
+            if (m.type === 'MANHUA') counts['MANHUA']++;
+            if (m.type === 'DONGHUA') counts['DONGHUA']++;
+        }
+
+        onCountsChange(counts, allMedia.length, allMedia);
+    }, [allMedia, onCountsChange])();
+
+    const displayMedia: Media[] = statusFilter === 'ALL'
+        ? paginatedMedia
+        : paginatedMedia.filter(m => m.status === statusFilter);
+
+    const handlePrevPage = () => {
+        setPage(p => Math.max(1, p - 1));
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    };
+
+    const handleNextPage = () => {
+        setPage(p => Math.min(totalPages, p + 1));
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    };
 
     if (isLoading) {
         return (
-            <div className="h-[80vh] flex flex-col items-center justify-center text-slate-500">
-                <Loader2 className="w-8 h-8 animate-spin mb-2 text-indigo-500" />
-                <p className="text-sm font-medium">Loading your path...</p>
+            <div className="h-64 flex flex-col items-center justify-center text-gray-400">
+                <Loader2 className="w-8 h-8 animate-spin mb-2 text-mal-blue" />
+                <p className="text-sm font-medium">Loading...</p>
             </div>
         );
     }
 
-    if (error) {
+    if (allMedia.length === 0 && !searchQuery) {
         return (
-            <div className="h-[80vh] flex flex-col items-center justify-center text-red-500 p-4 text-center">
-                <p className="font-bold mb-1">Failed to connect</p>
-                <p className="text-sm text-slate-400">Could not reach the server. Make sure the API is running.</p>
-                <p className="text-xs text-slate-600 mt-2 font-mono bg-white/5 p-2 rounded max-w-full overflow-hidden text-ellipsis border border-white/5">
-                    {(error as Error).message}
-                </p>
+            <div className="bg-white rounded-lg border border-gray-200 p-12 text-center">
+                <Book size={48} className="mx-auto mb-4 text-gray-300" />
+                <p className="text-gray-500 font-medium">No entries yet</p>
+                <p className="text-gray-400 text-sm mt-1">Click the + button above to add your first entry!</p>
             </div>
         );
     }
-
-
 
     return (
-        <div className="pb-24">
-            {/* Filter & Sort Bar */}
-            <div className="px-4 pt-4 pb-2">
-                <div className="flex items-center justify-between gap-3">
-                    {/* Type filter tabs */}
-                    <div className="flex gap-1.5">
-                        {TYPE_TABS.map((tab) => (
-                            <button
-                                key={tab.id}
-                                onClick={() => setTypeFilter(tab.id)}
-                                className={`px-3 py-1.5 rounded-full text-xs font-semibold transition-all cursor-pointer ${typeFilter === tab.id
-                                    ? 'bg-white text-black'
-                                    : 'bg-white/5 text-slate-400 hover:bg-white/10 hover:text-slate-200'
-                                    }`}
-                            >
-                                {tab.label}
-                            </button>
-                        ))}
-                    </div>
-
-                    <div className="flex items-center gap-2">
-                        {/* Sort toggle */}
-                        <div className="flex items-center gap-1 bg-white/5 rounded-lg p-0.5">
-                            <button
-                                onClick={() => setSortBy('updates')}
-                                className={`px-2.5 py-1 rounded-md text-xs font-medium transition-all cursor-pointer ${sortBy === 'updates'
-                                    ? 'bg-white/10 text-white'
-                                    : 'text-slate-500 hover:text-slate-300'
-                                    }`}
-                            >
-                                Updates
-                            </button>
-                            <button
-                                onClick={() => setSortBy('title')}
-                                className={`px-2.5 py-1 rounded-md text-xs font-medium transition-all cursor-pointer ${sortBy === 'title'
-                                    ? 'bg-white/10 text-white'
-                                    : 'text-slate-500 hover:text-slate-300'
-                                    }`}
-                            >
-                                A–Z
-                            </button>
-                        </div>
-
-                        {/* Scan button */}
+        <div>
+            {/* Sort Controls */}
+            <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-1 bg-white border border-gray-200 rounded-lg p-0.5 shadow-sm">
                         <button
-                            onClick={startScan}
-                            disabled={isScanning}
-                            className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold bg-indigo-500/15 text-indigo-400 hover:bg-indigo-500/25 hover:text-indigo-300 transition-all disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+                            onClick={() => { setSortBy('updates'); setPage(1); }}
+                            className={`px-3 py-1.5 rounded-md text-xs font-medium transition-all cursor-pointer ${
+                                sortBy === 'updates'
+                                    ? 'bg-mal-blue text-white shadow-sm'
+                                    : 'text-gray-500 hover:text-gray-700'
+                            }`}
                         >
-                            <Sparkles size={11} className={isScanning ? 'animate-pulse' : ''} />
-                            {isScanning ? 'Scanning...' : 'Scan'}
+                            Updates
+                        </button>
+                        <button
+                            onClick={() => { setSortBy('title'); setPage(1); }}
+                            className={`px-3 py-1.5 rounded-md text-xs font-medium transition-all cursor-pointer ${
+                                sortBy === 'title'
+                                    ? 'bg-mal-blue text-white shadow-sm'
+                                    : 'text-gray-500 hover:text-gray-700'
+                            }`}
+                        >
+                            A–Z
                         </button>
                     </div>
                 </div>
-            </div>
 
-            <div className="px-4">
-                {(isScanning || result) && (
-                    <ScanProgressBar
-                        isScanning={isScanning}
-                        progress={progress}
-                        result={result}
-                        onCancel={cancelScan}
-                    />
-                )}
-
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                    {mediaList?.map((media: Media, index: number) => (
-                        <MediaCard key={media.id} media={media} priority={index < 6} />
-                    ))}
+                <div className="text-xs text-gray-400">
+                    {totalItems} entries
                 </div>
-
-                {mediaList.length === 0 && (
-                    <div className="col-span-full flex flex-col items-center justify-center py-20 text-center opacity-50">
-                        {searchQuery ? (
-                            <p className="text-sm font-medium text-slate-400">No matches found for "{searchQuery}"</p>
-                        ) : (
-                            <>
-                                <Book size={48} className="mb-4 text-slate-600" />
-                                <p className="text-sm font-medium text-slate-400">No {typeFilter.toLowerCase()} entries yet</p>
-                                <p className="text-xs text-slate-500 mt-2">Add your first {typeFilter === 'MANHUA' ? 'manhua' : 'donghua'} to get started!</p>
-                            </>
-                        )}
-                    </div>
-                )}
             </div>
+
+            {/* Scan Progress */}
+            {(isScanning || result) && (
+                <ScanProgressBar
+                    isScanning={isScanning}
+                    progress={progress}
+                    result={result}
+                    onCancel={cancelScan}
+                />
+            )}
+
+            {/* Table */}
+            <MediaTable
+                mediaList={displayMedia}
+                isLoading={isPageLoading}
+            />
+
+            {/* Pagination */}
+            {totalPages > 1 && (
+                <div className="flex items-center justify-center gap-4 mt-6">
+                    <button
+                        onClick={handlePrevPage}
+                        disabled={page <= 1}
+                        className="px-4 py-2 text-sm font-medium rounded-lg border border-gray-200 bg-white text-gray-700 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors cursor-pointer"
+                    >
+                        ← Previous
+                    </button>
+                    <span className="text-sm text-gray-500">
+                        Page {page} of {totalPages}
+                    </span>
+                    <button
+                        onClick={handleNextPage}
+                        disabled={page >= totalPages}
+                        className="px-4 py-2 text-sm font-medium rounded-lg border border-gray-200 bg-white text-gray-700 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors cursor-pointer"
+                    >
+                        Next →
+                    </button>
+                </div>
+            )}
 
             <NewEntryDialog isOpen={isDialogOpen} onClose={onCloseDialog} />
         </div>
