@@ -115,7 +115,7 @@ export function MediaTableRow({ media, rank }: MediaTableRowProps) {
                         {media.type === 'DONGHUA' ? 'Donghua' : 'Manhua'}
                         {hasUpdate && media.latestReleasedChapter != null && (
                             <span className="ml-2 text-mal-red font-medium">
-                                NEW ({media.latestReleasedChapter - media.currentChapter} unread)
+                                NEW ({media.latestReleasedChapter - media.currentChapter} {media.type === 'DONGHUA' ? 'unwatched' : 'unread'})
                             </span>
                         )}
                     </div>
