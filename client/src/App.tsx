@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useCallback } from 'react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { Layout } from './components/Layout';
 import { Plus, Loader2 } from 'lucide-react';
@@ -33,20 +33,20 @@ function AuthenticatedApp() {
   const [sidebarTotal, setSidebarTotal] = useState(0);
   const scanTriggerRef = useRef<() => void>(() => {});
 
-  const registerScanFn = (fn: () => void) => {
+  const registerScanFn = useCallback((fn: () => void) => {
     scanTriggerRef.current = fn;
-  };
+  }, []);
 
-  const handleScanClick = () => {
+  const handleScanClick = useCallback(() => {
     setIsScanning(true);
     scanTriggerRef.current();
-  };
+  }, []);
 
-  const handleCountsChange = (counts: Record<string, number>, total: number, allMedia: any[]) => {
+  const handleCountsChange = useCallback((counts: Record<string, number>, total: number, allMedia: any[]) => {
     setSidebarCounts(counts as any);
     setSidebarTotal(total);
     setMediaList(allMedia);
-  };
+  }, []);
 
   return (
     <FilterProvider>

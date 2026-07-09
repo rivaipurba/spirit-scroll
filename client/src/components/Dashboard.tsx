@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { Loader2, Book } from 'lucide-react';
 import { useMediaList, useScanUpdates } from '../hooks/useMedia';
 import { MediaTable } from './MediaTable';
@@ -47,7 +47,7 @@ export function Dashboard({ isDialogOpen, onCloseDialog, onCountsChange, registe
     const totalPages = Math.max(1, Math.ceil(totalItems / PAGE_SIZE));
 
     // Compute counts and pass to parent
-    useCallback(() => {
+    useEffect(() => {
         const counts: Record<string, number> = {
             ALL: allMedia.length,
             READING: 0,
@@ -66,7 +66,7 @@ export function Dashboard({ isDialogOpen, onCloseDialog, onCountsChange, registe
         }
 
         onCountsChange(counts, allMedia.length, allMedia);
-    }, [allMedia, onCountsChange])();
+    }, [allMedia, onCountsChange]);
 
     const displayMedia: Media[] = statusFilter === 'ALL'
         ? paginatedMedia
