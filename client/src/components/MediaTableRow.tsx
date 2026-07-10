@@ -3,6 +3,7 @@ import { useToastContext } from '../context/ToastContext';
 import { useState } from 'react';
 import { EditMediaDialog } from './EditMediaDialog';
 import { Plus, Minus, ExternalLink } from 'lucide-react';
+import { STATUS_COLORS, getStatusLabel } from '../lib/media-utils';
 import type { Media } from '../types/index';
 
 interface MediaTableRowProps {
@@ -10,24 +11,6 @@ interface MediaTableRowProps {
     rank: number;
 }
 
-const STATUS_COLORS: Record<string, string> = {
-    READING: 'bg-mal-green',
-    COMPLETED: 'bg-mal-blue-status',
-    ON_HOLD: 'bg-mal-yellow',
-    DROPPED: 'bg-mal-red',
-    PLAN_TO_READ: 'bg-mal-gray',
-};
-
-function getStatusLabel(status: string, type: string): string {
-    switch (status) {
-        case 'COMPLETED': return 'Completed';
-        case 'ON_HOLD': return 'On Hold';
-        case 'DROPPED': return 'Dropped';
-        case 'PLAN_TO_READ': return 'Plan to Read';
-        case 'READING': return type === 'DONGHUA' ? 'Watching' : 'Reading';
-        default: return status;
-    }
-}
 
 export function MediaTableRow({ media, rank }: MediaTableRowProps) {
     const [isEditOpen, setIsEditOpen] = useState(false);
