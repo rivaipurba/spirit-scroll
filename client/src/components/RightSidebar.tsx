@@ -9,7 +9,8 @@ export function RightSidebar({ mediaList }: RightSidebarProps) {
     const isFinished = (m: Media) => m.status === 'COMPLETED' || (m.totalChapters != null && m.totalChapters > 0 && m.currentChapter >= m.totalChapters);
 
     const totalEntries = mediaList.length;
-    const readingCount = mediaList.filter(m => m.status === 'READING' && !isFinished(m)).length;
+    const readingCount = mediaList.filter(m => m.status === 'READING' && !isFinished(m) && m.type === 'MANHUA').length;
+    const watchingCount = mediaList.filter(m => m.status === 'READING' && !isFinished(m) && m.type === 'DONGHUA').length;
     const completedCount = mediaList.filter(m => isFinished(m)).length;
     const totalChapters = mediaList.reduce((sum, m) => sum + m.currentChapter, 0);
     const hasUpdates = mediaList.filter(
@@ -24,7 +25,7 @@ export function RightSidebar({ mediaList }: RightSidebarProps) {
         })
         .slice(0, 5);
 
-    const maxCount = Math.max(readingCount, completedCount, 1);
+    const maxCount = Math.max(readingCount, watchingCount, completedCount, 1);
 
     return (
         <aside className="hidden lg:block w-64 shrink-0 p-4 space-y-5">
@@ -50,6 +51,7 @@ export function RightSidebar({ mediaList }: RightSidebarProps) {
 
                 <div className="mt-4 space-y-2">
                     <StatusBar label="Reading" count={readingCount} max={maxCount} color="bg-mal-blue" />
+                    <StatusBar label="Watching" count={watchingCount} max={maxCount} color="bg-mal-blue" />
                     <StatusBar label="Completed" count={completedCount} max={maxCount} color="bg-mal-green" />
                     <StatusBar label="On Hold" count={mediaList.filter(m => m.status === 'ON_HOLD' && !isFinished(m)).length} max={maxCount} color="bg-mal-yellow" />
                     <StatusBar label="Dropped" count={mediaList.filter(m => m.status === 'DROPPED' && !isFinished(m)).length} max={maxCount} color="bg-mal-red" />
