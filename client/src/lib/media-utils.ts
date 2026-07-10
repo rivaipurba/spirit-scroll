@@ -1,5 +1,5 @@
 export const STATUS_COLORS: Record<string, string> = {
-    READING: 'bg-mal-green',
+    READING: 'bg-mal-blue',
     COMPLETED: 'bg-mal-blue-status',
     ON_HOLD: 'bg-mal-yellow',
     DROPPED: 'bg-mal-red',
