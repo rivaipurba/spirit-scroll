@@ -6,9 +6,11 @@ interface RightSidebarProps {
 }
 
 export function RightSidebar({ mediaList }: RightSidebarProps) {
+    const isFinished = (m: Media) => m.status === 'COMPLETED' || (m.totalChapters != null && m.totalChapters > 0 && m.currentChapter >= m.totalChapters);
+
     const totalEntries = mediaList.length;
-    const readingCount = mediaList.filter(m => m.status === 'READING').length;
-    const completedCount = mediaList.filter(m => m.status === 'COMPLETED').length;
+    const readingCount = mediaList.filter(m => m.status === 'READING' && !isFinished(m)).length;
+    const completedCount = mediaList.filter(m => isFinished(m)).length;
     const totalChapters = mediaList.reduce((sum, m) => sum + m.currentChapter, 0);
     const hasUpdates = mediaList.filter(
         m => m.latestReleasedChapter != null && m.latestReleasedChapter > m.currentChapter
@@ -47,11 +49,11 @@ export function RightSidebar({ mediaList }: RightSidebarProps) {
                 </div>
 
                 <div className="mt-4 space-y-2">
-                    <StatusBar label="Reading" count={readingCount} max={maxCount} color="bg-mal-green" />
-                    <StatusBar label="Completed" count={completedCount} max={maxCount} color="bg-mal-blue-status" />
-                    <StatusBar label="On Hold" count={mediaList.filter(m => m.status === 'ON_HOLD').length} max={maxCount} color="bg-mal-yellow" />
-                    <StatusBar label="Dropped" count={mediaList.filter(m => m.status === 'DROPPED').length} max={maxCount} color="bg-mal-red" />
-                    <StatusBar label="Plan to Read" count={mediaList.filter(m => m.status === 'PLAN_TO_READ').length} max={maxCount} color="bg-mal-gray" />
+                    <StatusBar label="Reading" count={readingCount} max={maxCount} color="bg-mal-blue" />
+                    <StatusBar label="Completed" count={completedCount} max={maxCount} color="bg-mal-green" />
+                    <StatusBar label="On Hold" count={mediaList.filter(m => m.status === 'ON_HOLD' && !isFinished(m)).length} max={maxCount} color="bg-mal-yellow" />
+                    <StatusBar label="Dropped" count={mediaList.filter(m => m.status === 'DROPPED' && !isFinished(m)).length} max={maxCount} color="bg-mal-red" />
+                    <StatusBar label="Plan to Read" count={mediaList.filter(m => m.status === 'PLAN_TO_READ' && !isFinished(m)).length} max={maxCount} color="bg-mal-gray" />
                 </div>
             </div>
 
