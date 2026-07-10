@@ -31,11 +31,16 @@ export function useUpdateProgress() {
     const toast = useToastContext();
 
     return useMutation({
-        mutationFn: async ({ id, status, currentChapter }: { id: number, status?: "READING" | "COMPLETED", currentChapter?: number }) => {
+        mutationFn: async ({ id, status, currentChapter, totalChapters }: { id: number, status?: "READING" | "COMPLETED", currentChapter?: number, totalChapters?: number | null }) => {
+            // Auto-detect completion when currentChapter reaches totalChapters
+            const autoStatus = !status && totalChapters != null && totalChapters > 0 && (currentChapter ?? 0) >= totalChapters
+                ? 'COMPLETED' as const
+                : undefined;
+
             const res = await client.api.media[":id"].$patch({
                 param: { id: id.toString() },
                 json: {
-                    status,
+                    status: autoStatus || status,
                     currentChapter
                 }
             });
@@ -44,12 +49,18 @@ export function useUpdateProgress() {
             }
             return await res.json();
         },
-        onMutate: async ({ id, status, currentChapter }) => {
+        onMutate: async ({ id, status, currentChapter, totalChapters }) => {
             // Cancel outgoing refetches
             await queryClient.cancelQueries({ queryKey: ["media-list"] });
 
             // Snapshot the previous value
             const previousData = queryClient.getQueriesData({ queryKey: ["media-list"] });
+
+            // Auto-detect completion for optimistic update
+            const autoStatus = !status && totalChapters != null && totalChapters > 0 && (currentChapter ?? 0) >= totalChapters
+                ? 'COMPLETED' as const
+                : undefined;
+            const resolvedStatus = autoStatus || status;
 
             // Optimistically update the cache
             queryClient.setQueriesData({ queryKey: ["media-list"] }, (old: PaginatedResponse<Media> | undefined) => {
@@ -59,7 +70,7 @@ export function useUpdateProgress() {
                     ...old,
                     data: old.data.map((item: Media) =>
                         item.id === id
-                            ? { ...item, currentChapter: currentChapter ?? item.currentChapter, status: status ?? item.status }
+                            ? { ...item, currentChapter: currentChapter ?? item.currentChapter, status: resolvedStatus ?? item.status }
                             : item
                     )
                 };

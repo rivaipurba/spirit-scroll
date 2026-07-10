@@ -18,6 +18,7 @@ function MobileCard({ media }: { media: Media }) {
     const toast = useToastContext();
 
     const hasUpdate = media.latestReleasedChapter != null && media.latestReleasedChapter > media.currentChapter;
+    const isFinished = media.status === 'COMPLETED' || Boolean(media.totalChapters && media.currentChapter >= media.totalChapters);
     const progress = media.totalChapters ? Math.min((media.currentChapter / media.totalChapters) * 100, 100) : 0;
     const label = media.type === 'DONGHUA' ? 'Ep.' : 'Ch.';
 
@@ -26,7 +27,7 @@ function MobileCard({ media }: { media: Media }) {
         const prevChapter = media.currentChapter;
         const nextChapter = media.currentChapter + 1;
 
-        updateProgress.mutate({ id: media.id, currentChapter: nextChapter }, {
+        updateProgress.mutate({ id: media.id, currentChapter: nextChapter, totalChapters: media.totalChapters }, {
             onSuccess: () => {
                 toast.success(
                     `${label} ${nextChapter} marked as read`,
@@ -120,8 +121,8 @@ function MobileCard({ media }: { media: Media }) {
                     </div>
 
                     {/* Status badge */}
-                    <span className={`shrink-0 inline-block px-2 py-0.5 rounded text-xs font-bold text-black ${STATUS_COLORS[media.status] || 'bg-mal-gray'}`}>
-                        {getStatusLabel(media.status, media.type)}
+                    <span className={`shrink-0 inline-block px-2 py-0.5 rounded text-xs font-bold text-black ${isFinished ? 'bg-mal-green' : (STATUS_COLORS[media.status] || 'bg-mal-gray')}`}>
+                        {isFinished ? 'Completed' : getStatusLabel(media.status, media.type)}
                     </span>
 
                     {/* Action buttons */}

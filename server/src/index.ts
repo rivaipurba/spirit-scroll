@@ -369,6 +369,19 @@ const routes = app.basePath("/api")
 
         const db = createDb(c.env.DATABASE_URL, c.env.DATABASE_AUTH_TOKEN);
 
+        // Auto-set status to COMPLETED if currentChapter reaches totalChapters
+        if (data.currentChapter !== undefined && !data.status) {
+            const existing = await db
+                .select({ totalChapters: media.totalChapters })
+                .from(media)
+                .where(eq(media.id, id))
+                .limit(1);
+            const total = existing[0]?.totalChapters;
+            if (total != null && total > 0 && data.currentChapter >= total) {
+                patchData = { ...patchData, status: 'COMPLETED' };
+            }
+        }
+
         const result = await db
             .update(media)
             .set(patchData)

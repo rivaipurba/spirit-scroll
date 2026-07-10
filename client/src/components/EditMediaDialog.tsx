@@ -33,6 +33,17 @@ export function EditMediaDialog({ isOpen, onClose, media }: EditMediaDialogProps
         }
     }, [isOpen, media]);
 
+    // Auto-suggest Completed status when current chapter reaches total
+    useEffect(() => {
+        if (isOpen) {
+            const ch = Number(currentChapter);
+            const total = Number(totalChapters);
+            if (total > 0 && ch >= total) {
+                setStatus('COMPLETED');
+            }
+        }
+    }, [currentChapter, totalChapters, isOpen]);
+
     if (!isOpen) return null;
 
     const handleSubmit = (e: React.FormEvent) => {
