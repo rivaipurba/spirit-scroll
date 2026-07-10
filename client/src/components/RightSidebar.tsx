@@ -25,8 +25,6 @@ export function RightSidebar({ mediaList }: RightSidebarProps) {
         })
         .slice(0, 5);
 
-    const maxCount = Math.max(readingCount, watchingCount, completedCount, 1);
-
     return (
         <aside className="hidden lg:block w-64 shrink-0 p-4 space-y-5">
             <div className="bg-mal-panel rounded-lg border border-mal-border p-4">
@@ -50,12 +48,12 @@ export function RightSidebar({ mediaList }: RightSidebarProps) {
                 </div>
 
                 <div className="mt-4 space-y-2">
-                    <StatusBar label="Reading" count={readingCount} max={maxCount} color="bg-mal-blue" />
-                    <StatusBar label="Watching" count={watchingCount} max={maxCount} color="bg-mal-blue" />
-                    <StatusBar label="Completed" count={completedCount} max={maxCount} color="bg-mal-green" />
-                    <StatusBar label="On Hold" count={mediaList.filter(m => m.status === 'ON_HOLD' && !isFinished(m)).length} max={maxCount} color="bg-mal-yellow" />
-                    <StatusBar label="Dropped" count={mediaList.filter(m => m.status === 'DROPPED' && !isFinished(m)).length} max={maxCount} color="bg-mal-red" />
-                    <StatusBar label="Plan to Read" count={mediaList.filter(m => m.status === 'PLAN_TO_READ' && !isFinished(m)).length} max={maxCount} color="bg-mal-gray" />
+                    <StatusBar label="Reading" count={readingCount} />
+                    <StatusBar label="Watching" count={watchingCount} />
+                    <StatusBar label="Completed" count={completedCount} />
+                    <StatusBar label="On Hold" count={mediaList.filter(m => m.status === 'ON_HOLD' && !isFinished(m)).length} />
+                    <StatusBar label="Dropped" count={mediaList.filter(m => m.status === 'DROPPED' && !isFinished(m)).length} />
+                    <StatusBar label="Plan to Read" count={mediaList.filter(m => m.status === 'PLAN_TO_READ' && !isFinished(m)).length} />
                 </div>
             </div>
 
@@ -97,20 +95,11 @@ export function RightSidebar({ mediaList }: RightSidebarProps) {
     );
 }
 
-function StatusBar({ label, count, max, color }: { label: string; count: number; max: number; color: string }) {
-    const pct = max > 0 ? (count / max) * 100 : 0;
+function StatusBar({ label, count }: { label: string; count: number }) {
     return (
-        <div>
-            <div className="flex items-center justify-between text-xs">
-                <span className="text-mal-text-secondary">{label}</span>
-                <span className="font-medium text-mal-text">{count}</span>
-            </div>
-            <div className="w-full h-1.5 bg-mal-card rounded-full mt-0.5 overflow-hidden">
-                <div
-                    className={`h-full rounded-full ${color} transition-all duration-500`}
-                    style={{ width: `${pct}%` }}
-                />
-            </div>
+        <div className="flex items-center justify-between text-xs">
+            <span className="text-mal-text-secondary">{label}</span>
+            <span className="font-medium text-mal-text">{count}</span>
         </div>
     );
 }
