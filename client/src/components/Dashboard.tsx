@@ -84,11 +84,18 @@ export function Dashboard({ isDialogOpen, onCloseDialog, onCountsChange, registe
         onCountsChange(counts, allMedia.length, allMedia);
     }, [allMedia, onCountsChange]);
 
-    const displayMedia: Media[] = statusFilter === 'ALL'
-        ? paginatedMedia
-        : statusFilter === 'WATCHING'
-            ? paginatedMedia.filter(m => m.status === 'READING' && m.type === 'DONGHUA')
-            : paginatedMedia.filter(m => m.status === statusFilter);
+    const displayMedia: Media[] = (() => {
+        const isFinished = (m: Media) => m.status === 'COMPLETED' || (m.totalChapters != null && m.totalChapters > 0 && m.currentChapter >= m.totalChapters);
+
+        if (statusFilter === 'ALL') return paginatedMedia;
+        if (statusFilter === 'WATCHING')
+            return paginatedMedia.filter(m => m.status === 'READING' && m.type === 'DONGHUA' && !isFinished(m));
+        if (statusFilter === 'READING')
+            return paginatedMedia.filter(m => m.status === 'READING' && m.type === 'MANHUA' && !isFinished(m));
+        if (statusFilter === 'COMPLETED')
+            return paginatedMedia.filter(m => isFinished(m));
+        return paginatedMedia.filter(m => m.status === statusFilter && !isFinished(m));
+    })();
 
     const handlePrevPage = () => {
         setPage(p => Math.max(1, p - 1));
