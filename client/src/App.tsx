@@ -27,7 +27,7 @@ function AuthenticatedApp() {
   const [isScanning, setIsScanning] = useState(false);
   const [mediaList, setMediaList] = useState<any[]>([]);
   const [sidebarCounts, setSidebarCounts] = useState<Record<string, number>>({
-    ALL: 0, READING: 0, COMPLETED: 0, ON_HOLD: 0, DROPPED: 0, PLAN_TO_READ: 0,
+    ALL: 0, READING: 0, WATCHING: 0, COMPLETED: 0, ON_HOLD: 0, DROPPED: 0, PLAN_TO_READ: 0,
     MANHUA: 0, DONGHUA: 0,
   });
   const [sidebarTotal, setSidebarTotal] = useState(0);

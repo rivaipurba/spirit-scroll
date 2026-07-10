@@ -1,5 +1,5 @@
 import { useFilters, type StatusFilter } from '../context/FilterContext';
-import { Book, Play, CheckCircle, PauseCircle, XCircle, Bookmark, Menu, X } from 'lucide-react';
+import { Book, Play, CheckCircle, PauseCircle, XCircle, Bookmark, Tv, Menu, X } from 'lucide-react';
 import { useState } from 'react';
 
 interface SidebarProps {
@@ -10,6 +10,7 @@ interface SidebarProps {
 const STATUS_LINKS: { id: StatusFilter; label: string; icon: typeof Book }[] = [
     { id: 'ALL', label: 'All', icon: Book },
     { id: 'READING', label: 'Reading', icon: Play },
+    { id: 'WATCHING', label: 'Watching', icon: Tv },
     { id: 'COMPLETED', label: 'Completed', icon: CheckCircle },
     { id: 'ON_HOLD', label: 'On Hold', icon: PauseCircle },
     { id: 'DROPPED', label: 'Dropped', icon: XCircle },

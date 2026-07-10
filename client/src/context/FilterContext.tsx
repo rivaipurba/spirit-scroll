@@ -1,6 +1,6 @@
 import { createContext, useContext, useState, type ReactNode } from 'react';
 
-export type StatusFilter = 'ALL' | 'READING' | 'COMPLETED' | 'ON_HOLD' | 'DROPPED' | 'PLAN_TO_READ';
+export type StatusFilter = 'ALL' | 'READING' | 'WATCHING' | 'COMPLETED' | 'ON_HOLD' | 'DROPPED' | 'PLAN_TO_READ';
 export type TypeFilter = 'ALL' | 'MANHUA' | 'DONGHUA';
 
 interface FilterContextType {

@@ -56,10 +56,27 @@ export function Dashboard({ isDialogOpen, onCloseDialog, onCountsChange, registe
             PLAN_TO_READ: 0,
             MANHUA: 0,
             DONGHUA: 0,
+            WATCHING: 0,
         };
 
         for (const m of allMedia) {
-            if (counts[m.status] !== undefined) counts[m.status]++;
+            // Use computed status: items with currentChapter >= totalChapters are COMPLETED
+            const isFinished = m.status === 'COMPLETED' || (m.totalChapters != null && m.totalChapters > 0 && m.currentChapter >= m.totalChapters);
+
+            if (isFinished) {
+                counts['COMPLETED']++;
+            } else if (m.status === 'ON_HOLD') {
+                counts['ON_HOLD']++;
+            } else if (m.status === 'DROPPED') {
+                counts['DROPPED']++;
+            } else if (m.status === 'PLAN_TO_READ') {
+                counts['PLAN_TO_READ']++;
+            } else if (m.status === 'READING') {
+                // Split READING by type: Manhua = "Reading", Donghua = "Watching"
+                if (m.type === 'MANHUA') counts['READING']++;
+                if (m.type === 'DONGHUA') counts['WATCHING']++;
+            }
+
             if (m.type === 'MANHUA') counts['MANHUA']++;
             if (m.type === 'DONGHUA') counts['DONGHUA']++;
         }
@@ -69,7 +86,9 @@ export function Dashboard({ isDialogOpen, onCloseDialog, onCountsChange, registe
 
     const displayMedia: Media[] = statusFilter === 'ALL'
         ? paginatedMedia
-        : paginatedMedia.filter(m => m.status === statusFilter);
+        : statusFilter === 'WATCHING'
+            ? paginatedMedia.filter(m => m.status === 'READING' && m.type === 'DONGHUA')
+            : paginatedMedia.filter(m => m.status === statusFilter);
 
     const handlePrevPage = () => {
         setPage(p => Math.max(1, p - 1));
