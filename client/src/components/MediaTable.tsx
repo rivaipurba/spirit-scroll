@@ -1,9 +1,9 @@
 import { useState } from 'react';
-import { Plus, Minus, ExternalLink } from 'lucide-react';
+import { Plus, Minus, ExternalLink, Star } from 'lucide-react';
 import { MediaTableRow } from './MediaTableRow';
 import { EditMediaDialog } from './EditMediaDialog';
 import { STATUS_COLORS, getStatusLabel } from '../lib/media-utils';
-import { useUpdateProgress } from '../hooks/useMedia';
+import { useUpdateProgress, useUpdateMedia } from '../hooks/useMedia';
 import { useToastContext } from '../context/ToastContext';
 import type { Media } from '../types/index';
 
@@ -15,6 +15,7 @@ interface MediaTableProps {
 function MobileCard({ media }: { media: Media }) {
     const [isEditOpen, setIsEditOpen] = useState(false);
     const updateProgress = useUpdateProgress();
+    const updateMedia = useUpdateMedia();
     const toast = useToastContext();
 
     const hasUpdate = media.latestReleasedChapter != null && media.latestReleasedChapter > media.currentChapter;
@@ -57,7 +58,7 @@ function MobileCard({ media }: { media: Media }) {
             >
                 <div className="flex gap-3">
                     {/* Cover */}
-                    <div className="w-[50px] h-[70px] rounded overflow-hidden bg-mal-card flex-shrink-0 shadow-sm">
+                    <div className="relative w-[50px] h-[70px] rounded overflow-hidden bg-mal-card flex-shrink-0 shadow-sm">
                         {media.coverUrl ? (
                             <img
                                 src={media.coverUrl}
@@ -72,6 +73,22 @@ function MobileCard({ media }: { media: Media }) {
                                 {media.type === 'DONGHUA' ? 'ANIME' : 'MANGA'}
                             </div>
                         )}
+                        <button
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                updateMedia.mutate({ id: media.id, isPinned: !media.isPinned });
+                            }}
+                            disabled={updateMedia.isPending}
+                            className="absolute top-0.5 right-0.5 z-10 p-0.5 rounded bg-black/40 hover:bg-black/60 transition-colors cursor-pointer"
+                            aria-label={media.isPinned ? 'Unpin' : 'Pin to top'}
+                            title={media.isPinned ? 'Unpin from top' : 'Pin to top'}
+                        >
+                            <Star
+                                size={10}
+                                className={media.isPinned ? 'text-mal-yellow fill-mal-yellow' : 'text-white/70 fill-none'}
+                                strokeWidth={2}
+                            />
+                        </button>
                     </div>
 
                     {/* Title + subtitle */}
