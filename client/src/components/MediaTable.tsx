@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Plus, Minus, ExternalLink, Star } from 'lucide-react';
 import { MediaTableRow } from './MediaTableRow';
+import { UpdateBadge } from './UpdateBadge';
 import { EditMediaDialog } from './EditMediaDialog';
 import { STATUS_COLORS, getStatusLabel } from '../lib/media-utils';
 import { useUpdateProgress, useUpdateMedia } from '../hooks/useMedia';
@@ -14,6 +15,7 @@ interface MediaTableProps {
 
 function MobileCard({ media }: { media: Media }) {
     const [isEditOpen, setIsEditOpen] = useState(false);
+    const [pulseCount, setPulseCount] = useState(0);
     const updateProgress = useUpdateProgress();
     const updateMedia = useUpdateMedia();
     const toast = useToastContext();
@@ -22,9 +24,11 @@ function MobileCard({ media }: { media: Media }) {
     const isFinished = media.status === 'COMPLETED' || Boolean(media.totalChapters && media.currentChapter >= media.totalChapters);
     const progress = media.totalChapters ? Math.min((media.currentChapter / media.totalChapters) * 100, 100) : 0;
     const label = media.type === 'DONGHUA' ? 'Ep.' : 'Ch.';
+    const unit = media.type === 'DONGHUA' ? 'episode' : 'chapter';
 
     const handleQuickIncrement = (e: React.MouseEvent) => {
         e.stopPropagation();
+        setPulseCount(c => c + 1);
         const prevChapter = media.currentChapter;
         const nextChapter = media.currentChapter + 1;
 
@@ -33,7 +37,7 @@ function MobileCard({ media }: { media: Media }) {
                 toast.success(
                     `${label} ${nextChapter} marked as read`,
                     undefined,
-                    5000,
+                    2000,
                     {
                         label: 'Undo',
                         onClick: () => updateProgress.mutate({ id: media.id, currentChapter: prevChapter }),
@@ -46,6 +50,7 @@ function MobileCard({ media }: { media: Media }) {
     const handleQuickDecrement = (e: React.MouseEvent) => {
         e.stopPropagation();
         if (media.currentChapter > 0) {
+            setPulseCount(c => c + 1);
             updateProgress.mutate({ id: media.id, currentChapter: media.currentChapter - 1 });
         }
     };
@@ -93,29 +98,32 @@ function MobileCard({ media }: { media: Media }) {
 
                     {/* Title + subtitle */}
                     <div className="flex-1 min-w-0">
-                        <div className="text-sm font-semibold text-mal-text leading-tight">
-                            {media.sourceUrl ? (
-                                <a
-                                    href={media.sourceUrl}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    className="hover:text-mal-blue transition-colors inline-flex items-center gap-1"
-                                    onClick={(e) => e.stopPropagation()}
-                                >
-                                    <span className="truncate">{media.title}</span>
-                                    <ExternalLink size={12} className="opacity-40 flex-shrink-0" />
-                                </a>
-                            ) : (
-                                <span className="line-clamp-2">{media.title}</span>
+                        <div className="flex items-center gap-2">
+                            <div className="min-w-0 flex-1 text-sm font-semibold text-mal-text leading-tight">
+                                {media.sourceUrl ? (
+                                    <a
+                                        href={media.sourceUrl}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="hover:text-mal-blue transition-colors inline-flex items-center gap-1 max-w-full"
+                                        onClick={(e) => e.stopPropagation()}
+                                    >
+                                        <span className="truncate min-w-0">{media.title}</span>
+                                        <ExternalLink size={12} className="opacity-40 flex-shrink-0" />
+                                    </a>
+                                ) : (
+                                    <span className="line-clamp-2">{media.title}</span>
+                                )}
+                            </div>
+                            {hasUpdate && media.latestReleasedChapter != null && (
+                                <UpdateBadge
+                                    count={media.latestReleasedChapter - media.currentChapter}
+                                    type={media.type}
+                                />
                             )}
                         </div>
                         <div className="text-xs text-mal-text-secondary/60 mt-0.5">
                             {media.type === 'DONGHUA' ? 'Donghua' : 'Manhua'}
-                            {hasUpdate && media.latestReleasedChapter != null && (
-                                <span className="ml-2 text-mal-red font-medium">
-                                    NEW ({media.latestReleasedChapter - media.currentChapter} {media.type === 'DONGHUA' ? 'unwatched' : 'unread'})
-                                </span>
-                            )}
                         </div>
                     </div>
                 </div>
@@ -124,7 +132,7 @@ function MobileCard({ media }: { media: Media }) {
                 <div className="flex items-center gap-2">
                     <div className="flex-1 min-w-0">
                         <div className="text-xs font-medium text-mal-text">
-                            {label} {media.currentChapter}
+                            <span key={pulseCount} className="progress-pulse">{label} {media.currentChapter}</span>
                             {media.totalChapters ? ` / ${media.totalChapters}` : ''}
                         </div>
                         {media.totalChapters ? (
@@ -143,17 +151,19 @@ function MobileCard({ media }: { media: Media }) {
                     </span>
 
                     {/* Action buttons */}
-                    <div className="flex items-center gap-1 shrink-0">
+                    <div className="flex items-center gap-2 shrink-0">
                         <button
                             onClick={handleQuickDecrement}
-                            className="p-1.5 rounded-md border border-mal-border text-mal-text-secondary hover:text-white hover:bg-mal-hover transition-colors cursor-pointer"
+                            aria-label={`Decrement ${unit}`}
+                            className="p-1.5 rounded-md border border-mal-border text-mal-text-secondary hover:text-white hover:bg-mal-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-mal-blue transition-colors cursor-pointer"
                             title={`Previous ${label}`}
                         >
                             <Minus size={12} strokeWidth={2.5} />
                         </button>
                         <button
                             onClick={handleQuickIncrement}
-                            className="p-1.5 rounded-md bg-mal-blue text-white hover:bg-mal-blue-dark transition-colors cursor-pointer"
+                            aria-label={`Increment ${unit}`}
+                            className="p-1.5 rounded-md bg-mal-blue text-white hover:bg-mal-blue-dark focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-mal-blue transition-colors cursor-pointer"
                             title={`Next ${label}`}
                         >
                             <Plus size={12} strokeWidth={2.5} />

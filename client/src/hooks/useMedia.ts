@@ -4,7 +4,7 @@ import { client, BASE_URL, getAuthToken } from "../lib/api";
 import { useToastContext } from "../context/ToastContext";
 import type { Media, PaginatedResponse } from "../types/index";
 
-export function useMediaList(page: number = 1, type?: "MANHUA" | "DONGHUA", limit: number = 12, sortBy?: "title" | "progress" | "recent" | "updates" | "type", search?: string) {
+export function useMediaList(page: number = 1, type?: "MANHUA" | "DONGHUA", limit: number = 12, sortBy?: "title" | "progress" | "recent" | "updates" | "type" | "unwatched", search?: string) {
     return useQuery({
         queryKey: ["media-list", { page, type, limit, sortBy, search }],
         queryFn: async () => {

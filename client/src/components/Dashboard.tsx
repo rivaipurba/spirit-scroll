@@ -16,7 +16,7 @@ interface DashboardProps {
     onScanningChange: (scanning: boolean) => void;
 }
 
-type SortOption = 'updates' | 'title';
+type SortOption = 'updates' | 'title' | 'unwatched';
 
 const PAGE_SIZE = 50;
 
@@ -140,6 +140,16 @@ export function Dashboard({ isDialogOpen, onCloseDialog, onCountsChange, registe
                             }`}
                         >
                             Updates
+                        </button>
+                        <button
+                            onClick={() => { setSortBy('unwatched'); setPage(1); }}
+                            className={`px-3 py-1.5 rounded-md text-xs font-medium transition-all cursor-pointer ${
+                                sortBy === 'unwatched'
+                                    ? 'bg-mal-blue text-white shadow-sm'
+                                    : 'text-mal-text-secondary hover:text-white'
+                            }`}
+                        >
+                            Most unwatched
                         </button>
                         <button
                             onClick={() => { setSortBy('title'); setPage(1); }}

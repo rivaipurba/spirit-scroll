@@ -234,7 +234,7 @@ const routes = app.basePath("/api")
             const page = Number(c.req.query("page")) || 1;
             const limit = Number(c.req.query("limit")) || 12;
             const type = c.req.query("type") as "MANHUA" | "DONGHUA" | undefined;
-            const sortBy = c.req.query("sortBy") as "title" | "progress" | "recent" | "updates" | "type" | undefined;
+            const sortBy = c.req.query("sortBy") as "title" | "progress" | "recent" | "updates" | "type" | "unwatched" | undefined;
             const search = c.req.query("search")?.trim();
 
             const offset = (page - 1) * limit;
@@ -274,6 +274,13 @@ const routes = app.basePath("/api")
                             THEN (COALESCE(${media.latestReleasedChapter}, 0) - ${media.currentChapter}) 
                             ELSE 0 
                         END DESC,
+                        ${media.title} ASC
+                    `;
+                    break;
+                case 'unwatched':
+                    // Biggest backlog first (entries with no updates sort last, gap = 0)
+                    baseOrderBy = sql`
+                        (COALESCE(${media.latestReleasedChapter}, 0) - ${media.currentChapter}) DESC,
                         ${media.title} ASC
                     `;
                     break;

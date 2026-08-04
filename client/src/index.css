@@ -15,6 +15,7 @@
   --color-mal-green: #4ade80;
   --color-mal-blue-status: #60a5fa;
   --color-mal-yellow: #fbbf24;
+  --color-mal-orange: #fb923c;
   --color-mal-red: #f87171;
   --color-mal-gray: #6b7280;
 }
@@ -39,4 +40,23 @@ body {
 
 ::-webkit-scrollbar-thumb:hover {
   @apply bg-gray-600;
+}
+
+/* Progress number pulse on quick +/- update */
+@keyframes progress-pulse {
+  0% { transform: scale(1); }
+  40% { transform: scale(1.15); }
+  100% { transform: scale(1); }
+}
+
+.progress-pulse {
+  animation: progress-pulse 200ms ease-out;
+  display: inline-block;
+  transform-origin: center;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .progress-pulse {
+    animation: none;
+  }
 }
