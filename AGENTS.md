@@ -29,6 +29,7 @@ bun run lint         # ESLint
 # Smoke tests (from repo root)
 bun server/src/test-api.ts                             # Local API test via hc custom fetch
 SPIRIT_SCROLL_API_URL=https://your-api.example.com bun scripts/check-prod.js
+bun --cwd server src/seed.ts                       # Insert a sample media entry (dev seed)
 bun test-cors.js
 bun test-create-entry.js
 ```
@@ -39,6 +40,7 @@ bun test-create-entry.js
 server/src/
   index.ts          — Hono app: all CRUD routes, /api/check-all, rate limiter, cron handler
   auth.ts           — JWT create/verify, password hash/verify
+  seed.ts           — dev-only: inserts a sample entry (run manually)
   db/
     index.ts        — createDb(url?, authToken?) → Drizzle instance
     schema.ts       — `media` table (sqliteTable)
@@ -47,16 +49,19 @@ server/src/
     scraper.ts      — fetchCoverImage (scrapes og:image from sourceUrl)
     update-checker.ts — checkLatestChapter (site-specific cheerio scraping)
 
+drizzle.config.ts  — drizzle-kit config (schema path, sqlite dialect, creds from env)
+
 client/src/
-  components/       — Dashboard, MediaCard, EditMediaDialog, Settings, Login, Layout, etc.
-  hooks/            — useMediaList, useUpdateProgress, etc. (TanStack Query)
-  lib/api.ts        — Hono RPC client (hc) with auth header injection
-  context/          — AuthContext, ToastContext, SearchContext
+  components/       — MediaTable (primary desktop view), MediaCard/MobileCard, dialogs, Sidebar/TopNavbar, ScanProgressBar, Toast, etc.
+  hooks/useMedia.ts — ALL media hooks in one file: useMediaList, useUpdateProgress, useCreateMedia, useUpdateMedia, useDeleteMedia, useImportMedia, useCheckUpdate, useScanUpdates
+  hooks/            — useToast.ts, useKeyboardShortcuts.ts
+  lib/api.ts        — Hono RPC client (hc) with custom authFetch; currently typed `any` (AppType import commented out)
+  context/          — AuthContext, ToastContext, SearchContext, FilterContext
   types/index.ts    — Media and PaginatedResponse interfaces
 
 extension/          — Chrome extension: auto-tracks episodes from supported sites
   background.js     — Service worker: intercepts requests, syncs to API
-  content.js        — Page scraping for Asura Scans, Animexin
+  content.js        — Page scraping for asuracomic.net and animexin.dev/.vip
   popup.js/html     — Extension popup UI
 ```
 
@@ -65,7 +70,7 @@ extension/          — Chrome extension: auto-tracks episodes from supported si
 - **Indent**: 4 spaces in TypeScript (`client/src/`, `server/src/`); 2 spaces in vanilla JS (`extension/`)
 - **Imports**: `verbatimModuleSyntax` enabled — use `import type` for type-only imports
 - **Validation**: Zod schemas derived from Drizzle via `drizzle-zod` (`createInsertSchema`, `createSelectSchema`)
-- **API client**: Uses Hono RPC client (`hc<AppType>`) in client code — not raw fetch
+- **API client**: Uses Hono RPC client (`hc`) with custom `authFetch` for the Bearer token — not raw fetch; typed as `any` via `hc<any>` (strongly-typed `hc<AppType>` is stubbed)
 - **State**: TanStack Query with optimistic updates and `keepPreviousData` for pagination
 - **Styling**: Tailwind CSS v4 utility classes; no CSS modules or styled-components
 - **Error handling**: Backend returns proper HTTP status codes; client checks `res.ok` and throws
