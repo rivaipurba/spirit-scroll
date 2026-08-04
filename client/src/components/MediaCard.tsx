@@ -1,8 +1,8 @@
-import { Plus, ExternalLink, Minus } from 'lucide-react';
+import { Plus, ExternalLink, Minus, Star } from 'lucide-react';
 import React, { useState } from 'react';
 import type { Media } from '../types/index';
 import { EditMediaDialog } from './EditMediaDialog';
-import { useUpdateProgress } from '../hooks/useMedia';
+import { useUpdateProgress, useUpdateMedia } from '../hooks/useMedia';
 import { useToastContext } from '../context/ToastContext';
 
 interface MediaCardProps {
@@ -24,6 +24,7 @@ function getStatusLabel(status: string, type: string): string {
 export const MediaCard = React.memo(function MediaCard({ media, priority = false }: MediaCardProps) {
     const [isEditOpen, setIsEditOpen] = useState(false);
     const updateProgress = useUpdateProgress();
+    const updateMedia = useUpdateMedia();
     const toast = useToastContext();
     const hasUpdate = media.latestReleasedChapter != null && media.latestReleasedChapter > media.currentChapter;
     const isFinished = media.status === 'COMPLETED' || Boolean(media.totalChapters && media.currentChapter >= media.totalChapters);
@@ -106,6 +107,23 @@ export const MediaCard = React.memo(function MediaCard({ media, priority = false
                             </span>
                         )}
                     </div>
+
+                    <button
+                        onClick={(e) => {
+                            e.stopPropagation();
+                            updateMedia.mutate({ id: media.id, isPinned: !media.isPinned });
+                        }}
+                        disabled={updateMedia.isPending}
+                        className="absolute top-1 right-1 z-10 p-1 rounded-md bg-black/40 hover:bg-black/60 transition-colors cursor-pointer"
+                        aria-label={media.isPinned ? 'Unpin' : 'Pin to top'}
+                        title={media.isPinned ? 'Unpin from top' : 'Pin to top'}
+                    >
+                        <Star
+                            size={14}
+                            className={media.isPinned ? 'text-mal-yellow fill-mal-yellow' : 'text-white/70 fill-none'}
+                            strokeWidth={2}
+                        />
+                    </button>
                 </div>
 
                 <div className="flex-1 min-w-0 py-1">
