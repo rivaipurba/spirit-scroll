@@ -113,10 +113,12 @@ export function TopNavbar({ currentView, onNavigate, headerAction, isScanning, o
                     <button
                         onClick={onScan}
                         disabled={isScanning}
-                        className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-mal-blue/20 text-mal-blue hover:bg-mal-blue/30 transition-all disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+                        title="Scan for updates"
+                        aria-label="Scan for updates"
+                        className="flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-lg text-xs font-semibold bg-mal-blue/20 text-mal-blue hover:bg-mal-blue/30 transition-all disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
                     >
                         <Sparkles size={14} className={isScanning ? 'animate-pulse' : ''} />
-                        {isScanning ? 'Scanning...' : 'Scan'}
+                        <span className="hidden sm:inline">{isScanning ? 'Scanning...' : 'Scan'}</span>
                     </button>
 
                     {headerAction}
