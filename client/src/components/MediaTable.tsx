@@ -62,40 +62,6 @@ function MobileCard({ media }: { media: Media }) {
                 className="flex flex-col gap-2 px-3 py-3 border-b border-mal-border hover:bg-mal-hover transition-colors cursor-pointer last:border-0"
             >
                 <div className="flex gap-3">
-                    {/* Cover */}
-                    <div className="relative w-[50px] h-[70px] rounded overflow-hidden bg-mal-card flex-shrink-0 shadow-sm">
-                        {media.coverUrl ? (
-                            <img
-                                src={media.coverUrl}
-                                alt={media.title}
-                                className="w-full h-full object-cover"
-                                loading="lazy"
-                                width="50"
-                                height="70"
-                            />
-                        ) : (
-                            <div className="w-full h-full flex items-center justify-center bg-mal-card text-mal-text-secondary/40 text-[9px] font-semibold">
-                                {media.type === 'DONGHUA' ? 'ANIME' : 'MANGA'}
-                            </div>
-                        )}
-                        <button
-                            onClick={(e) => {
-                                e.stopPropagation();
-                                updateMedia.mutate({ id: media.id, isPinned: !media.isPinned });
-                            }}
-                            disabled={updateMedia.isPending}
-                            className="absolute top-0.5 right-0.5 z-10 p-0.5 rounded bg-black/40 hover:bg-black/60 transition-colors cursor-pointer"
-                            aria-label={media.isPinned ? 'Unpin' : 'Pin to top'}
-                            title={media.isPinned ? 'Unpin from top' : 'Pin to top'}
-                        >
-                            <Star
-                                size={10}
-                                className={media.isPinned ? 'text-mal-yellow fill-mal-yellow' : 'text-white/70 fill-none'}
-                                strokeWidth={2}
-                            />
-                        </button>
-                    </div>
-
                     {/* Title + subtitle */}
                     <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2">
@@ -121,11 +87,28 @@ function MobileCard({ media }: { media: Media }) {
                                     type={media.type}
                                 />
                             )}
+                            <button
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    updateMedia.mutate({ id: media.id, isPinned: !media.isPinned });
+                                }}
+                                disabled={updateMedia.isPending}
+                                className="p-1 rounded text-mal-text-secondary hover:text-mal-yellow hover:bg-mal-hover transition-colors cursor-pointer"
+                                aria-label={media.isPinned ? 'Unpin' : 'Pin to top'}
+                                title={media.isPinned ? 'Unpin from top' : 'Pin to top'}
+                            >
+                                <Star
+                                    size={14}
+                                    className={media.isPinned ? 'text-mal-yellow fill-mal-yellow' : 'fill-none'}
+                                    strokeWidth={2}
+                                />
+                            </button>
                         </div>
                         <div className="text-xs text-mal-text-secondary/60 mt-0.5">
                             {media.type === 'DONGHUA' ? 'Donghua' : 'Manhua'}
                         </div>
                     </div>
+
                 </div>
 
                 {/* Progress row */}
@@ -190,7 +173,6 @@ export function MediaTable({ mediaList, isLoading }: MediaTableProps) {
                     {[1, 2, 3, 4, 5].map((i) => (
                         <div key={i} className="flex items-center gap-4 py-3 border-b border-mal-border last:border-0">
                             <div className="w-8 h-4 bg-mal-card rounded animate-pulse" />
-                            <div className="w-[50px] h-[70px] bg-mal-card rounded animate-pulse" />
                             <div className="flex-1 space-y-2">
                                 <div className="h-4 bg-mal-card rounded w-3/4 animate-pulse" />
                                 <div className="h-3 bg-mal-card rounded w-1/2 animate-pulse" />
@@ -201,8 +183,7 @@ export function MediaTable({ mediaList, isLoading }: MediaTableProps) {
                 {/* Mobile skeleton */}
                 <div className="md:hidden space-y-3">
                     {[1, 2, 3, 4, 5].map((i) => (
-                        <div key={i} className="flex gap-3 py-3 border-b border-mal-border last:border-0">
-                            <div className="w-[50px] h-[70px] bg-mal-card rounded animate-pulse shrink-0" />
+                        <div key={i} className="py-3 border-b border-mal-border last:border-0">
                             <div className="flex-1 space-y-2">
                                 <div className="h-4 bg-mal-card rounded w-3/4 animate-pulse" />
                                 <div className="h-3 bg-mal-card rounded w-1/2 animate-pulse" />
@@ -236,7 +217,6 @@ export function MediaTable({ mediaList, isLoading }: MediaTableProps) {
                 <thead>
                     <tr className="border-b border-mal-border bg-mal-card/50">
                         <th className="py-2.5 px-3 text-center text-xs font-semibold text-mal-text-secondary uppercase tracking-wider w-10">#</th>
-                        <th className="py-2.5 text-xs font-semibold text-mal-text-secondary uppercase tracking-wider w-[60px]">Cover</th>
                         <th className="py-2.5 pr-4 text-left text-xs font-semibold text-mal-text-secondary uppercase tracking-wider">Title</th>
                         <th className="py-2.5 pr-4 text-left text-xs font-semibold text-mal-text-secondary uppercase tracking-wider w-32">Progress</th>
                         <th className="py-2.5 pr-4 text-left text-xs font-semibold text-mal-text-secondary uppercase tracking-wider w-28">Status</th>

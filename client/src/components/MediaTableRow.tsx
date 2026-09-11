@@ -65,41 +65,6 @@ export function MediaTableRow({ media, rank }: MediaTableRowProps) {
                     {rank}
                 </td>
 
-                <td className="py-3 w-[60px]">
-                    <div className="relative w-[50px] h-[70px] rounded overflow-hidden bg-mal-card flex-shrink-0 shadow-sm">
-                        {media.coverUrl ? (
-                            <img
-                                src={media.coverUrl}
-                                alt={media.title}
-                                className="w-full h-full object-cover"
-                                loading="lazy"
-                                width="50"
-                                height="70"
-                            />
-                        ) : (
-                            <div className="w-full h-full flex items-center justify-center bg-mal-card text-mal-text-secondary/40 text-[9px] font-semibold">
-                                {media.type === 'DONGHUA' ? 'ANIME' : 'MANGA'}
-                            </div>
-                        )}
-                        <button
-                            onClick={(e) => {
-                                e.stopPropagation();
-                                updateMedia.mutate({ id: media.id, isPinned: !media.isPinned });
-                            }}
-                            disabled={updateMedia.isPending}
-                            className="absolute top-0.5 right-0.5 z-10 p-0.5 rounded bg-black/40 hover:bg-black/60 transition-colors cursor-pointer"
-                            aria-label={media.isPinned ? 'Unpin' : 'Pin to top'}
-                            title={media.isPinned ? 'Unpin from top' : 'Pin to top'}
-                        >
-                            <Star
-                                size={10}
-                                className={media.isPinned ? 'text-mal-yellow fill-mal-yellow' : 'text-white/70 fill-none'}
-                                strokeWidth={2}
-                            />
-                        </button>
-                    </div>
-                </td>
-
                 <td className="py-3 pr-4">
                     <div className="flex items-center gap-2">
                         <div className="min-w-0 flex-1 text-sm font-semibold text-mal-text leading-tight group-hover:text-mal-blue transition-colors">
@@ -124,6 +89,22 @@ export function MediaTableRow({ media, rank }: MediaTableRowProps) {
                                 type={media.type}
                             />
                         )}
+                        <button
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                updateMedia.mutate({ id: media.id, isPinned: !media.isPinned });
+                            }}
+                            disabled={updateMedia.isPending}
+                            className="p-1 rounded text-mal-text-secondary hover:text-mal-yellow hover:bg-mal-hover transition-colors cursor-pointer"
+                            aria-label={media.isPinned ? 'Unpin' : 'Pin to top'}
+                            title={media.isPinned ? 'Unpin from top' : 'Pin to top'}
+                        >
+                            <Star
+                                size={14}
+                                className={media.isPinned ? 'text-mal-yellow fill-mal-yellow' : 'fill-none'}
+                                strokeWidth={2}
+                            />
+                        </button>
                     </div>
                     <div className="text-xs text-mal-text-secondary/60 mt-0.5">
                         {media.type === 'DONGHUA' ? 'Donghua' : 'Manhua'}

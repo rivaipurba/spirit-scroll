@@ -1,9 +1,6 @@
 export function MediaCardSkeleton() {
     return (
         <div className="flex items-center bg-white/5 rounded-xl p-3 border border-white/5 mb-3 animate-pulse">
-            {/* Cover Image Skeleton */}
-            <div className="w-16 h-24 sm:w-20 sm:h-28 rounded-lg bg-white/10 flex-shrink-0 mr-4" />
-            
             {/* Content Skeleton */}
             <div className="flex-1 min-w-0 py-1">
                 {/* Title */}
@@ -24,4 +21,3 @@ export function MediaCardSkeleton() {
         </div>
     );
 }
-

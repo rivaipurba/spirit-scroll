@@ -10,25 +10,13 @@ interface MediaCardProps {
     priority?: boolean;
 }
 
-function getStatusLabel(status: string, type: string): string {
-    switch (status) {
-        case 'COMPLETED': return 'FINISHED';
-        case 'ON_HOLD': return 'ON HOLD';
-        case 'DROPPED': return 'DROPPED';
-        case 'PLAN_TO_READ': return 'PLAN TO READ';
-        case 'READING': return type === 'DONGHUA' ? 'WATCHING' : 'READING';
-        default: return status;
-    }
-}
-
-export const MediaCard = React.memo(function MediaCard({ media, priority = false }: MediaCardProps) {
+export const MediaCard = React.memo(function MediaCard({ media }: MediaCardProps) {
     const [isEditOpen, setIsEditOpen] = useState(false);
     const updateProgress = useUpdateProgress();
     const updateMedia = useUpdateMedia();
     const toast = useToastContext();
     const hasUpdate = media.latestReleasedChapter != null && media.latestReleasedChapter > media.currentChapter;
     const isFinished = media.status === 'COMPLETED' || Boolean(media.totalChapters && media.currentChapter >= media.totalChapters);
-    const statusBadgeClass = isFinished ? 'bg-mal-green' : 'bg-mal-blue';
     const cardBorderClass = hasUpdate
         ? 'border-mal-red/30 hover:border-mal-red/50'
         : isFinished
@@ -72,63 +60,15 @@ export const MediaCard = React.memo(function MediaCard({ media, priority = false
         }
     };
 
-    const statusBadgeLabel = isFinished ? 'FINISHED' : getStatusLabel(media.status, media.type);
-
     return (
         <>
             <div
                 className={`group relative flex items-center rounded-xl p-3 border bg-mal-card shadow-sm transition-all duration-200 cursor-pointer ${cardBorderClass}`}
                 onClick={() => setIsEditOpen(true)}
             >
-                <div className="relative w-16 h-24 sm:w-20 sm:h-28 rounded-lg overflow-hidden flex-shrink-0 shadow-sm bg-mal-card mr-4">
-                    {media.coverUrl ? (
-                        <img
-                            src={media.coverUrl}
-                            alt={media.title}
-                            className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
-                            loading={priority ? "eager" : "lazy"}
-                            width="80"
-                            height="112"
-                        />
-                    ) : (
-                        <div className="w-full h-full flex items-center justify-center bg-mal-card text-mal-text-secondary/40 text-xs font-medium">
-                            {media.type === 'DONGHUA' ? 'ANIME' : 'MANGA'}
-                        </div>
-                    )}
-
-                    <div className="absolute top-1 left-1 z-10 flex flex-col items-start gap-1">
-                        {hasUpdate ? (
-                            <span className="rounded-md bg-mal-red px-1.5 py-0.5 text-[9px] font-bold text-white shadow-sm">
-                                NEW
-                            </span>
-                        ) : (
-                            <span className={`rounded-md ${statusBadgeClass} px-1.5 py-0.5 text-[9px] font-bold text-white shadow-sm`}>
-                                {statusBadgeLabel}
-                            </span>
-                        )}
-                    </div>
-
-                    <button
-                        onClick={(e) => {
-                            e.stopPropagation();
-                            updateMedia.mutate({ id: media.id, isPinned: !media.isPinned });
-                        }}
-                        disabled={updateMedia.isPending}
-                        className="absolute top-1 right-1 z-10 p-1 rounded-md bg-black/40 hover:bg-black/60 transition-colors cursor-pointer"
-                        aria-label={media.isPinned ? 'Unpin' : 'Pin to top'}
-                        title={media.isPinned ? 'Unpin from top' : 'Pin to top'}
-                    >
-                        <Star
-                            size={14}
-                            className={media.isPinned ? 'text-mal-yellow fill-mal-yellow' : 'text-white/70 fill-none'}
-                            strokeWidth={2}
-                        />
-                    </button>
-                </div>
-
                 <div className="flex-1 min-w-0 py-1">
-                    <div className="mb-1">
-                        <h3 className="font-semibold text-mal-text text-base leading-tight line-clamp-2 group-hover:text-mal-blue transition-colors">
+                    <div className="mb-1 flex items-start gap-2">
+                        <h3 className="min-w-0 flex-1 font-semibold text-mal-text text-base leading-tight line-clamp-2 group-hover:text-mal-blue transition-colors">
                             {(media.sourceUrl || (media as any).source_url) ? (
                                 <a
                                     href={media.sourceUrl || (media as any).source_url}
@@ -144,6 +84,22 @@ export const MediaCard = React.memo(function MediaCard({ media, priority = false
                                 media.title
                             )}
                         </h3>
+                        <button
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                updateMedia.mutate({ id: media.id, isPinned: !media.isPinned });
+                            }}
+                            disabled={updateMedia.isPending}
+                            className="p-1 rounded text-mal-text-secondary hover:text-mal-yellow hover:bg-mal-hover transition-colors cursor-pointer"
+                            aria-label={media.isPinned ? 'Unpin' : 'Pin to top'}
+                            title={media.isPinned ? 'Unpin from top' : 'Pin to top'}
+                        >
+                            <Star
+                                size={16}
+                                className={media.isPinned ? 'text-mal-yellow fill-mal-yellow' : 'fill-none'}
+                                strokeWidth={2}
+                            />
+                        </button>
                     </div>
 
                     <div className="flex items-center text-xs text-mal-text-secondary/70 mb-3 space-x-2">

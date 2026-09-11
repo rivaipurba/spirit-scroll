@@ -67,16 +67,7 @@ export function RightSidebar({ mediaList }: RightSidebarProps) {
                         {latestUpdates.map((m) => {
                             const gap = (m.latestReleasedChapter ?? 0) - m.currentChapter;
                             return gap > 0 ? (
-                                <div key={m.id} className="flex items-start gap-2.5">
-                                    <div className="w-[30px] h-[42px] rounded overflow-hidden bg-mal-card shrink-0 shadow-sm">
-                                        {m.coverUrl ? (
-                                            <img src={m.coverUrl} alt="" className="w-full h-full object-cover" loading="lazy" width="30" height="42" />
-                                        ) : (
-                                            <div className="w-full h-full flex items-center justify-center bg-mal-card text-mal-text-secondary/50 text-[7px] font-semibold">
-                                                {m.type === 'DONGHUA' ? 'A' : 'M'}
-                                            </div>
-                                        )}
-                                    </div>
+                                <div key={m.id}>
                                     <div className="min-w-0">
                                         <p className="text-xs font-medium text-mal-text truncate leading-tight">
                                             {m.title}
