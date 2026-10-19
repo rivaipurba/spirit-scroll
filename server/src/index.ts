@@ -5,7 +5,8 @@ import { cors } from "hono/cors";
 import { insertMediaSchema, patchMediaSchema } from "./db/zod";
 import { createDb } from "./db";
 import { media } from "./db/schema";
-import { eq, or, count, and, desc, asc, sql } from "drizzle-orm";
+import { buildMediaWhere, getMediaStats } from "./db/media-queries";
+import { eq, count, and, sql } from "drizzle-orm";
 
 import { fetchCoverImage } from "./utils/scraper";
 import { checkLatestChapter } from "./utils/update-checker";
@@ -236,19 +237,13 @@ const routes = app.basePath("/api")
             const type = c.req.query("type") as "MANHUA" | "DONGHUA" | undefined;
             const sortBy = c.req.query("sortBy") as "title" | "progress" | "recent" | "updates" | "type" | "unwatched" | undefined;
             const search = c.req.query("search")?.trim();
+            const status = c.req.query("status");
 
             const offset = (page - 1) * limit;
 
             const db = createDb(c.env.DATABASE_URL, c.env.DATABASE_AUTH_TOKEN);
 
-            // Build where conditions
-            const conditions = [];
-            if (type) conditions.push(eq(media.type, type));
-            if (search) {
-                conditions.push(sql`LOWER(${media.title}) LIKE LOWER(${'%' + search + '%'})`);
-            }
-
-            const whereClause = conditions.length > 0 ? and(...conditions) : undefined;
+            const whereClause = buildMediaWhere({ type, search, status });
 
             // Build order by clause based on sortBy parameter
             // Pinned items always come first, then apply the selected sort
@@ -314,6 +309,18 @@ const routes = app.basePath("/api")
         } catch (e: any) {
             console.error('[GET /media] Error:', e);
             return c.json({ error: 'Failed to fetch media' }, 500);
+        }
+    })
+    .get("/media/stats", async (c) => {
+        try {
+            const type = c.req.query("type") as "MANHUA" | "DONGHUA" | undefined;
+            const search = c.req.query("search")?.trim();
+
+            const db = createDb(c.env.DATABASE_URL, c.env.DATABASE_AUTH_TOKEN);
+            return c.json(await getMediaStats(db, { type, search }));
+        } catch (e: any) {
+            console.error('[GET /media/stats] Error:', e);
+            return c.json({ error: 'Failed to fetch media stats' }, 500);
         }
     })
     .post("/media", zValidator("json", insertMediaSchema), async (c) => {

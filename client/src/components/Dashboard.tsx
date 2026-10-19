@@ -1,17 +1,17 @@
 import { useState, useEffect } from 'react';
 import { Loader2, Book } from 'lucide-react';
-import { useMediaList, useScanUpdates } from '../hooks/useMedia';
+import { useMediaList, useMediaStats, useScanUpdates } from '../hooks/useMedia';
 import { MediaTable } from './MediaTable';
 import { ScanProgressBar } from './ScanProgressBar';
 import { NewEntryDialog } from './NewEntryDialog';
 import { useSearch } from '../context/SearchContext';
 import { useFilters } from '../context/FilterContext';
-import type { Media } from '../types/index';
+import type { Media, MediaStats } from '../types/index';
 
 interface DashboardProps {
     isDialogOpen: boolean;
     onCloseDialog: () => void;
-    onCountsChange: (counts: Record<string, number>, total: number, allMedia: Media[]) => void;
+    onStatsChange: (stats: MediaStats) => void;
     registerScanFn: (fn: () => void) => void;
     onScanningChange: (scanning: boolean) => void;
 }
@@ -20,16 +20,24 @@ type SortOption = 'updates' | 'title' | 'unwatched';
 
 const PAGE_SIZE = 50;
 
-export function Dashboard({ isDialogOpen, onCloseDialog, onCountsChange, registerScanFn, onScanningChange }: DashboardProps) {
+export function Dashboard({ isDialogOpen, onCloseDialog, onStatsChange, registerScanFn, onScanningChange }: DashboardProps) {
     const [sortBy, setSortBy] = useState<SortOption>('updates');
     const [page, setPage] = useState(1);
     const { searchQuery } = useSearch();
     const { statusFilter, typeFilter } = useFilters();
 
     const apiType = typeFilter === 'ALL' ? undefined : typeFilter as 'MANHUA' | 'DONGHUA';
+    const apiStatus = statusFilter === 'ALL' ? undefined : statusFilter;
 
-    const { data: allData, isLoading } = useMediaList(1, apiType, 10000, sortBy, searchQuery);
-    const { data: paginatedData, isLoading: isPageLoading } = useMediaList(page, apiType, PAGE_SIZE, sortBy, searchQuery);
+    // Any filter change invalidates the current page number
+    const [filterKey, setFilterKey] = useState({ statusFilter, typeFilter, searchQuery });
+    if (filterKey.statusFilter !== statusFilter || filterKey.typeFilter !== typeFilter || filterKey.searchQuery !== searchQuery) {
+        setFilterKey({ statusFilter, typeFilter, searchQuery });
+        setPage(1);
+    }
+
+    const { data: stats, isLoading } = useMediaStats(apiType, searchQuery);
+    const { data: paginatedData, isLoading: isPageLoading } = useMediaList(page, apiType, PAGE_SIZE, sortBy, searchQuery, apiStatus);
 
     const { startScan, cancelScan, isScanning, progress, result } = useScanUpdates();
 
@@ -41,61 +49,13 @@ export function Dashboard({ isDialogOpen, onCloseDialog, onCountsChange, registe
         onScanningChange(isScanning);
     }, [isScanning, onScanningChange]);
 
-    const allMedia = (allData?.data || []) as Media[];
-    const paginatedMedia = (paginatedData?.data || []) as Media[];
-    const totalItems = allData?.meta?.total || allMedia.length;
-    const totalPages = Math.max(1, Math.ceil(totalItems / PAGE_SIZE));
-
     useEffect(() => {
-        const counts: Record<string, number> = {
-            ALL: allMedia.length,
-            READING: 0,
-            COMPLETED: 0,
-            ON_HOLD: 0,
-            DROPPED: 0,
-            PLAN_TO_READ: 0,
-            MANHUA: 0,
-            DONGHUA: 0,
-            WATCHING: 0,
-        };
+        if (stats) onStatsChange(stats);
+    }, [stats, onStatsChange]);
 
-        for (const m of allMedia) {
-            // Use computed status: items with currentChapter >= totalChapters are COMPLETED
-            const isFinished = m.status === 'COMPLETED' || (m.totalChapters != null && m.totalChapters > 0 && m.currentChapter >= m.totalChapters);
-
-            if (isFinished) {
-                counts['COMPLETED']++;
-            } else if (m.status === 'ON_HOLD') {
-                counts['ON_HOLD']++;
-            } else if (m.status === 'DROPPED') {
-                counts['DROPPED']++;
-            } else if (m.status === 'PLAN_TO_READ') {
-                counts['PLAN_TO_READ']++;
-            } else if (m.status === 'READING') {
-                // Split READING by type: Manhua = "Reading", Donghua = "Watching"
-                if (m.type === 'MANHUA') counts['READING']++;
-                if (m.type === 'DONGHUA') counts['WATCHING']++;
-            }
-
-            if (m.type === 'MANHUA') counts['MANHUA']++;
-            if (m.type === 'DONGHUA') counts['DONGHUA']++;
-        }
-
-        onCountsChange(counts, allMedia.length, allMedia);
-    }, [allMedia, onCountsChange]);
-
-    const displayMedia: Media[] = (() => {
-        const isFinished = (m: Media) => m.status === 'COMPLETED' || (m.totalChapters != null && m.totalChapters > 0 && m.currentChapter >= m.totalChapters);
-
-        if (statusFilter === 'ALL') return paginatedMedia;
-        if (statusFilter === 'WATCHING')
-            return paginatedMedia.filter(m => m.status === 'READING' && m.type === 'DONGHUA' && !isFinished(m));
-        if (statusFilter === 'READING')
-            return paginatedMedia.filter(m => m.status === 'READING' && m.type === 'MANHUA' && !isFinished(m));
-        if (statusFilter === 'COMPLETED')
-            return paginatedMedia.filter(m => isFinished(m));
-        return paginatedMedia.filter(m => m.status === statusFilter && !isFinished(m));
-    })();
+    const displayMedia = (paginatedData?.data || []) as Media[];
+    const totalItems = paginatedData?.meta?.total ?? 0;
+    const totalPages = Math.max(1, paginatedData?.meta?.totalPages ?? 1);
 
     const handlePrevPage = () => {
         setPage(p => Math.max(1, p - 1));
@@ -116,7 +76,7 @@ export function Dashboard({ isDialogOpen, onCloseDialog, onCountsChange, registe
         );
     }
 
-    if (allMedia.length === 0 && !searchQuery) {
+    if (stats?.total === 0 && !searchQuery && !apiType) {
         return (
             <div className="bg-mal-panel rounded-lg border border-mal-border p-12 text-center">
                 <Book size={48} className="mx-auto mb-4 text-mal-text-secondary/30" />

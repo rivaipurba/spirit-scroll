@@ -8,6 +8,7 @@ import { Login } from './components/Login';
 import { ToastProvider } from './context/ToastContext';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { FilterProvider } from './context/FilterContext';
+import type { MediaStats } from './types/index';
 
 const Dashboard = lazy(() => import('./components/Dashboard').then(module => ({ default: module.Dashboard })));
 const Settings = lazy(() => import('./components/Settings').then(module => ({ default: module.Settings })));
@@ -21,16 +22,19 @@ const queryClient = new QueryClient({
   },
 });
 
+const EMPTY_STATS: MediaStats = {
+  total: 0,
+  counts: { READING: 0, WATCHING: 0, COMPLETED: 0, ON_HOLD: 0, DROPPED: 0, PLAN_TO_READ: 0, MANHUA: 0, DONGHUA: 0 },
+  chaptersRead: 0,
+  withUpdates: 0,
+  latestUpdates: [],
+};
+
 function AuthenticatedApp() {
   const [currentView, setCurrentView] = useState<'home' | 'settings'>('home');
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isScanning, setIsScanning] = useState(false);
-  const [mediaList, setMediaList] = useState<any[]>([]);
-  const [sidebarCounts, setSidebarCounts] = useState<Record<string, number>>({
-    ALL: 0, READING: 0, WATCHING: 0, COMPLETED: 0, ON_HOLD: 0, DROPPED: 0, PLAN_TO_READ: 0,
-    MANHUA: 0, DONGHUA: 0,
-  });
-  const [sidebarTotal, setSidebarTotal] = useState(0);
+  const [stats, setStats] = useState<MediaStats>(EMPTY_STATS);
   const scanTriggerRef = useRef<() => void>(() => {});
 
   const registerScanFn = useCallback((fn: () => void) => {
@@ -42,11 +46,6 @@ function AuthenticatedApp() {
     scanTriggerRef.current();
   }, []);
 
-  const handleCountsChange = useCallback((counts: Record<string, number>, total: number, allMedia: any[]) => {
-    setSidebarCounts(counts as any);
-    setSidebarTotal(total);
-    setMediaList(allMedia);
-  }, []);
 
   return (
     <FilterProvider>
@@ -55,9 +54,7 @@ function AuthenticatedApp() {
         onNavigate={setCurrentView}
         isScanning={isScanning}
         onScan={handleScanClick}
-        sidebarCounts={sidebarCounts as any}
-        sidebarTotal={sidebarTotal}
-        mediaList={mediaList}
+        stats={stats}
         headerAction={
           currentView === 'home' ? (
             <button
@@ -80,7 +77,7 @@ function AuthenticatedApp() {
             <Dashboard
               isDialogOpen={isDialogOpen}
               onCloseDialog={() => setIsDialogOpen(false)}
-              onCountsChange={handleCountsChange}
+              onStatsChange={setStats}
               registerScanFn={registerScanFn}
               onScanningChange={setIsScanning}
             />

@@ -1,9 +1,8 @@
 import React from 'react';
-import type { StatusFilter } from '../context/FilterContext';
 import { Sidebar } from './Sidebar';
 import { RightSidebar } from './RightSidebar';
 import { TopNavbar } from './TopNavbar';
-import type { Media } from '../types/index';
+import type { MediaStats } from '../types/index';
 
 interface LayoutProps {
     children: React.ReactNode;
@@ -11,10 +10,8 @@ interface LayoutProps {
     onNavigate: (view: 'home' | 'settings') => void;
     isScanning: boolean;
     onScan: () => void;
-    sidebarCounts: Record<StatusFilter | 'MANHUA' | 'DONGHUA', number>;
-    sidebarTotal: number;
+    stats: MediaStats;
     headerAction?: React.ReactNode;
-    mediaList?: Media[];
 }
 
 export function Layout({
@@ -23,10 +20,8 @@ export function Layout({
     onNavigate,
     isScanning,
     onScan,
-    sidebarCounts,
-    sidebarTotal,
+    stats,
     headerAction,
-    mediaList = [],
 }: LayoutProps) {
     return (
         <div className="min-h-screen bg-mal-page flex flex-col">
@@ -40,7 +35,7 @@ export function Layout({
 
             <div className="flex flex-1 max-w-[1400px] mx-auto w-full">
                 {/* Left Sidebar */}
-                <Sidebar counts={sidebarCounts} total={sidebarTotal} />
+                <Sidebar counts={stats.counts} total={stats.total} />
 
                 {/* Main Content */}
                 <main className="flex-1 min-w-0 p-4 md:p-6 lg:p-8">
@@ -48,7 +43,7 @@ export function Layout({
                 </main>
 
                 {/* Right Sidebar (desktop only) */}
-                {currentView === 'home' && <RightSidebar mediaList={mediaList} />}
+                {currentView === 'home' && <RightSidebar stats={stats} />}
             </div>
         </div>
     );

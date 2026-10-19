@@ -1,29 +1,12 @@
 import { ArrowUpRight, TrendingUp } from 'lucide-react';
-import type { Media } from '../types/index';
+import type { MediaStats } from '../types/index';
 
 interface RightSidebarProps {
-    mediaList: Media[];
+    stats: MediaStats;
 }
 
-export function RightSidebar({ mediaList }: RightSidebarProps) {
-    const isFinished = (m: Media) => m.status === 'COMPLETED' || (m.totalChapters != null && m.totalChapters > 0 && m.currentChapter >= m.totalChapters);
-
-    const totalEntries = mediaList.length;
-    const readingCount = mediaList.filter(m => m.status === 'READING' && !isFinished(m) && m.type === 'MANHUA').length;
-    const watchingCount = mediaList.filter(m => m.status === 'READING' && !isFinished(m) && m.type === 'DONGHUA').length;
-    const completedCount = mediaList.filter(m => isFinished(m)).length;
-    const totalChapters = mediaList.reduce((sum, m) => sum + m.currentChapter, 0);
-    const hasUpdates = mediaList.filter(
-        m => m.latestReleasedChapter != null && m.latestReleasedChapter > m.currentChapter
-    );
-
-    const latestUpdates = [...mediaList]
-        .sort((a, b) => {
-            const aGap = (a.latestReleasedChapter ?? 0) - a.currentChapter;
-            const bGap = (b.latestReleasedChapter ?? 0) - b.currentChapter;
-            return bGap - aGap;
-        })
-        .slice(0, 5);
+export function RightSidebar({ stats }: RightSidebarProps) {
+    const { counts, latestUpdates } = stats;
 
     return (
         <aside className="hidden lg:block w-64 shrink-0 p-4 space-y-5">
@@ -35,25 +18,25 @@ export function RightSidebar({ mediaList }: RightSidebarProps) {
                 <div className="space-y-3">
                     <div className="flex items-center justify-between">
                         <span className="text-sm text-mal-text-secondary">Total Entries</span>
-                        <span className="text-sm font-bold text-mal-text">{totalEntries}</span>
+                        <span className="text-sm font-bold text-mal-text">{stats.total}</span>
                     </div>
                     <div className="flex items-center justify-between">
                         <span className="text-sm text-mal-text-secondary">Chapters Read</span>
-                        <span className="text-sm font-bold text-mal-text">{totalChapters}</span>
+                        <span className="text-sm font-bold text-mal-text">{stats.chaptersRead}</span>
                     </div>
                     <div className="flex items-center justify-between">
                         <span className="text-sm text-mal-text-secondary">With Updates</span>
-                        <span className="text-sm font-bold text-mal-red">{hasUpdates.length}</span>
+                        <span className="text-sm font-bold text-mal-red">{stats.withUpdates}</span>
                     </div>
                 </div>
 
                 <div className="mt-4 space-y-2">
-                    <StatusBar label="Reading" count={readingCount} />
-                    <StatusBar label="Watching" count={watchingCount} />
-                    <StatusBar label="Completed" count={completedCount} />
-                    <StatusBar label="On Hold" count={mediaList.filter(m => m.status === 'ON_HOLD' && !isFinished(m)).length} />
-                    <StatusBar label="Dropped" count={mediaList.filter(m => m.status === 'DROPPED' && !isFinished(m)).length} />
-                    <StatusBar label="Plan to Read" count={mediaList.filter(m => m.status === 'PLAN_TO_READ' && !isFinished(m)).length} />
+                    <StatusBar label="Reading" count={counts.READING} />
+                    <StatusBar label="Watching" count={counts.WATCHING} />
+                    <StatusBar label="Completed" count={counts.COMPLETED} />
+                    <StatusBar label="On Hold" count={counts.ON_HOLD} />
+                    <StatusBar label="Dropped" count={counts.DROPPED} />
+                    <StatusBar label="Plan to Read" count={counts.PLAN_TO_READ} />
                 </div>
             </div>
 

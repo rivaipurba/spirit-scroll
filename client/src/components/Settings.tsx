@@ -1,13 +1,13 @@
 import { Download, Upload, Database, FileJson, RefreshCw, CheckCircle2, AlertCircle, LogOut } from 'lucide-react';
-import { useMediaList as useMedia, useImportMedia, useUpdateMedia } from '../hooks/useMedia';
+import { useMediaList as useMedia, useMediaStats, useImportMedia, useUpdateMedia } from '../hooks/useMedia';
 import { useToastContext } from '../context/ToastContext';
 import { useAuth } from '../context/AuthContext';
-import type { Media } from '../types/index';
 import { useRef, useState } from 'react';
 
 export function Settings() {
     const { data: paginatedMedia } = useMedia(1, undefined, 10000);
     const media = paginatedMedia?.data;
+    const { data: mediaStats } = useMediaStats();
     const importMedia = useImportMedia();
     const updateMedia = useUpdateMedia();
     const toast = useToastContext();
@@ -85,10 +85,10 @@ export function Settings() {
     };
 
     const stats = {
-        total: media?.length || 0,
-        chapters: ((media as any[])?.reduce((sum: number, m: any) => sum + (m.currentChapter || 0), 0) || 0) as number,
-        reading: media?.filter((m: Media) => m.status === 'READING').length || 0,
-        completed: media?.filter((m: Media) => m.status === 'COMPLETED').length || 0,
+        total: mediaStats?.total ?? 0,
+        chapters: mediaStats?.chaptersRead ?? 0,
+        reading: (mediaStats?.counts.READING ?? 0) + (mediaStats?.counts.WATCHING ?? 0),
+        completed: mediaStats?.counts.COMPLETED ?? 0,
     };
 
     return (

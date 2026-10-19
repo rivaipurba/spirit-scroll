@@ -3,7 +3,7 @@ import { Book, Play, CheckCircle, PauseCircle, XCircle, Bookmark, Tv, Menu, X } 
 import { useState } from 'react';
 
 interface SidebarProps {
-    counts: Record<StatusFilter | 'MANHUA' | 'DONGHUA', number>;
+    counts: Record<Exclude<StatusFilter, 'ALL'> | 'MANHUA' | 'DONGHUA', number>;
     total: number;
 }
 

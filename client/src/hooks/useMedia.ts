@@ -1,12 +1,19 @@
-import { useQuery, useMutation, useQueryClient, keepPreviousData } from "@tanstack/react-query";
-import { useRef, useState } from "react";
+import { useQuery, useMutation, useQueryClient, keepPreviousData, type QueryClient } from "@tanstack/react-query";
+import { useCallback, useRef, useState } from "react";
 import { client, BASE_URL, getAuthToken } from "../lib/api";
 import { useToastContext } from "../context/ToastContext";
-import type { Media, PaginatedResponse } from "../types/index";
+import type { StatusFilter } from "../context/FilterContext";
+import type { Media, MediaStats, PaginatedResponse } from "../types/index";
 
-export function useMediaList(page: number = 1, type?: "MANHUA" | "DONGHUA", limit: number = 12, sortBy?: "title" | "progress" | "recent" | "updates" | "type" | "unwatched", search?: string) {
+// Lists and stats are derived from the same rows, so refresh them together
+function invalidateMedia(queryClient: QueryClient) {
+    queryClient.invalidateQueries({ queryKey: ["media-list"] });
+    queryClient.invalidateQueries({ queryKey: ["media-stats"] });
+}
+
+export function useMediaList(page: number = 1, type?: "MANHUA" | "DONGHUA", limit: number = 12, sortBy?: "title" | "progress" | "recent" | "updates" | "type" | "unwatched", search?: string, status?: Exclude<StatusFilter, "ALL">) {
     return useQuery({
-        queryKey: ["media-list", { page, type, limit, sortBy, search }],
+        queryKey: ["media-list", { page, type, limit, sortBy, search, status }],
         queryFn: async () => {
             const res = await client.api.media.$get({
                 query: {
@@ -14,11 +21,31 @@ export function useMediaList(page: number = 1, type?: "MANHUA" | "DONGHUA", limi
                     limit: limit.toString(),
                     type: type,
                     sortBy: sortBy,
-                    search: search?.trim() || undefined
+                    search: search?.trim() || undefined,
+                    status: status
                 }
             });
             if (!res.ok) {
                 throw new Error("Failed to fetch media");
+            }
+            return await res.json();
+        },
+        placeholderData: keepPreviousData,
+    });
+}
+
+export function useMediaStats(type?: "MANHUA" | "DONGHUA", search?: string) {
+    return useQuery({
+        queryKey: ["media-stats", { type, search }],
+        queryFn: async (): Promise<MediaStats> => {
+            const res = await client.api.media.stats.$get({
+                query: {
+                    type: type,
+                    search: search?.trim() || undefined
+                }
+            });
+            if (!res.ok) {
+                throw new Error("Failed to fetch media stats");
             }
             return await res.json();
         },
@@ -91,7 +118,7 @@ export function useUpdateProgress() {
             );
         },
         onSettled: () => {
-            queryClient.invalidateQueries({ queryKey: ["media-list"] });
+            invalidateMedia(queryClient);
         },
     });
 }
@@ -114,7 +141,7 @@ export function useCreateMedia() {
             return await res.json();
         },
         onSuccess: (data) => {
-            queryClient.invalidateQueries({ queryKey: ["media-list"] });
+            invalidateMedia(queryClient);
             toast.success(
                 "Entry Created",
                 `"${data.title}" has been added to your library`
@@ -145,7 +172,7 @@ export function useUpdateMedia() {
             return await res.json();
         },
         onSuccess: (data) => {
-            queryClient.invalidateQueries({ queryKey: ["media-list"] });
+            invalidateMedia(queryClient);
             toast.success(
                 "Entry Updated",
                 `"${data.title}" has been updated`
@@ -175,7 +202,7 @@ export function useDeleteMedia() {
             return await res.json();
         },
         onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ["media-list"] });
+            invalidateMedia(queryClient);
             toast.success(
                 "Entry Deleted",
                 "The entry has been removed from your library"
@@ -205,7 +232,7 @@ export function useImportMedia() {
             return await res.json();
         },
         onSuccess: (data) => {
-            queryClient.invalidateQueries({ queryKey: ["media-list"] });
+            invalidateMedia(queryClient);
             toast.success(
                 "Import Successful",
                 `Successfully imported ${data.count} entries`
@@ -236,7 +263,7 @@ export function useCheckUpdate() {
             return await res.json();
         },
         onSuccess: (data) => {
-            queryClient.invalidateQueries({ queryKey: ["media-list"] });
+            invalidateMedia(queryClient);
             if (data.has_update) {
                 toast.success(
                     "New Chapter Found!",
@@ -264,9 +291,11 @@ export function useScanUpdates() {
     const [progress, setProgress] = useState<{ current: number; total: number; currentTitle: string } | null>(null);
     const [result, setResult] = useState<{ updated: number } | null>(null);
     const cancelRef = useRef(false);
+    const scanningRef = useRef(false);
 
-    const startScan = async () => {
-        if (isScanning) return;
+    const startScan = useCallback(async () => {
+        if (scanningRef.current) return;
+        scanningRef.current = true;
         cancelRef.current = false;
         setIsScanning(true);
         setResult(null);
@@ -282,6 +311,7 @@ export function useScanUpdates() {
                 targets = (data.data || []).filter((m: Media) => m.status === 'READING' && m.sourceUrl);
             }
         } catch {
+            scanningRef.current = false;
             setIsScanning(false);
             return;
         }
@@ -307,18 +337,19 @@ export function useScanUpdates() {
             }
         }
 
+        scanningRef.current = false;
         setIsScanning(false);
         if (!cancelRef.current) {
             setResult({ updated: updatedCount });
-            queryClient.invalidateQueries({ queryKey: ['media-list'] });
+            invalidateMedia(queryClient);
             setTimeout(() => setResult(null), 5000);
         }
         setProgress(null);
-    };
+    }, [queryClient]);
 
-    const cancelScan = () => {
+    const cancelScan = useCallback(() => {
         cancelRef.current = true;
-    };
+    }, []);
 
     return { startScan, cancelScan, isScanning, progress, result };
 }

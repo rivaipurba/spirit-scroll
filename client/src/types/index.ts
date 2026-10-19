@@ -22,3 +22,11 @@ export interface PaginatedResponse<T> {
         totalPages: number;
     };
 }
+
+export interface MediaStats {
+    total: number;
+    counts: Record<"READING" | "WATCHING" | "COMPLETED" | "ON_HOLD" | "DROPPED" | "PLAN_TO_READ" | "MANHUA" | "DONGHUA", number>;
+    chaptersRead: number;
+    withUpdates: number;
+    latestUpdates: Pick<Media, "id" | "title" | "type" | "currentChapter" | "latestReleasedChapter">[];
+}
