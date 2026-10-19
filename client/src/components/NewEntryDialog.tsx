@@ -13,6 +13,7 @@ export function NewEntryDialog({ isOpen, onClose }: NewEntryDialogProps) {
     const [currentChapter, setCurrentChapter] = useState('');
     const [totalChapters, setTotalChapters] = useState('');
     const [sourceUrl, setSourceUrl] = useState('');
+    const [status, setStatus] = useState<"READING" | "COMPLETED" | "PLAN_TO_READ" | "ON_HOLD" | "DROPPED">('READING');
 
     const createMedia = useCreateMedia();
 
@@ -25,7 +26,7 @@ export function NewEntryDialog({ isOpen, onClose }: NewEntryDialogProps) {
             type,
             currentChapter: Number(currentChapter) || 0,
             totalChapters: Number(totalChapters),
-            status: "READING",
+            status,
             sourceUrl
         }, {
             onSuccess: () => {
@@ -34,6 +35,7 @@ export function NewEntryDialog({ isOpen, onClose }: NewEntryDialogProps) {
                 setCurrentChapter('');
                 setTotalChapters('');
                 setSourceUrl('');
+                setStatus('READING');
             }
         });
     };
@@ -103,6 +105,21 @@ export function NewEntryDialog({ isOpen, onClose }: NewEntryDialogProps) {
                                     Donghua
                                 </button>
                             </div>
+                        </div>
+
+                        <div>
+                            <label className="block text-xs font-medium text-mal-text-secondary/80 mb-1">Status</label>
+                            <select
+                                value={status}
+                                onChange={(e) => setStatus(e.target.value as typeof status)}
+                                className="w-full px-3 py-2.5 bg-mal-card border border-mal-border rounded-lg text-mal-text text-sm focus:outline-none focus:ring-2 focus:ring-mal-blue/30 focus:border-mal-blue transition-all"
+                            >
+                                <option value="READING">Reading / Watching</option>
+                                <option value="COMPLETED">Completed</option>
+                                <option value="ON_HOLD">On Hold</option>
+                                <option value="DROPPED">Dropped</option>
+                                <option value="PLAN_TO_READ">Plan to Read / Watch</option>
+                            </select>
                         </div>
 
                         <div className="grid grid-cols-2 gap-3">

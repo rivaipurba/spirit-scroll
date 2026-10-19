@@ -129,12 +129,7 @@ export function useCreateMedia() {
 
     return useMutation({
         mutationFn: async (json: { title: string; type: "MANHUA" | "DONGHUA"; totalChapters: number | null; currentChapter: number; status: "READING" | "COMPLETED" | "PLAN_TO_READ" | "ON_HOLD" | "DROPPED"; sourceUrl?: string }) => {
-            const res = await client.api.media.$post({
-                json: {
-                    ...json,
-                    status: "READING" // Default to READING for now or pass from UI if needed
-                }
-            });
+            const res = await client.api.media.$post({ json });
             if (!res.ok) {
                 throw new Error("Failed to create media");
             }

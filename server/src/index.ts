@@ -8,7 +8,6 @@ import { media } from "./db/schema";
 import { buildMediaWhere, getMediaStats } from "./db/media-queries";
 import { eq, count, and, sql } from "drizzle-orm";
 
-import { fetchCoverImage } from "./utils/scraper";
 import { checkLatestChapter } from "./utils/update-checker";
 import { createToken, verifyToken, verifyPassword } from "./auth";
 
@@ -331,11 +330,6 @@ const routes = app.basePath("/api")
         try {
             const data = c.req.valid("json");
 
-            let coverUrl = data.coverUrl;
-            if (data.sourceUrl && !coverUrl) {
-                coverUrl = await fetchCoverImage(data.sourceUrl);
-            }
-
             const db = createDb(c.env.DATABASE_URL, c.env.DATABASE_AUTH_TOKEN);
 
             const insertData: Record<string, any> = {
@@ -348,8 +342,8 @@ const routes = app.basePath("/api")
             if (data.totalChapters !== undefined && data.totalChapters !== null) {
                 insertData.totalChapters = data.totalChapters;
             }
-            if (coverUrl) {
-                insertData.coverUrl = coverUrl;
+            if (data.coverUrl) {
+                insertData.coverUrl = data.coverUrl;
             }
             if (data.sourceUrl) {
                 insertData.sourceUrl = data.sourceUrl;
@@ -374,12 +368,6 @@ const routes = app.basePath("/api")
         if (Object.keys(data).length === 0) return c.json({ error: "No data provided" }, 400);
 
         let patchData = { ...data };
-        if (data.sourceUrl) {
-            const fetchedCover = await fetchCoverImage(data.sourceUrl);
-            if (fetchedCover) {
-                patchData = { ...patchData, coverUrl: fetchedCover };
-            }
-        }
 
         const db = createDb(c.env.DATABASE_URL, c.env.DATABASE_AUTH_TOKEN);
 
@@ -478,19 +466,7 @@ const routes = app.basePath("/api")
 
             for (const item of data) {
                 try {
-                    let coverUrl = item.coverUrl;
-                    if (item.sourceUrl && !coverUrl) {
-                        try {
-                            coverUrl = await fetchCoverImage(item.sourceUrl);
-                        } catch (e) {
-                            // Continue without cover if scraping fails
-                        }
-                    }
-
-                    await db.insert(media).values({
-                        ...item,
-                        coverUrl: coverUrl
-                    });
+                    await db.insert(media).values(item);
                     successCount++;
                 } catch (e: any) {
                     errors.push(`Failed to import "${item.title}": ${e.message}`);

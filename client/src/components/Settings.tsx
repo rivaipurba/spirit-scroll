@@ -1,6 +1,5 @@
-import { Download, Upload, Database, FileJson, RefreshCw, CheckCircle2, AlertCircle, LogOut } from 'lucide-react';
-import { useMediaList as useMedia, useMediaStats, useImportMedia, useUpdateMedia } from '../hooks/useMedia';
-import { useToastContext } from '../context/ToastContext';
+import { Download, Upload, Database, FileJson, CheckCircle2, AlertCircle, LogOut } from 'lucide-react';
+import { useMediaList as useMedia, useMediaStats, useImportMedia } from '../hooks/useMedia';
 import { useAuth } from '../context/AuthContext';
 import { useRef, useState } from 'react';
 
@@ -9,12 +8,9 @@ export function Settings() {
     const media = paginatedMedia?.data;
     const { data: mediaStats } = useMediaStats();
     const importMedia = useImportMedia();
-    const updateMedia = useUpdateMedia();
-    const toast = useToastContext();
     const { logout } = useAuth();
     const fileInputRef = useRef<HTMLInputElement>(null);
     const [importStatus, setImportStatus] = useState<{ type: 'success' | 'error', message: string } | null>(null);
-    const [isReScraping, setIsReScraping] = useState(false);
 
     const handleExport = () => {
         if (!media) return;
@@ -63,25 +59,6 @@ export function Settings() {
         };
         reader.readAsText(file);
         e.target.value = '';
-    };
-
-    const handleReScrapeCovers = async () => {
-        setIsReScraping(true);
-        try {
-            for (let i = 0; i < (media?.length || 0); i++) {
-                const item = media[i];
-                if (!item.coverUrl && item.sourceUrl) {
-                    await updateMedia.mutateAsync({
-                        id: item.id,
-                        sourceUrl: item.sourceUrl,
-                    });
-                }
-            }
-            toast.success("Covers refreshed", "All missing covers have been re-scraped");
-        } catch {
-            toast.error("Refresh failed", "Something went wrong while re-scraping covers");
-        }
-        setIsReScraping(false);
     };
 
     const stats = {
@@ -147,18 +124,6 @@ export function Settings() {
                         {importStatus.message}
                     </div>
                 )}
-            </div>
-
-            <div className="bg-mal-panel rounded-lg border border-mal-border p-6 shadow-sm">
-                <h3 className="text-sm font-semibold text-mal-text-secondary uppercase tracking-wider mb-4">Tools</h3>
-                <button
-                    onClick={handleReScrapeCovers}
-                    disabled={isReScraping}
-                    className="flex items-center gap-2 px-4 py-2.5 border border-mal-border text-mal-text-secondary rounded-lg text-sm font-medium hover:bg-mal-hover transition-colors disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
-                >
-                    <RefreshCw size={16} className={isReScraping ? 'animate-spin' : ''} />
-                    {isReScraping ? 'Re-scraping...' : 'Re-scrape Missing Covers'}
-                </button>
             </div>
 
             <div className="bg-mal-panel rounded-lg border border-mal-border p-6 shadow-sm">

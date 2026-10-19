@@ -46,7 +46,6 @@ server/src/
     schema.ts       — `media` table (sqliteTable)
     zod.ts          — insert/patch/select Zod schemas via drizzle-zod
   utils/
-    scraper.ts      — fetchCoverImage (scrapes og:image from sourceUrl)
     update-checker.ts — checkLatestChapter (site-specific cheerio scraping)
 
 drizzle.config.ts  — drizzle-kit config (schema path, sqlite dialect, creds from env)
@@ -74,7 +73,8 @@ extension/          — Chrome extension: auto-tracks episodes from supported si
 - **State**: TanStack Query with optimistic updates and `keepPreviousData` for pagination
 - **Styling**: Tailwind CSS v4 utility classes; no CSS modules or styled-components
 - **Error handling**: Backend returns proper HTTP status codes; client checks `res.ok` and throws
-- **No test framework**: Manual smoke-test scripts only (`test-api.ts`, `check-prod.js`, test scripts at root); no Jest/Vitest
+- **Tests**: Server unit tests use `bun test` (`*.test.ts` next to the code, run from `server/`); client has no test framework. Manual smoke-test scripts (`test-api.ts`, `check-prod.js`, test scripts at root) cover the rest
+- **Covers**: The `cover_url` column is kept but no longer populated; the server does not scrape cover images
 - **Database access**: Always through `createDb(url, authToken)` — never import a singleton db instance
 - **Environment**: Server reads from Cloudflare Worker bindings (`c.env`) with `process.env` fallback for local dev (loaded from `.dev.vars` via `dotenv`)
 

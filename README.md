@@ -22,10 +22,8 @@ SpiritScroll is a personal Manhua and Donghua progress tracker. It keeps reading
 - **Smart scraping**: The update checker supports Asura Scans, Animexin, and generic WordPress/Manga-style chapter lists.
 - **Retry logic**: Network fetches retry before an entry is treated as failed.
 
-### Covers And Settings
+### Settings
 
-- **Auto-cover scraping**: New entries can fetch cover art from their source URL.
-- **Refresh Covers tool**: Settings can re-scrape missing covers.
 - **Stats**: Settings shows total tracked series and total chapters consumed.
 - **Import / Export**: Back up and restore the library as JSON.
 - **Authentication**: Production writes are protected by password login and JWT-based API auth.
