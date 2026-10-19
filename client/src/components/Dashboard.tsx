@@ -78,11 +78,14 @@ export function Dashboard({ isDialogOpen, onCloseDialog, onStatsChange, register
 
     if (stats?.total === 0 && !searchQuery && !apiType) {
         return (
-            <div className="bg-mal-panel rounded-lg border border-mal-border p-12 text-center">
-                <Book size={48} className="mx-auto mb-4 text-mal-text-secondary/30" />
-                <p className="text-mal-text-secondary font-medium">No entries yet</p>
-                <p className="text-mal-text-secondary/60 text-sm mt-1">Click the + button above to add your first entry!</p>
-            </div>
+            <>
+                <div className="bg-mal-panel rounded-lg border border-mal-border p-12 text-center">
+                    <Book size={48} className="mx-auto mb-4 text-mal-text-secondary/30" />
+                    <p className="text-mal-text-secondary font-medium">No entries yet</p>
+                    <p className="text-mal-text-secondary/60 text-sm mt-1">Click the + button above to add your first entry!</p>
+                </div>
+                <NewEntryDialog isOpen={isDialogOpen} onClose={onCloseDialog} />
+            </>
         );
     }
 

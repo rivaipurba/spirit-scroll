@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { X, Book, Youtube, Trash2 } from 'lucide-react';
 import { useUpdateMedia, useDeleteMedia } from '../hooks/useMedia';
 import { ConfirmDialog } from './ConfirmDialog';
@@ -70,7 +71,8 @@ export function EditMediaDialog({ isOpen, onClose, media }: EditMediaDialogProps
         });
     };
 
-    return (
+    // Portal to <body>: this dialog is rendered next to a <tr>, and a <div> is invalid inside <tbody>
+    return createPortal(
         <>
             <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
                 <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onClose} />
@@ -205,6 +207,7 @@ export function EditMediaDialog({ isOpen, onClose, media }: EditMediaDialogProps
                 onConfirm={handleDelete}
                 onCancel={() => setIsDeleteConfirmOpen(false)}
             />
-        </>
+        </>,
+        document.body
     );
 }
