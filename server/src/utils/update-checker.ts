@@ -34,6 +34,88 @@ async function fetchWithRetry(url: string, retries = 3): Promise<Response | null
     return null;
 }
 
+// Parse an episode/chapter number from a label such as "Episode 20 End",
+// "37 [245]" or "Chapter 65". Returns null for non-episode posts ("Hiatus").
+export function parseEpisodeNumber(text: string): number | null {
+    const normalized = text.replace(/\s+/g, ' ').trim();
+
+    // Multi-season numbering: "37 [245]" — the bracketed number is the cumulative
+    // episode across all seasons, which is how the library tracks progress.
+    const bracket = normalized.match(/\[(\d+(?:\.\d+)?)\]/);
+    if (bracket) return parseFloat(bracket[1]!);
+
+    // A number at the start ("288", "Episode 288") or right after a keyword.
+    // Bare numbers elsewhere (e.g. dates like "October 1, 2026") are ignored.
+    const match = normalized.match(/^(?:(?:episode|ep|chapter|ch)\.?\s*)?(\d+(?:\.\d+)?)\b/i)
+        || normalized.match(/\b(?:episode|ep|chapter|ch)\.?\s*(\d+(?:\.\d+)?)\b/i);
+    if (!match) return null;
+
+    const num = parseFloat(match[1]!);
+    return isNaN(num) ? null : num;
+}
+
+// Highest episode number among all elements matching selector, skipping
+// entries without one (announcement posts, "Hiatus", etc.)
+function maxEpisodeNumber($: cheerio.CheerioAPI, selector: string): number | null {
+    let max: number | null = null;
+    $(selector).each((_, el) => {
+        const num = parseEpisodeNumber($(el).text());
+        if (num !== null && (max === null || num > max)) max = num;
+    });
+    return max;
+}
+
+export function parseLatestChapter(html: string): number | null {
+    const $ = cheerio.load(html);
+
+    // Strategy 1: The "New Episode" box (Animexin/Theme specific)
+    // Structure: <span class="epcur epcurlast">Episode 9</span>
+    // During a hiatus this reads "Episode Hiatus" and yields no number.
+    const quickLink = $('.lastend .inepcx .epcurlast').first();
+    if (quickLink.length) {
+        const num = parseEpisodeNumber(quickLink.text());
+        if (num !== null) {
+            console.log(`[UpdateChecker] Strategy: Animexin/Epcur match (${num})`);
+            return num;
+        }
+    }
+
+    // Strategy 2: Asura Scans "New Chapter" Box
+    // Structure: <div class="grid..."><a...>First Chapter</a><a...>New Chapter... <h3>Chapter 65</h3></a></div>
+    const asuraQuickLink = $('.grid.grid-cols-2 a:last-child h3.font-bold').first();
+    if (asuraQuickLink.length) {
+        const num = parseEpisodeNumber(asuraQuickLink.text());
+        if (num !== null) {
+            console.log(`[UpdateChecker] Strategy: Asura Grid match (${num})`);
+            return num;
+        }
+    }
+
+    // Strategy 3: Episode/chapter lists — take the highest number across all
+    // items, since the first item may be an announcement post
+    const selectors = [
+        '.latest-chapter',
+        '.eplister li a .epl-num', // Specific to Animexin for episode number
+        '.eplister li a .epl-title', // Sometimes in title
+        '.clstyle li .chapternum',
+        '#chapterlist li .chapternum',
+        '.eplister li a', // Generic fallback
+        '.clstyle li',
+        '#chapterlist li'
+    ];
+
+    for (const selector of selectors) {
+        const num = maxEpisodeNumber($, selector);
+        if (num !== null) {
+            console.log(`[UpdateChecker] Strategy: List selector '${selector}' match (${num})`);
+            return num;
+        }
+    }
+
+    console.log(`[UpdateChecker] No strategy matched`);
+    return null;
+}
+
 export async function checkLatestChapter(url: string): Promise<number | null> {
     try {
         const response = await fetchWithRetry(url);
@@ -44,72 +126,9 @@ export async function checkLatestChapter(url: string): Promise<number | null> {
         }
 
         const html = await response.text();
-        const $ = cheerio.load(html);
-
-        // Targeted selectors for Animexin / WordPress / Grid layouts
-
-        // Strategy 1: The "New Episode" box (Animexin/Theme specific)
-        // Structure: <span class="epcur epcurlast">Episode 9</span>
-        const quickLink = $('.lastend .inepcx .epcurlast').first();
-        if (quickLink.length) {
-            const text = quickLink.text().trim();
-            const match = text.match(/(?:episode|ep|ch|chapter)?\s*(\d+(\.\d+)?)/i);
-            if (match) {
-                const num = parseFloat(match[1]);
-                if (!isNaN(num)) {
-                    console.log(`[UpdateChecker] Strategy: Animexin/Epcur match (${num}) for ${url}`);
-                    return num;
-                }
-            }
-        }
-
-        // Strategy 2: Asura Scans "New Chapter" Box
-        // Structure: <div class="grid..."><a...>First Chapter</a><a...>New Chapter... <h3>Chapter 65</h3></a></div>
-        const asuraQuickLink = $('.grid.grid-cols-2 a:last-child h3.font-bold').first();
-        if (asuraQuickLink.length) {
-            const text = asuraQuickLink.text().trim(); // Gets "Chapter 65"
-            const match = text.match(/(\d+(\.\d+)?)/);
-            if (match) {
-                const num = parseFloat(match[1]);
-                if (!isNaN(num)) {
-                    console.log(`[UpdateChecker] Strategy: Asura Grid match (${num}) for ${url}`);
-                    return num;
-                }
-            }
-        }
-
-        // Strategy 3: Fallback lists
-        const selectors = [
-            '.latest-chapter',
-            '.eplister li a .epl-num', // Specific to Animexin for episode number
-            '.eplister li a .epl-title', // Sometimes in title
-            '.clstyle li .chapternum',
-            '#chapterlist li .chapternum',
-            '.eplister li a', // Generic fallback
-            '.clstyle li',
-            '#chapterlist li'
-        ];
-
-        for (const selector of selectors) {
-            const firstItem = $(selector).first();
-            if (firstItem.length > 0) {
-                const text = firstItem.text().trim();
-                const match = text.match(/(?:episode|ep|ch|chapter)?\s*(\d+(\.\d+)?)/i);
-
-                if (match && match.length > 0) {
-                    // Get the first captured group which is the number
-                    const num = parseFloat(match[1]);
-                    if (!isNaN(num)) {
-                        console.log(`[UpdateChecker] Strategy: List selector '${selector}' match (${num}) for ${url}`);
-                        return num;
-                    }
-                }
-            }
-        }
-
-        console.log(`[UpdateChecker] No strategy matched for ${url}`);
-        return null;
-
+        const latest = parseLatestChapter(html);
+        console.log(`[UpdateChecker] ${url} → ${latest}`);
+        return latest;
     } catch (error) {
         console.error("Error checking latest chapter:", error);
         return null;
