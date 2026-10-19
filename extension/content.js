@@ -40,20 +40,22 @@ const SITE_CONFIGS = [
     },
     {
         // Asura Scans - Manhua
-        // Chapter URL: https://asuracomic.net/series/title-abc123/chapter/42
+        // Chapter URL: https://asurascans.com/comics/title-abc123/chapter/42
+        // (old domain: https://asuracomic.net/series/title-abc123/chapter/42)
         hostnames: ['asuracomic.net', 'asurascans.com'],
         mediaType: 'MANHUA',
         waitMs: 10000, // 10s - user started reading the chapter
 
         extract(url) {
-            const urlMatch = url.match(/\/series\/([^/]+)\/chapter\/(\d+)/i);
+            const urlMatch = url.match(/\/(series|comics)\/([^/]+)\/chapter\/(\d+)/i);
             if (urlMatch) {
-                const fullSlug = urlMatch[1];
-                const chapter = parseInt(urlMatch[2], 10);
+                const section = urlMatch[1];
+                const fullSlug = urlMatch[2];
+                const chapter = parseInt(urlMatch[3], 10);
                 // Asura slugs often end with a random ID like "-abc123" - strip it
                 const slug = fullSlug.replace(/-[a-z0-9]{6,}$/, '');
                 const title = slug.replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
-                const seriesUrl = `${window.location.origin}/series/${fullSlug}`;
+                const seriesUrl = `${window.location.origin}/${section}/${fullSlug}`;
                 return { title, episode: chapter, seriesUrl };
             }
 

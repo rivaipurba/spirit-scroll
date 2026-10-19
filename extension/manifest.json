@@ -19,7 +19,9 @@
         "*://*.animexin.dev/*",
         "*://*.animexin.vip/*",
         "*://asuracomic.net/*",
-        "*://*.asuracomic.net/*"
+        "*://*.asuracomic.net/*",
+        "*://asurascans.com/*",
+        "*://*.asurascans.com/*"
       ],
       "js": ["content.js"],
       "run_at": "document_idle"

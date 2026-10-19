@@ -65,6 +65,48 @@ function maxEpisodeNumber($: cheerio.CheerioAPI, selector: string): number | nul
     return max;
 }
 
+// Highest chapter number among links to the page's own chapters, using the
+// series path from <link rel="canonical">
+function maxAsuraChapter($: cheerio.CheerioAPI): number | null {
+    const canonical = $('link[rel="canonical"]').attr('href');
+    if (!canonical) return null;
+
+    let seriesPath: string;
+    try {
+        seriesPath = new URL(canonical, 'https://asurascans.com').pathname.replace(/\/+$/, '');
+    } catch {
+        return null;
+    }
+    if (!seriesPath) return null;
+
+    const prefix = `${seriesPath}/chapter/`;
+    let max: number | null = null;
+    $('a[href*="/chapter/"]').each((_, el) => {
+        const href = $(el).attr('href') ?? '';
+        let path: string;
+        try {
+            path = new URL(href, 'https://asurascans.com').pathname;
+        } catch {
+            return;
+        }
+        if (!path.startsWith(prefix)) return;
+
+        const label = $(el).find('.font-medium').first();
+        const num = parseEpisodeNumber(label.length ? label.text() : $(el).text());
+        if (num !== null && (max === null || num > max)) max = num;
+    });
+    return max;
+}
+
+// Asura moved from asuracomic.net/series/<slug> to asurascans.com/comics/<slug>;
+// the old domain now redirects to the homepage. Stale hash suffixes on the new
+// domain redirect to the current one, so the slug can be kept as-is.
+export function normalizeSourceUrl(url: string): string {
+    const match = url.match(/^https?:\/\/(?:www\.)?asuracomic\.net\/series\/([^/?#]+)/i);
+    if (!match) return url;
+    return `https://asurascans.com/comics/${match[1]}`;
+}
+
 export function parseLatestChapter(html: string): number | null {
     const $ = cheerio.load(html);
 
@@ -91,7 +133,17 @@ export function parseLatestChapter(html: string): number | null {
         }
     }
 
-    // Strategy 3: Episode/chapter lists — take the highest number across all
+    // Strategy 3: Asura Scans (asurascans.com) chapter list
+    // Structure: <a href="/comics/<slug>/chapter/281">...<span class="font-medium">Chapter 281</span>...</a>
+    // Only count links under the page's own canonical path — the homepage (where
+    // dead asuracomic.net URLs used to land) lists chapters of many series.
+    const asuraChapter = maxAsuraChapter($);
+    if (asuraChapter !== null) {
+        console.log(`[UpdateChecker] Strategy: Asura chapter list match (${asuraChapter})`);
+        return asuraChapter;
+    }
+
+    // Strategy 4: Episode/chapter lists — take the highest number across all
     // items, since the first item may be an announcement post
     const selectors = [
         '.latest-chapter',
@@ -118,16 +170,17 @@ export function parseLatestChapter(html: string): number | null {
 
 export async function checkLatestChapter(url: string): Promise<number | null> {
     try {
-        const response = await fetchWithRetry(url);
+        const fetchUrl = normalizeSourceUrl(url);
+        const response = await fetchWithRetry(fetchUrl);
 
         if (!response || !response.ok) {
-            console.error(`Failed to fetch URL after retries: ${url}, status: ${response?.status}`);
+            console.error(`Failed to fetch URL after retries: ${fetchUrl}, status: ${response?.status}`);
             return null;
         }
 
         const html = await response.text();
         const latest = parseLatestChapter(html);
-        console.log(`[UpdateChecker] ${url} → ${latest}`);
+        console.log(`[UpdateChecker] ${fetchUrl} → ${latest}`);
         return latest;
     } catch (error) {
         console.error("Error checking latest chapter:", error);
