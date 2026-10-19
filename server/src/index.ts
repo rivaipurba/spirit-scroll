@@ -9,7 +9,8 @@ import { buildMediaWhere, getMediaStats } from "./db/media-queries";
 import { eq, count, and, sql } from "drizzle-orm";
 
 import { checkLatestChapter } from "./utils/update-checker";
-import { createToken, verifyToken, verifyPassword } from "./auth";
+import { createToken, verifyPassword, checkAuth } from "./auth";
+import { mapWithConcurrency } from "./utils/concurrency";
 
 // Load .dev.vars for local Bun development (wrapped in try-catch for Cloudflare Workers compatibility)
 try {
@@ -38,6 +39,9 @@ function getDatabaseConfig(env: Bindings) {
     };
 }
 
+// Number of entries scraped in parallel during the scheduled scan
+const SCAN_CONCURRENCY = 5;
+
 async function scanReadingMediaForUpdates(env: Bindings, limit = 1000) {
     const { url, authToken } = getDatabaseConfig(env);
 
@@ -64,20 +68,16 @@ async function scanReadingMediaForUpdates(env: Bindings, limit = 1000) {
         return { checked: 0, updated: 0, failed: 0 };
     }
 
-    let updated = 0;
-    let failed = 0;
-    const checkedItems: string[] = [];
-
-    for (const item of targets) {
-        if (!item.sourceUrl) continue;
+    // Each item is isolated: checkOne never throws, so one failure can't abort the scan
+    const checkOne = async (item: typeof targets[number]): Promise<"updated" | "unchanged" | "failed" | "skipped"> => {
+        if (!item.sourceUrl) return "skipped";
 
         try {
             const latestChapter = await checkLatestChapter(item.sourceUrl);
 
             if (latestChapter === null) {
-                failed++;
                 console.warn(`[AUTO SCAN] No chapter found for "${item.title}" (${item.sourceUrl})`);
-                continue;
+                return "failed";
             }
 
             await db
@@ -86,18 +86,22 @@ async function scanReadingMediaForUpdates(env: Bindings, limit = 1000) {
                 .where(eq(media.id, item.id));
 
             if (latestChapter > item.currentChapter) {
-                updated++;
                 console.log(`[AUTO SCAN] UPDATE: "${item.title}" — ${item.currentChapter} → ${latestChapter}`);
+                return "updated";
             }
-
-            checkedItems.push(`${item.title}:${latestChapter}`);
+            return "unchanged";
         } catch (error) {
-            failed++;
             console.error(`[AUTO SCAN] Failed to check "${item.title}" (${item.id}):`, error);
+            return "failed";
         }
-    }
+    };
 
-    console.log(`[AUTO SCAN] Results: ${checkedItems.length} checked, ${updated} updated, ${failed} failed`);
+    const outcomes = await mapWithConcurrency(targets, SCAN_CONCURRENCY, checkOne);
+    const updated = outcomes.filter((o) => o === "updated").length;
+    const failed = outcomes.filter((o) => o === "failed").length;
+    const succeeded = outcomes.filter((o) => o === "updated" || o === "unchanged").length;
+
+    console.log(`[AUTO SCAN] Results: ${succeeded} checked, ${updated} updated, ${failed} failed`);
 
     return {
         checked: targets.length,
@@ -128,12 +132,11 @@ app.use(
     cors({
         origin: (origin) => {
             const allowed = ['https://spirit-scroll.vercel.app', 'http://localhost:5173'];
-            if (!origin) return '*';
+            if (!origin) return null;
             if (allowed.includes(origin)) return origin;
-            // Allow browser extension origins (personal use)
-            if (origin.startsWith('chrome-extension://') || origin.startsWith('moz-extension://')) return origin;
-            // Fallback: allow all origins (reads are public anyway; writes require JWT auth)
-            return origin;
+            // Allow the SpiritScroll Chrome extension
+            if (origin.startsWith('chrome-extension://')) return origin;
+            return null;
         },
         allowHeaders: ["X-Custom-Header", "Upgrade-Insecure-Requests", "Content-Type", "Authorization"],
         allowMethods: ["POST", "GET", "OPTIONS", "PATCH", "DELETE"],
@@ -180,22 +183,14 @@ app.use("/*", async (c, next) => {
 });
 
 // Helper to verify auth token from Authorization header
-// When JWT_SECRET is not set (local dev), auth is bypassed
+// Auth is only bypassed when JWT_SECRET is unset AND the database is the local file: fallback
 async function requireAuth(c: any): Promise<Response | null> {
-    const jwtSecret = c.env.JWT_SECRET;
-    if (!jwtSecret) return null; // local dev: no auth
-
-    const authHeader = c.req.header("Authorization");
-    if (!authHeader || !authHeader.startsWith("Bearer ")) {
-        return c.json({ error: "Unauthorized" }, 401);
-    }
-
-    const token = authHeader.substring(7);
-    const valid = await verifyToken(token, jwtSecret);
-    if (!valid) {
-        return c.json({ error: "Invalid or expired token" }, 401);
-    }
-
+    const failure = await checkAuth({
+        authHeader: c.req.header("Authorization"),
+        jwtSecret: c.env.JWT_SECRET,
+        databaseUrl: c.env.DATABASE_URL,
+    });
+    if (failure) return c.json({ error: failure.error }, failure.status);
     return null; // Auth passed
 }
 
@@ -230,6 +225,9 @@ const routes = app.basePath("/api")
         return c.json({ valid: true });
     })
     .get("/media", async (c) => {
+        const authError = await requireAuth(c);
+        if (authError) return authError;
+
         try {
             const page = Number(c.req.query("page")) || 1;
             const limit = Number(c.req.query("limit")) || 12;
@@ -311,6 +309,9 @@ const routes = app.basePath("/api")
         }
     })
     .get("/media/stats", async (c) => {
+        const authError = await requireAuth(c);
+        if (authError) return authError;
+
         try {
             const type = c.req.query("type") as "MANHUA" | "DONGHUA" | undefined;
             const search = c.req.query("search")?.trim();
@@ -407,6 +408,10 @@ const routes = app.basePath("/api")
         return c.json({ success: true, deletedId: result[0]?.id });
     })
     .post("/media/:id/check", async (c) => {
+        // Require authentication: this triggers outbound scraping and a DB write
+        const authError = await requireAuth(c);
+        if (authError) return authError;
+
         try {
             const id = Number(c.req.param("id"));
             if (isNaN(id)) return c.json({ error: "Invalid ID" }, 400);

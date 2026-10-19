@@ -133,3 +133,60 @@ describe("POST /api/import", () => {
         expect((await getRow(2))?.cover_url).toBe("https://cdn.example.com/b.jpg");
     });
 });
+
+describe("auth on read and check endpoints", () => {
+    function unauthenticated(method: string, path: string): Promise<Response> {
+        return app.fetch(new Request(`http://localhost${path}`, { method }), env);
+    }
+
+    it("rejects GET /api/media without a token", async () => {
+        expect((await unauthenticated("GET", "/api/media")).status).toBe(401);
+    });
+
+    it("rejects GET /api/media/stats without a token", async () => {
+        expect((await unauthenticated("GET", "/api/media/stats")).status).toBe(401);
+    });
+
+    it("rejects POST /api/media/:id/check without a token and makes no outbound request", async () => {
+        await sqlite.execute(`
+            INSERT INTO media (title, type, status, source_url)
+            VALUES ('Scrapeable', 'MANHUA', 'READING', 'https://example.com/scrapeable')`);
+
+        const res = await unauthenticated("POST", "/api/media/1/check");
+        expect(res.status).toBe(401);
+        expect(outboundUrls).toEqual([]);
+        expect((await getRow(1))?.latest_released_chapter).toBeNull();
+    });
+});
+
+describe("CORS", () => {
+    function preflight(origin: string): Promise<Response> {
+        return app.fetch(
+            new Request("http://localhost/api/media", {
+                method: "OPTIONS",
+                headers: {
+                    Origin: origin,
+                    "Access-Control-Request-Method": "GET",
+                    "Access-Control-Request-Headers": "Authorization",
+                },
+            }),
+            env,
+        );
+    }
+
+    it("sends no Access-Control-Allow-Origin header to an unknown origin", async () => {
+        const res = await preflight("https://evil.example");
+        expect(res.headers.get("Access-Control-Allow-Origin")).toBeNull();
+    });
+
+    it("echoes the Vercel app origin", async () => {
+        const res = await preflight("https://spirit-scroll.vercel.app");
+        expect(res.headers.get("Access-Control-Allow-Origin")).toBe("https://spirit-scroll.vercel.app");
+    });
+
+    it("echoes a chrome-extension origin", async () => {
+        const origin = "chrome-extension://abcdefghijklmnopabcdefghijklmnop";
+        const res = await preflight(origin);
+        expect(res.headers.get("Access-Control-Allow-Origin")).toBe(origin);
+    });
+});

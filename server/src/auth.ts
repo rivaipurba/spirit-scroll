@@ -93,6 +93,51 @@ export async function hashPassword(password: string): Promise<string> {
 // Verify password against hash
 export async function verifyPassword(password: string, hash: string): Promise<boolean> {
     const passwordHash = await hashPassword(password);
-    return passwordHash === hash;
+    return timingSafeEqual(passwordHash, hash);
+}
+
+// Constant-time string comparison (no early exit on the first mismatch)
+export function timingSafeEqual(a: string, b: string): boolean {
+    if (a.length !== b.length) return false;
+    let diff = 0;
+    for (let i = 0; i < a.length; i++) {
+        diff |= a.charCodeAt(i) ^ b.charCodeAt(i);
+    }
+    return diff === 0;
+}
+
+// Local SQLite file database (dev only)
+export function isLocalDatabase(url: string | undefined): boolean {
+    return !!url && url.startsWith("file:");
+}
+
+export type AuthFailure = { status: 401 | 500; error: string };
+
+// Decide whether a request is authorized. Returns null when allowed.
+// Without JWT_SECRET, auth is only bypassed against a local file: database;
+// against a remote database the request fails closed.
+export async function checkAuth(opts: {
+    authHeader: string | undefined;
+    jwtSecret: string | undefined;
+    databaseUrl: string | undefined;
+}): Promise<AuthFailure | null> {
+    const { authHeader, jwtSecret, databaseUrl } = opts;
+
+    if (!jwtSecret) {
+        if (isLocalDatabase(databaseUrl)) return null; // local dev: no auth
+        console.error("Auth not configured: missing JWT_SECRET with a remote DATABASE_URL");
+        return { status: 500, error: "Server auth not configured" };
+    }
+
+    if (!authHeader || !authHeader.startsWith("Bearer ")) {
+        return { status: 401, error: "Unauthorized" };
+    }
+
+    const valid = await verifyToken(authHeader.substring(7), jwtSecret);
+    if (!valid) {
+        return { status: 401, error: "Invalid or expired token" };
+    }
+
+    return null;
 }
 
