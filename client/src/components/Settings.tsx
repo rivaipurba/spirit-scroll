@@ -1,4 +1,4 @@
-import { Download, Upload, Database, FileJson, CheckCircle2, AlertCircle, LogOut } from 'lucide-react';
+import { Download, Upload, CheckCircle2, AlertCircle, LogOut } from 'lucide-react';
 import { useMediaList as useMedia, useMediaStats, useImportMedia } from '../hooks/useMedia';
 import { useAuth } from '../context/AuthContext';
 import { useRef, useState } from 'react';
@@ -69,40 +69,36 @@ export function Settings() {
     };
 
     return (
-        <div className="max-w-3xl mx-auto space-y-6">
-            <h2 className="text-xl font-bold text-mal-text">Settings</h2>
+        <div className="max-w-3xl">
+            <h1 className="text-3xl text-ink mb-8 md:mb-10">Settings</h1>
 
-            <div className="bg-mal-panel rounded-lg border border-mal-border p-6 shadow-sm">
-                <h3 className="text-sm font-semibold text-mal-text-secondary uppercase tracking-wider mb-4 flex items-center gap-2">
-                    <Database size={16} />
-                    Library Stats
-                </h3>
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+            <section aria-labelledby="library-stats-head" className="pb-10 border-b border-rule">
+                <h2 id="library-stats-head" className="text-xl text-ink mb-5">Library Stats</h2>
+                <dl className="grid grid-cols-2 sm:grid-cols-4 gap-y-6">
                     <StatBox label="Total Series" value={stats.total} />
                     <StatBox label="Total Chapters" value={stats.chapters} />
                     <StatBox label="Reading" value={stats.reading} />
                     <StatBox label="Completed" value={stats.completed} />
-                </div>
-            </div>
+                </dl>
+            </section>
 
-            <div className="bg-mal-panel rounded-lg border border-mal-border p-6 shadow-sm">
-                <h3 className="text-sm font-semibold text-mal-text-secondary uppercase tracking-wider mb-4 flex items-center gap-2">
-                    <FileJson size={16} />
-                    Backup & Restore
-                </h3>
-                <div className="flex flex-wrap gap-3">
+            <section aria-labelledby="backup-head" className="py-10 border-b border-rule">
+                <h2 id="backup-head" className="text-xl text-ink mb-5">Backup & Restore</h2>
+                <div className="flex flex-wrap gap-2">
                     <button
+                        type="button"
                         onClick={handleExport}
-                        className="flex items-center gap-2 px-4 py-2.5 bg-mal-blue text-white rounded-lg text-sm font-medium hover:bg-mal-blue-dark transition-colors shadow-sm cursor-pointer"
+                        className="btn btn-primary min-h-11 px-5"
                     >
-                        <Download size={16} />
+                        <Download size={16} aria-hidden="true" />
                         Export JSON
                     </button>
                     <button
+                        type="button"
                         onClick={handleImportClick}
-                        className="flex items-center gap-2 px-4 py-2.5 border border-mal-border text-mal-text-secondary rounded-lg text-sm font-medium hover:bg-mal-hover transition-colors cursor-pointer"
+                        className="btn btn-ghost min-h-11 px-5"
                     >
-                        <Upload size={16} />
+                        <Upload size={16} aria-hidden="true" />
                         Import JSON
                     </button>
                     <input
@@ -115,35 +111,34 @@ export function Settings() {
                 </div>
 
                 {importStatus && (
-                    <div className={`mt-3 flex items-center gap-2 px-4 py-3 rounded-lg text-sm ${
-                        importStatus.type === 'success'
-                            ? 'bg-mal-green/15 text-mal-green'
-                            : 'bg-mal-red/15 text-mal-red'
-                    }`}>
-                        {importStatus.type === 'success' ? <CheckCircle2 size={16} /> : <AlertCircle size={16} />}
+                    <p role="status" className="mt-4 flex items-center gap-2 text-sm text-ink">
+                        {importStatus.type === 'success'
+                            ? <CheckCircle2 size={16} className="text-success shrink-0" aria-hidden="true" />
+                            : <AlertCircle size={16} className="text-error shrink-0" aria-hidden="true" />}
                         {importStatus.message}
-                    </div>
+                    </p>
                 )}
-            </div>
+            </section>
 
-            <div className="bg-mal-panel rounded-lg border border-mal-border p-6 shadow-sm">
+            <section className="pt-10">
                 <button
+                    type="button"
                     onClick={logout}
-                    className="flex items-center gap-2 px-4 py-2.5 bg-mal-red/15 text-mal-red rounded-lg text-sm font-medium hover:bg-mal-red/25 transition-colors cursor-pointer"
+                    className="btn btn-danger min-h-11 px-5"
                 >
-                    <LogOut size={16} />
+                    <LogOut size={16} aria-hidden="true" />
                     Log Out
                 </button>
-            </div>
+            </section>
         </div>
     );
 }
 
 function StatBox({ label, value }: { label: string; value: number }) {
     return (
-        <div className="text-center p-3 bg-mal-card rounded-lg">
-            <div className="text-2xl font-bold text-mal-text">{value}</div>
-            <div className="text-xs text-mal-text-secondary/70 mt-0.5">{label}</div>
+        <div className="pr-4 sm:border-l sm:border-rule sm:pl-4 sm:first:border-l-0 sm:first:pl-0">
+            <dt className="text-sm text-muted">{label}</dt>
+            <dd className="figure text-3xl text-ink mt-2">{value}</dd>
         </div>
     );
 }

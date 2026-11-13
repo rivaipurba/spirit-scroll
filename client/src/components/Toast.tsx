@@ -32,48 +32,41 @@ export function Toast({ id, type, title, message, duration = 4000, action, onClo
         info: Info,
     };
 
-    const styles = {
-        success: {
-            bg: 'bg-mal-green/15 border-mal-green/30',
-            icon: 'text-mal-green',
-            title: 'text-mal-text',
-        },
-        error: {
-            bg: 'bg-mal-red/15 border-mal-red/30',
-            icon: 'text-mal-red',
-            title: 'text-mal-text',
-        },
-        info: {
-            bg: 'bg-mal-blue/15 border-mal-blue/30',
-            icon: 'text-mal-blue',
-            title: 'text-mal-text',
-        },
+    const iconColor = {
+        success: 'text-success',
+        error: 'text-error',
+        info: 'text-ink-2',
     };
 
     const Icon = icons[type];
-    const style = styles[type];
 
     return (
-        <div className={`${style.bg} border rounded-xl p-4 shadow-lg animate-in slide-in-from-right duration-200 w-full sm:min-w-[300px] sm:max-w-[400px]`}>
-            <div className="flex items-start gap-3">
-                <Icon size={20} className={`${style.icon} flex-shrink-0 mt-0.5`} />
+        <div
+            role={type === 'error' ? 'alert' : 'status'}
+            className="sheet-in bg-paper-3 border border-rule-strong rounded-well shadow-card px-4 py-3 w-full sm:min-w-[300px] sm:max-w-[400px]"
+        >
+            <div className="flex items-center gap-3">
+                <Icon size={18} className={`${iconColor[type]} shrink-0`} aria-hidden="true" />
                 <div className="flex-1 min-w-0">
-                    <h4 className={`font-medium ${style.title} text-sm`}>{title}</h4>
+                    <p className="text-sm font-medium text-ink">{title}</p>
                     {message && (
-                        <p className="text-mal-text-secondary text-xs mt-1 leading-relaxed">{message}</p>
-                    )}
-                    {action && (
-                        <button
-                            onClick={() => { action.onClick(); onClose(id); }}
-                            className="mt-2 text-xs font-semibold text-mal-blue hover:text-mal-blue-dark transition-colors underline underline-offset-2 cursor-pointer"
-                        >
-                            {action.label}
-                        </button>
+                        <p className="text-sm text-ink-2 mt-0.5">{message}</p>
                     )}
                 </div>
+                {action && (
+                    <button
+                        type="button"
+                        onClick={() => { action.onClick(); onClose(id); }}
+                        className="btn btn-ghost min-h-8 px-3 shrink-0"
+                    >
+                        {action.label}
+                    </button>
+                )}
                 <button
+                    type="button"
                     onClick={() => onClose(id)}
-                    className="text-mal-text-secondary hover:text-white transition-colors p-1 -m-1 cursor-pointer"
+                    aria-label="Dismiss"
+                    className="btn btn-quiet btn-icon min-h-8 min-w-8 -mr-1 shrink-0"
                 >
                     <X size={16} />
                 </button>

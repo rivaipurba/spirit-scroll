@@ -67,7 +67,7 @@ export function TopNavbar({ currentView, onNavigate, headerAction, isScanning, o
 
     return (
         <header className="bg-paper border-b border-rule sticky top-0 z-(--z-sticky-nav)">
-            <div className="relative mx-auto flex items-center justify-between gap-3 px-4 md:px-8 h-16 max-w-(--container)">
+            <div className="mx-auto flex flex-wrap items-center justify-between gap-x-3 px-4 md:px-8 min-h-16 max-w-(--container)">
                 <div className="flex items-center gap-6 min-w-0">
                     <button
                         type="button"
@@ -83,31 +83,33 @@ export function TopNavbar({ currentView, onNavigate, headerAction, isScanning, o
                     </nav>
                 </div>
 
-                <div className="flex items-center gap-2">
-                    {isSearchOpen ? (
-                        <div className="absolute inset-x-0 top-full border-b border-rule bg-paper px-4 py-2 md:static md:border-0 md:p-0 md:bg-transparent">
-                            <div className="flex items-center gap-2 h-10 rounded-full bg-paper-2 px-3 shadow-[inset_0_0_0_1px_var(--color-rule-strong)] focus-within:outline-2 focus-within:outline-focus focus-within:-outline-offset-2">
-                                <Search size={16} className="text-muted shrink-0" aria-hidden="true" />
-                                <input
-                                    ref={inputRef}
-                                    type="search"
-                                    value={inputValue}
-                                    onChange={(e) => setInputValue(e.target.value)}
-                                    placeholder="Search titles…"
-                                    aria-label="Search titles"
-                                    className="w-full md:w-56 min-w-0 bg-transparent border-0 p-0 text-md text-ink focus:outline-none"
-                                />
-                                <button
-                                    type="button"
-                                    onClick={handleSearchToggle}
-                                    aria-label="Close search"
-                                    className="hit shrink-0 rounded-full p-1 text-muted hover:text-ink focus-visible:outline-2 focus-visible:outline-focus"
-                                >
-                                    <X size={16} />
-                                </button>
-                            </div>
+                {isSearchOpen && (
+                    <div className="order-last basis-full pb-3 md:order-none md:basis-auto md:pb-0 md:ml-auto">
+                        <div className="flex items-center gap-2 h-10 rounded-full bg-paper-2 px-3 shadow-[inset_0_0_0_1px_var(--color-rule-strong)] focus-within:outline-2 focus-within:outline-focus focus-within:-outline-offset-2">
+                            <Search size={16} className="text-muted shrink-0" aria-hidden="true" />
+                            <input
+                                ref={inputRef}
+                                type="text"
+                                value={inputValue}
+                                onChange={(e) => setInputValue(e.target.value)}
+                                placeholder="Search titles…"
+                                aria-label="Search titles"
+                                className="w-full md:w-56 min-w-0 bg-transparent border-0 p-0 text-md text-ink focus:outline-none"
+                            />
+                            <button
+                                type="button"
+                                onClick={handleSearchToggle}
+                                aria-label="Close search"
+                                className="hit shrink-0 rounded-full p-1 text-muted hover:text-ink focus-visible:outline-2 focus-visible:outline-focus"
+                            >
+                                <X size={16} />
+                            </button>
                         </div>
-                    ) : (
+                    </div>
+                )}
+
+                <div className="flex items-center gap-2 md:ml-auto">
+                    {!isSearchOpen && (
                         <button
                             type="button"
                             onClick={handleSearchToggle}

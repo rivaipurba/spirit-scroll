@@ -40,79 +40,68 @@ export function NewEntryDialog({ isOpen, onClose }: NewEntryDialogProps) {
         });
     };
 
+    const segment = (value: "MANHUA" | "DONGHUA", label: string, Icon: typeof Book) => (
+        <button
+            type="button"
+            onClick={() => setType(value)}
+            aria-pressed={type === value}
+            className={`btn flex-1 ${type === value ? 'bg-ink text-paper' : 'text-ink-2 hover:bg-paper-3 hover:text-ink'}`}
+        >
+            <Icon size={16} aria-hidden="true" />
+            {label}
+        </button>
+    );
+
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center pointer-events-none p-2 sm:p-4">
-            <div className="absolute inset-0 bg-black/60 backdrop-blur-sm pointer-events-auto" onClick={onClose} />
+        <div className="fixed inset-0 z-(--z-modal) flex items-end sm:items-center justify-center sm:p-4">
+            <div className="fade-in absolute inset-0 bg-scrim" onClick={onClose} />
             <div
-                className="bg-mal-panel border border-mal-border w-full max-w-md max-h-[95vh] sm:max-h-[90vh] rounded-xl relative pointer-events-auto shadow-xl animate-in slide-in-from-bottom duration-200 overflow-hidden"
+                role="dialog"
+                aria-modal="true"
+                aria-labelledby="new-entry-title"
+                className="sheet-in relative flex flex-col w-full sm:max-w-md max-h-[92dvh] bg-paper-2 border border-rule rounded-t-card sm:rounded-card shadow-card overflow-hidden"
                 onClick={(e) => e.stopPropagation()}
             >
-                <div className="flex items-center justify-between p-4 sm:p-6 border-b border-mal-border">
-                    <div className="flex items-center gap-3">
-                        <div className="p-2 bg-mal-blue/15 rounded-lg">
-                            {type === 'DONGHUA' ? (
-                                <Youtube size={20} className="text-mal-blue" />
-                            ) : (
-                                <Book size={20} className="text-mal-blue" />
-                            )}
-                        </div>
-                        <h2 className="text-lg font-semibold text-mal-text">New Entry</h2>
-                    </div>
-                    <button onClick={onClose} className="text-mal-text-secondary hover:text-white transition-colors p-1 hover:bg-mal-hover rounded-lg cursor-pointer">
+                <div className="flex items-center justify-between gap-3 px-6 pt-6 pb-4">
+                    <h2 id="new-entry-title" className="text-2xl text-ink">New Entry</h2>
+                    <button type="button" onClick={onClose} aria-label="Close" className="btn btn-quiet btn-icon -mr-2">
                         <X size={20} />
                     </button>
                 </div>
 
-                <div className="overflow-y-auto max-h-[calc(95vh-140px)] sm:max-h-[calc(90vh-140px)] p-4 sm:p-6 pb-8">
+                <div className="overflow-y-auto px-6 pb-6">
                     <form id="new-entry-form" onSubmit={handleSubmit} className="space-y-5">
                         <div>
-                            <label className="block text-xs font-medium text-mal-text-secondary/80 mb-1">Title</label>
+                            <label htmlFor="new-title" className="label">Title</label>
                             <input
+                                id="new-title"
+                                name="title"
                                 type="text"
                                 value={title}
                                 onChange={(e) => setTitle(e.target.value)}
                                 placeholder="Enter title"
+                                autoComplete="off"
                                 required
-                                className="w-full px-3 py-2.5 bg-mal-card border border-mal-border rounded-lg text-mal-text text-sm placeholder-mal-text-secondary/50 focus:outline-none focus:ring-2 focus:ring-mal-blue/30 focus:border-mal-blue transition-all"
+                                className="field"
                             />
                         </div>
 
                         <div>
-                            <label className="block text-xs font-medium text-mal-text-secondary/80 mb-1">Type</label>
-                            <div className="flex gap-2">
-                                <button
-                                    type="button"
-                                    onClick={() => setType('MANHUA')}
-                                    className={`flex-1 flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg text-sm font-medium transition-all cursor-pointer ${
-                                        type === 'MANHUA'
-                                            ? 'bg-mal-blue text-white shadow-sm'
-                                            : 'bg-mal-card text-mal-text-secondary border border-mal-border hover:bg-mal-hover'
-                                    }`}
-                                >
-                                    <Book size={16} />
-                                    Manhua
-                                </button>
-                                <button
-                                    type="button"
-                                    onClick={() => setType('DONGHUA')}
-                                    className={`flex-1 flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg text-sm font-medium transition-all cursor-pointer ${
-                                        type === 'DONGHUA'
-                                            ? 'bg-mal-blue text-white shadow-sm'
-                                            : 'bg-mal-card text-mal-text-secondary border border-mal-border hover:bg-mal-hover'
-                                    }`}
-                                >
-                                    <Youtube size={16} />
-                                    Donghua
-                                </button>
+                            <span id="new-type-label" className="label">Type</span>
+                            <div role="group" aria-labelledby="new-type-label" className="flex gap-1 rounded-full bg-paper p-1 shadow-[inset_0_0_0_1px_var(--color-rule)]">
+                                {segment('MANHUA', 'Manhua', Book)}
+                                {segment('DONGHUA', 'Donghua', Youtube)}
                             </div>
                         </div>
 
                         <div>
-                            <label className="block text-xs font-medium text-mal-text-secondary/80 mb-1">Status</label>
+                            <label htmlFor="new-status" className="label">Status</label>
                             <select
+                                id="new-status"
+                                name="status"
                                 value={status}
                                 onChange={(e) => setStatus(e.target.value as typeof status)}
-                                className="w-full px-3 py-2.5 bg-mal-card border border-mal-border rounded-lg text-mal-text text-sm focus:outline-none focus:ring-2 focus:ring-mal-blue/30 focus:border-mal-blue transition-all"
+                                className="field"
                             >
                                 <option value="READING">Reading / Watching</option>
                                 <option value="COMPLETED">Completed</option>
@@ -124,49 +113,58 @@ export function NewEntryDialog({ isOpen, onClose }: NewEntryDialogProps) {
 
                         <div className="grid grid-cols-2 gap-3">
                             <div>
-                                <label className="block text-xs font-medium text-mal-text-secondary/80 mb-1">Current Ch./Ep.</label>
+                                <label htmlFor="new-current" className="label">Current Ch./Ep.</label>
                                 <input
+                                    id="new-current"
+                                    name="currentChapter"
                                     type="number"
+                                    inputMode="numeric"
                                     value={currentChapter}
                                     onChange={(e) => setCurrentChapter(e.target.value)}
                                     min="0"
                                     placeholder="0"
-                                    className="w-full px-3 py-2.5 bg-mal-card border border-mal-border rounded-lg text-mal-text text-sm placeholder-mal-text-secondary/50 focus:outline-none focus:ring-2 focus:ring-mal-blue/30 focus:border-mal-blue transition-all"
+                                    className="field tabular-nums"
                                 />
                             </div>
                             <div>
-                                <label className="block text-xs font-medium text-mal-text-secondary/80 mb-1">Total</label>
+                                <label htmlFor="new-total" className="label">Total</label>
                                 <input
+                                    id="new-total"
+                                    name="totalChapters"
                                     type="number"
+                                    inputMode="numeric"
                                     value={totalChapters}
                                     onChange={(e) => setTotalChapters(e.target.value)}
                                     min="0"
                                     placeholder="Optional"
-                                    className="w-full px-3 py-2.5 bg-mal-card border border-mal-border rounded-lg text-mal-text text-sm placeholder-mal-text-secondary/50 focus:outline-none focus:ring-2 focus:ring-mal-blue/30 focus:border-mal-blue transition-all"
+                                    className="field tabular-nums"
                                 />
                             </div>
                         </div>
 
                         <div>
-                            <label className="block text-xs font-medium text-mal-text-secondary/80 mb-1">
-                                Source URL <span className="text-mal-text-secondary/50 font-normal">(optional)</span>
+                            <label htmlFor="new-source" className="label">
+                                Source URL <span className="font-normal">(optional)</span>
                             </label>
                             <input
+                                id="new-source"
+                                name="sourceUrl"
                                 type="url"
+                                inputMode="url"
                                 value={sourceUrl}
                                 onChange={(e) => setSourceUrl(e.target.value)}
-                                placeholder="https://..."
-                                className="w-full px-3 py-2.5 bg-mal-card border border-mal-border rounded-lg text-mal-text text-sm placeholder-mal-text-secondary/50 focus:outline-none focus:ring-2 focus:ring-mal-blue/30 focus:border-mal-blue transition-all"
+                                placeholder="https://…"
+                                className="field"
                             />
                         </div>
                     </form>
                 </div>
 
-                <div className="flex items-center justify-end gap-2 p-4 sm:p-6 border-t border-mal-border">
+                <div className="flex items-center justify-end gap-2 px-6 py-4 border-t border-rule">
                     <button
                         type="button"
                         onClick={onClose}
-                        className="px-4 py-2.5 text-sm font-medium text-mal-text-secondary hover:bg-mal-hover rounded-lg transition-colors cursor-pointer"
+                        className="btn btn-quiet"
                     >
                         Cancel
                     </button>
@@ -174,9 +172,10 @@ export function NewEntryDialog({ isOpen, onClose }: NewEntryDialogProps) {
                         type="submit"
                         form="new-entry-form"
                         disabled={createMedia.isPending || !title.trim()}
-                        className="px-4 py-2.5 text-sm font-medium bg-mal-blue text-white rounded-lg hover:bg-mal-blue-dark transition-colors disabled:opacity-50 disabled:cursor-not-allowed shadow-sm cursor-pointer"
+                        aria-busy={createMedia.isPending}
+                        className="btn btn-primary min-h-11 px-5"
                     >
-                        {createMedia.isPending ? 'Adding...' : 'Add Entry'}
+                        {createMedia.isPending ? 'Adding…' : 'Add Entry'}
                     </button>
                 </div>
             </div>

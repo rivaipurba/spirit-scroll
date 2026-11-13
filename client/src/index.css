@@ -6,25 +6,6 @@
 @import "./tokens.css";
 @import "./base.css" layer(base);
 
-/* Transitional: old token names mapped onto Kiln while components move over */
-@theme {
-    --color-mal-blue: var(--color-accent);
-    --color-mal-blue-dark: var(--color-accent-2);
-    --color-mal-page: var(--color-paper);
-    --color-mal-panel: var(--color-paper-2);
-    --color-mal-card: var(--color-paper-3);
-    --color-mal-border: var(--color-rule);
-    --color-mal-hover: var(--color-paper-3);
-    --color-mal-text: var(--color-ink);
-    --color-mal-text-secondary: var(--color-muted);
-    --color-mal-green: var(--color-success);
-    --color-mal-blue-status: var(--color-ink-2);
-    --color-mal-yellow: var(--color-heat-5);
-    --color-mal-orange: var(--color-heat-4);
-    --color-mal-red: var(--color-error);
-    --color-mal-gray: var(--color-muted);
-}
-
 @layer base {
     body {
         background: var(--color-paper);

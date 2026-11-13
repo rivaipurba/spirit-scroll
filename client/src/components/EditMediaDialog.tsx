@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
-import { X, Book, Youtube, Trash2 } from 'lucide-react';
+import { X, Trash2 } from 'lucide-react';
 import { useUpdateMedia, useDeleteMedia } from '../hooks/useMedia';
 import { ConfirmDialog } from './ConfirmDialog';
 import type { Media } from '../types/index';
@@ -17,7 +17,7 @@ export function EditMediaDialog({ isOpen, onClose, media }: EditMediaDialogProps
     const [currentChapter, setCurrentChapter] = useState(media.currentChapter.toString());
     const [totalChapters, setTotalChapters] = useState(media.totalChapters?.toString() || '');
     const [status, setStatus] = useState<"READING" | "COMPLETED" | "PLAN_TO_READ" | "ON_HOLD" | "DROPPED">(media.status);
-    const [sourceUrl, setSourceUrl] = useState(media.sourceUrl || (media as any).source_url || '');
+    const [sourceUrl, setSourceUrl] = useState(media.sourceUrl || (media as Media & { source_url?: string }).source_url || '');
     const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false);
 
     const updateMedia = useUpdateMedia();
@@ -30,7 +30,7 @@ export function EditMediaDialog({ isOpen, onClose, media }: EditMediaDialogProps
             setCurrentChapter(media.currentChapter.toString());
             setTotalChapters(media.totalChapters?.toString() || '');
             setStatus(media.status);
-            setSourceUrl(media.sourceUrl || (media as any).source_url || '');
+            setSourceUrl(media.sourceUrl || (media as Media & { source_url?: string }).source_url || '');
         }
     }, [isOpen, media]);
 
@@ -74,55 +74,61 @@ export function EditMediaDialog({ isOpen, onClose, media }: EditMediaDialogProps
     // Portal to <body>: this dialog is rendered next to a <tr>, and a <div> is invalid inside <tbody>
     return createPortal(
         <>
-            <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-                <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onClose} />
-                <div className="bg-mal-panel border border-mal-border rounded-xl p-6 w-full max-w-md relative shadow-xl animate-in zoom-in-95 duration-200">
-                    <div className="flex items-center justify-between mb-5">
-                        <div className="flex items-center gap-3">
-                            <div className="p-2 bg-mal-blue/15 rounded-lg">
-                                {media.type === 'DONGHUA' ? (
-                                    <Youtube size={20} className="text-mal-blue" />
-                                ) : (
-                                    <Book size={20} className="text-mal-blue" />
-                                )}
-                            </div>
-                            <h3 className="text-lg font-semibold text-mal-text">Edit Entry</h3>
+            <div className="fixed inset-0 z-(--z-modal) flex items-end sm:items-center justify-center sm:p-4">
+                <div className="fade-in absolute inset-0 bg-scrim" onClick={onClose} />
+                <div
+                    role="dialog"
+                    aria-modal="true"
+                    aria-labelledby={`edit-title-${media.id}`}
+                    className="sheet-in relative w-full sm:max-w-md max-h-[92dvh] overflow-y-auto bg-paper-2 border border-rule rounded-t-card sm:rounded-card shadow-card px-6 pt-6 pb-6"
+                >
+                    <div className="flex items-start justify-between gap-3 mb-5">
+                        <div className="min-w-0">
+                            <h2 id={`edit-title-${media.id}`} className="text-2xl text-ink">Edit Entry</h2>
+                            <p className="text-sm text-muted mt-1 truncate">{media.type === 'DONGHUA' ? 'Donghua' : 'Manhua'}</p>
                         </div>
-                        <button onClick={onClose} className="p-1.5 rounded-lg text-mal-text-secondary hover:text-white hover:bg-mal-hover transition-colors cursor-pointer">
+                        <button type="button" onClick={onClose} aria-label="Close" className="btn btn-quiet btn-icon -mr-2 shrink-0">
                             <X size={20} />
                         </button>
                     </div>
 
-                    <form onSubmit={handleSubmit} className="space-y-4">
+                    <form onSubmit={handleSubmit} className="space-y-5">
                         <div>
-                            <label className="block text-xs font-medium text-mal-text-secondary/80 mb-1">Title</label>
+                            <label htmlFor={`edit-name-${media.id}`} className="label">Title</label>
                             <input
+                                id={`edit-name-${media.id}`}
+                                name="title"
                                 type="text"
                                 value={title}
                                 onChange={(e) => setTitle(e.target.value)}
-                                className="w-full px-3 py-2.5 bg-mal-card border border-mal-border rounded-lg text-mal-text text-sm placeholder-mal-text-secondary/50 focus:outline-none focus:ring-2 focus:ring-mal-blue/30 focus:border-mal-blue transition-all"
+                                autoComplete="off"
+                                className="field"
                                 placeholder="Title"
                             />
                         </div>
 
                         <div className="grid grid-cols-2 gap-3">
                             <div>
-                                <label className="block text-xs font-medium text-mal-text-secondary/80 mb-1">Type</label>
+                                <label htmlFor={`edit-type-${media.id}`} className="label">Type</label>
                                 <select
+                                    id={`edit-type-${media.id}`}
+                                    name="type"
                                     value={type}
                                     onChange={(e) => setType(e.target.value as "MANHUA" | "DONGHUA")}
-                                    className="w-full px-3 py-2.5 bg-mal-card border border-mal-border rounded-lg text-mal-text text-sm focus:outline-none focus:ring-2 focus:ring-mal-blue/30 focus:border-mal-blue transition-all"
+                                    className="field"
                                 >
                                     <option value="MANHUA">Manhua</option>
                                     <option value="DONGHUA">Donghua</option>
                                 </select>
                             </div>
                             <div>
-                                <label className="block text-xs font-medium text-mal-text-secondary/80 mb-1">Status</label>
+                                <label htmlFor={`edit-status-${media.id}`} className="label">Status</label>
                                 <select
+                                    id={`edit-status-${media.id}`}
+                                    name="status"
                                     value={status}
-                                    onChange={(e) => setStatus(e.target.value as any)}
-                                    className="w-full px-3 py-2.5 bg-mal-card border border-mal-border rounded-lg text-mal-text text-sm focus:outline-none focus:ring-2 focus:ring-mal-blue/30 focus:border-mal-blue transition-all"
+                                    onChange={(e) => setStatus(e.target.value as typeof status)}
+                                    className="field"
                                 >
                                     <option value="READING">Reading / Watching</option>
                                     <option value="COMPLETED">Completed</option>
@@ -135,62 +141,72 @@ export function EditMediaDialog({ isOpen, onClose, media }: EditMediaDialogProps
 
                         <div className="grid grid-cols-2 gap-3">
                             <div>
-                                <label className="block text-xs font-medium text-mal-text-secondary/80 mb-1">Current Ch./Ep.</label>
+                                <label htmlFor={`edit-current-${media.id}`} className="label">Current Ch./Ep.</label>
                                 <input
+                                    id={`edit-current-${media.id}`}
+                                    name="currentChapter"
                                     type="number"
+                                    inputMode="numeric"
                                     value={currentChapter}
                                     onChange={(e) => setCurrentChapter(e.target.value)}
                                     min="0"
-                                    className="w-full px-3 py-2.5 bg-mal-card border border-mal-border rounded-lg text-mal-text text-sm focus:outline-none focus:ring-2 focus:ring-mal-blue/30 focus:border-mal-blue transition-all"
+                                    className="field tabular-nums"
                                 />
                             </div>
                             <div>
-                                <label className="block text-xs font-medium text-mal-text-secondary/80 mb-1">Total Ch./Ep.</label>
+                                <label htmlFor={`edit-total-${media.id}`} className="label">Total Ch./Ep.</label>
                                 <input
+                                    id={`edit-total-${media.id}`}
+                                    name="totalChapters"
                                     type="number"
+                                    inputMode="numeric"
                                     value={totalChapters}
                                     onChange={(e) => setTotalChapters(e.target.value)}
                                     min="0"
-                                    className="w-full px-3 py-2.5 bg-mal-card border border-mal-border rounded-lg text-mal-text text-sm focus:outline-none focus:ring-2 focus:ring-mal-blue/30 focus:border-mal-blue transition-all"
+                                    className="field tabular-nums"
                                     placeholder="Optional"
                                 />
                             </div>
                         </div>
 
                         <div>
-                            <label className="block text-xs font-medium text-mal-text-secondary/80 mb-1">Source URL</label>
+                            <label htmlFor={`edit-source-${media.id}`} className="label">Source URL</label>
                             <input
+                                id={`edit-source-${media.id}`}
+                                name="sourceUrl"
                                 type="url"
+                                inputMode="url"
                                 value={sourceUrl}
                                 onChange={(e) => setSourceUrl(e.target.value)}
-                                className="w-full px-3 py-2.5 bg-mal-card border border-mal-border rounded-lg text-mal-text text-sm placeholder-mal-text-secondary/50 focus:outline-none focus:ring-2 focus:ring-mal-blue/30 focus:border-mal-blue transition-all"
-                                placeholder="https://..."
+                                className="field"
+                                placeholder="https://…"
                             />
                         </div>
 
-                        <div className="flex items-center justify-between pt-2">
+                        <div className="flex items-center justify-between gap-2 pt-4 border-t border-rule">
                             <button
                                 type="button"
                                 onClick={() => setIsDeleteConfirmOpen(true)}
-                                className="flex items-center gap-1.5 px-3 py-2 text-sm text-mal-red hover:bg-mal-red/15 rounded-lg transition-colors cursor-pointer"
+                                className="btn btn-danger pl-3"
                             >
-                                <Trash2 size={16} />
+                                <Trash2 size={16} aria-hidden="true" />
                                 Delete
                             </button>
                             <div className="flex gap-2">
                                 <button
                                     type="button"
                                     onClick={onClose}
-                                    className="px-4 py-2.5 text-sm font-medium text-mal-text-secondary hover:bg-mal-hover rounded-lg transition-colors cursor-pointer"
+                                    className="btn btn-quiet"
                                 >
                                     Cancel
                                 </button>
                                 <button
                                     type="submit"
                                     disabled={updateMedia.isPending}
-                                    className="px-4 py-2.5 text-sm font-medium bg-mal-blue text-white rounded-lg hover:bg-mal-blue-dark transition-colors disabled:opacity-50 disabled:cursor-not-allowed shadow-sm cursor-pointer"
+                                    aria-busy={updateMedia.isPending}
+                                    className="btn btn-primary min-h-11 px-5"
                                 >
-                                    {updateMedia.isPending ? 'Saving...' : 'Save Changes'}
+                                    {updateMedia.isPending ? 'Saving…' : 'Save Changes'}
                                 </button>
                             </div>
                         </div>
