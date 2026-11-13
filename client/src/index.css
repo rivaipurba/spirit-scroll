@@ -1,5 +1,5 @@
 /* Hallmark · shape: app screen · genre: atmospheric · theme: Kiln (deal 3/3, seed personal-dark-tracker-manhua-4d05·0eb30845·2026-11-13·r0) · redesign: full
- * nav: kept shell, a top bar with the wordmark, two destinations, search, scan and new; filters as a left column on desktop, a sideways tab row on phones · signature: the backlog as heat, a ramp key and a Boska figure on every row that has new chapters, and the ember +1 only on those rows · states: loading, empty library, no match, scanning, scan done · kiln: ember
+ * nav: kept shell, a top bar with the wordmark, two destinations, search, scan and new; filters as a left column on desktop, a sideways tab row on phones · signature: the backlog as heat, a ramp key and a Geist figure on every row that has new chapters, and the ember +1 only on those rows · states: loading, empty library, no match, scanning, scan done · kiln: ember
  * axes: dark/high-contrast-serif/warm · posture: full-palette · contrast: pass · v2.0.0 */
 /* Hallmark · pre-emit critique: P4 H5 E4 S4 R4 V4 · weakest: S, a list of titles could be any tracker; the backlog is set as heat so a glance finds what is new, and the ember fill is spent only on rows that are behind */
 @import "tailwindcss";
@@ -112,9 +112,9 @@
     }
 
     .figure {
-        font-family: var(--font-display);
-        font-weight: var(--display-weight);
-        letter-spacing: -0.02em;
+        font-family: var(--font-body);
+        font-weight: 600;
+        letter-spacing: -0.01em;
         font-variant-numeric: lining-nums tabular-nums;
         line-height: 1;
     }

@@ -19,7 +19,7 @@ export function UpdateBadge({ count, type }: UpdateBadgeProps) {
             aria-label={tooltip}
         >
             <span className={`heat-key ${HEAT_BG[heatTier(count)]}`} aria-hidden="true" />
-            <span className="figure text-xl text-ink" aria-hidden="true">{count}</span>
+            <span className="figure text-lg text-ink" aria-hidden="true">{count}</span>
             <span className="text-xs text-ink-2" aria-hidden="true">new</span>
         </span>
     );
