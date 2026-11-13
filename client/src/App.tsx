@@ -58,19 +58,21 @@ function AuthenticatedApp() {
         headerAction={
           currentView === 'home' ? (
             <button
+              type="button"
               onClick={() => setIsDialogOpen(true)}
               aria-label="Add new entry"
-              className="p-2 rounded-lg bg-white/15 hover:bg-white/25 text-white/70 hover:text-white transition-colors cursor-pointer"
+              className="btn btn-ghost btn-icon sm:px-4"
               title="Add new entry"
             >
-              <Plus size={20} strokeWidth={2.5} />
+              <Plus size={18} strokeWidth={2.25} aria-hidden="true" />
+              <span className="hidden sm:inline">New</span>
             </button>
           ) : null
         }
       >
         <Suspense fallback={
           <div className="h-64 flex items-center justify-center">
-            <Loader2 className="w-8 h-8 animate-spin text-mal-blue" />
+            <Loader2 className="w-6 h-6 animate-spin text-muted" aria-label="Loading" />
           </div>
         }>
           {currentView === 'home' && (
@@ -94,8 +96,8 @@ function AppContent() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-mal-page flex items-center justify-center">
-        <Loader2 size={32} className="text-mal-blue animate-spin" />
+      <div className="min-h-dvh bg-paper flex items-center justify-center">
+        <Loader2 size={24} className="text-muted animate-spin" aria-label="Loading" />
       </div>
     );
   }

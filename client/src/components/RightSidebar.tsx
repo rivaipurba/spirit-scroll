@@ -1,5 +1,5 @@
-import { ArrowUpRight, TrendingUp } from 'lucide-react';
 import type { MediaStats } from '../types/index';
+import { HEAT_BG, heatTier } from '../lib/heat';
 
 interface RightSidebarProps {
     stats: MediaStats;
@@ -7,73 +7,62 @@ interface RightSidebarProps {
 
 export function RightSidebar({ stats }: RightSidebarProps) {
     const { counts, latestUpdates } = stats;
+    const behind = latestUpdates
+        .map((m) => ({ ...m, gap: (m.latestReleasedChapter ?? 0) - m.currentChapter }))
+        .filter((m) => m.gap > 0);
 
     return (
-        <aside className="hidden lg:block w-64 shrink-0 p-4 space-y-5">
-            <div className="bg-mal-panel rounded-lg border border-mal-border p-4">
-                <h3 className="text-xs font-semibold text-mal-text-secondary uppercase tracking-wider mb-3 flex items-center gap-1.5">
-                    <TrendingUp size={14} />
-                    Stats
-                </h3>
-                <div className="space-y-3">
-                    <div className="flex items-center justify-between">
-                        <span className="text-sm text-mal-text-secondary">Total Entries</span>
-                        <span className="text-sm font-bold text-mal-text">{stats.total}</span>
-                    </div>
-                    <div className="flex items-center justify-between">
-                        <span className="text-sm text-mal-text-secondary">Chapters Read</span>
-                        <span className="text-sm font-bold text-mal-text">{stats.chaptersRead}</span>
-                    </div>
-                    <div className="flex items-center justify-between">
-                        <span className="text-sm text-mal-text-secondary">With Updates</span>
-                        <span className="text-sm font-bold text-mal-red">{stats.withUpdates}</span>
-                    </div>
-                </div>
-
-                <div className="mt-4 space-y-2">
-                    <StatusBar label="Reading" count={counts.READING} />
-                    <StatusBar label="Watching" count={counts.WATCHING} />
-                    <StatusBar label="Completed" count={counts.COMPLETED} />
-                    <StatusBar label="On Hold" count={counts.ON_HOLD} />
-                    <StatusBar label="Dropped" count={counts.DROPPED} />
-                    <StatusBar label="Plan to Read" count={counts.PLAN_TO_READ} />
-                </div>
-            </div>
-
-            {latestUpdates.length > 0 && (
-                <div className="bg-mal-panel rounded-lg border border-mal-border p-4">
-                    <h3 className="text-xs font-semibold text-mal-text-secondary uppercase tracking-wider mb-3 flex items-center gap-1.5">
-                        <ArrowUpRight size={14} />
-                        Latest Updates
-                    </h3>
-                    <div className="space-y-2.5">
-                        {latestUpdates.map((m) => {
-                            const gap = (m.latestReleasedChapter ?? 0) - m.currentChapter;
-                            return gap > 0 ? (
-                                <div key={m.id}>
-                                    <div className="min-w-0">
-                                        <p className="text-xs font-medium text-mal-text truncate leading-tight">
-                                            {m.title}
-                                        </p>
-                                        <p className="text-[11px] text-mal-red font-semibold mt-0.5">
-                                            {gap} new {m.type === 'DONGHUA' ? 'ep' : 'ch'}
-                                        </p>
-                                    </div>
-                                </div>
-                            ) : null;
-                        })}
-                    </div>
-                </div>
+        <aside className="hidden lg:block w-72 shrink-0 sticky top-16 self-start max-h-[calc(100dvh-4rem)] overflow-y-auto border-l border-rule px-6 py-6">
+            {behind.length > 0 && (
+                <section aria-labelledby="latest-updates-head" className="mb-10">
+                    <h2 id="latest-updates-head" className="text-xl text-ink mb-4">Latest updates</h2>
+                    <ul className="flex flex-col">
+                        {behind.map((m) => (
+                            <li key={m.id} className="flex items-center gap-3 py-2.5 border-t border-rule first:border-t-0 first:pt-0">
+                                <p className="flex-1 min-w-0 text-sm text-ink truncate" title={m.title}>{m.title}</p>
+                                <span className={`heat-key ${HEAT_BG[heatTier(m.gap)]}`} aria-hidden="true" />
+                                <p className="shrink-0 text-sm text-ink-2">
+                                    <span className="figure text-lg text-ink">{m.gap}</span> new {m.type === 'DONGHUA' ? 'ep' : 'ch'}
+                                </p>
+                            </li>
+                        ))}
+                    </ul>
+                </section>
             )}
+
+            <section aria-labelledby="stats-head">
+                <h2 id="stats-head" className="text-xl text-ink mb-4">Stats</h2>
+                <dl className="flex flex-col mb-6">
+                    {[
+                        ['Total Entries', stats.total],
+                        ['Chapters Read', stats.chaptersRead],
+                        ['With Updates', stats.withUpdates],
+                    ].map(([label, value]) => (
+                        <div key={label} className="flex items-baseline justify-between gap-3 py-2 border-t border-rule first:border-t-0 first:pt-0">
+                            <dt className="text-sm text-ink-2">{label}</dt>
+                            <dd className="figure text-2xl text-ink">{value}</dd>
+                        </div>
+                    ))}
+                </dl>
+
+                <dl className="flex flex-col text-sm">
+                    <StatusRow label="Reading" count={counts.READING} />
+                    <StatusRow label="Watching" count={counts.WATCHING} />
+                    <StatusRow label="Completed" count={counts.COMPLETED} />
+                    <StatusRow label="On Hold" count={counts.ON_HOLD} />
+                    <StatusRow label="Dropped" count={counts.DROPPED} />
+                    <StatusRow label="Plan to Read" count={counts.PLAN_TO_READ} />
+                </dl>
+            </section>
         </aside>
     );
 }
 
-function StatusBar({ label, count }: { label: string; count: number }) {
+function StatusRow({ label, count }: { label: string; count: number }) {
     return (
-        <div className="flex items-center justify-between text-xs">
-            <span className="text-mal-text-secondary">{label}</span>
-            <span className="font-medium text-mal-text">{count}</span>
+        <div className="flex items-center justify-between py-1.5 border-t border-rule">
+            <dt className="text-ink-2">{label}</dt>
+            <dd className="tabular-nums text-ink">{count}</dd>
         </div>
     );
 }

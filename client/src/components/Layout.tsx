@@ -24,7 +24,7 @@ export function Layout({
     headerAction,
 }: LayoutProps) {
     return (
-        <div className="min-h-screen bg-mal-page flex flex-col">
+        <div className="min-h-dvh bg-paper text-ink flex flex-col">
             <TopNavbar
                 currentView={currentView}
                 onNavigate={onNavigate}
@@ -33,12 +33,12 @@ export function Layout({
                 onScan={onScan}
             />
 
-            <div className="flex flex-1 max-w-[1400px] mx-auto w-full">
-                {/* Left Sidebar */}
+            <div className="flex flex-col md:flex-row flex-1 max-w-(--container) mx-auto w-full">
+                {/* Filters: a left column on desktop, a sideways tab row on phones */}
                 <Sidebar counts={stats.counts} total={stats.total} />
 
                 {/* Main Content */}
-                <main className="flex-1 min-w-0 p-4 md:p-6 lg:p-8">
+                <main className="flex-1 min-w-0 px-4 pt-4 pb-16 md:px-8 md:pt-6">
                     {children}
                 </main>
 

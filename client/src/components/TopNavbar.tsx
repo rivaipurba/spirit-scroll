@@ -1,4 +1,4 @@
-import { Search, Sparkles, Settings as SettingsIcon } from 'lucide-react';
+import { Search, RefreshCw, Settings as SettingsIcon, X } from 'lucide-react';
 import { useSearch } from '../context/SearchContext';
 import { useState, useRef, useEffect } from 'react';
 import type { MouseEvent } from 'react';
@@ -50,97 +50,98 @@ export function TopNavbar({ currentView, onNavigate, headerAction, isScanning, o
         }
     };
 
+    const navLink = (view: 'home' | 'settings', label: string) => (
+        <button
+            type="button"
+            onClick={() => onNavigate(view)}
+            aria-current={currentView === view ? 'page' : undefined}
+            className={`btn px-3 ${
+                currentView === view
+                    ? 'bg-paper-3 text-ink'
+                    : 'text-muted hover:text-ink hover:bg-paper-2'
+            }`}
+        >
+            {label}
+        </button>
+    );
+
     return (
-        <header className="bg-mal-panel border-b border-mal-border shadow-sm sticky top-0 z-30">
-            <div className="mx-auto flex items-center justify-between px-4 h-14 max-w-[1400px]">
-                <div className="flex items-center gap-6">
-                    <h1 className="text-lg font-bold tracking-wide whitespace-nowrap text-mal-text">
+        <header className="bg-paper border-b border-rule sticky top-0 z-(--z-sticky-nav)">
+            <div className="relative mx-auto flex items-center justify-between gap-3 px-4 md:px-8 h-16 max-w-(--container)">
+                <div className="flex items-center gap-6 min-w-0">
+                    <button
+                        type="button"
+                        onClick={() => onNavigate('home')}
+                        aria-label="SpiritScroll, go to library"
+                        className="font-display text-2xl leading-none tracking-[-0.02em] text-ink whitespace-nowrap rounded-md focus-visible:outline-2 focus-visible:outline-focus focus-visible:outline-offset-4"
+                    >
                         SpiritScroll
-                    </h1>
-                    <nav className="hidden md:flex items-center gap-1">
-                        <button
-                            onClick={() => onNavigate('home')}
-                            className={`px-3 py-1.5 rounded text-sm font-medium transition-colors cursor-pointer ${
-                                currentView === 'home'
-                                    ? 'bg-mal-hover text-white'
-                                    : 'text-mal-text-secondary hover:text-white hover:bg-mal-hover'
-                            }`}
-                        >
-                            Home
-                        </button>
-                        <button
-                            onClick={() => onNavigate('settings')}
-                            className={`px-3 py-1.5 rounded text-sm font-medium transition-colors cursor-pointer ${
-                                currentView === 'settings'
-                                    ? 'bg-mal-hover text-white'
-                                    : 'text-mal-text-secondary hover:text-white hover:bg-mal-hover'
-                            }`}
-                        >
-                            Settings
-                        </button>
+                    </button>
+                    <nav aria-label="Main" className="hidden md:flex items-center gap-1">
+                        {navLink('home', 'Home')}
+                        {navLink('settings', 'Settings')}
                     </nav>
                 </div>
 
                 <div className="flex items-center gap-2">
                     {isSearchOpen ? (
-                        <div className="flex items-center bg-mal-card rounded px-2.5 py-1.5 border border-mal-border focus-within:border-mal-blue/50 transition-colors">
-                            <Search size={16} className="text-mal-text-secondary mr-2 shrink-0" />
-                            <input
-                                ref={inputRef}
-                                type="text"
-                                value={inputValue}
-                                onChange={(e) => setInputValue(e.target.value)}
-                                placeholder="Search titles..."
-                                className="w-40 sm:w-56 bg-transparent border-none p-0 text-sm text-mal-text placeholder:text-mal-text-secondary/50 focus:outline-none focus:ring-0"
-                            />
-                            <button
-                                onClick={handleSearchToggle}
-                                className="ml-1 p-0.5 rounded text-mal-text-secondary hover:text-white cursor-pointer"
-                            >
-                                <span className="text-xs font-bold">✕</span>
-                            </button>
+                        <div className="absolute inset-x-0 top-full border-b border-rule bg-paper px-4 py-2 md:static md:border-0 md:p-0 md:bg-transparent">
+                            <div className="flex items-center gap-2 h-10 rounded-full bg-paper-2 px-3 shadow-[inset_0_0_0_1px_var(--color-rule-strong)] focus-within:outline-2 focus-within:outline-focus focus-within:-outline-offset-2">
+                                <Search size={16} className="text-muted shrink-0" aria-hidden="true" />
+                                <input
+                                    ref={inputRef}
+                                    type="search"
+                                    value={inputValue}
+                                    onChange={(e) => setInputValue(e.target.value)}
+                                    placeholder="Search titles…"
+                                    aria-label="Search titles"
+                                    className="w-full md:w-56 min-w-0 bg-transparent border-0 p-0 text-md text-ink focus:outline-none"
+                                />
+                                <button
+                                    type="button"
+                                    onClick={handleSearchToggle}
+                                    aria-label="Close search"
+                                    className="hit shrink-0 rounded-full p-1 text-muted hover:text-ink focus-visible:outline-2 focus-visible:outline-focus"
+                                >
+                                    <X size={16} />
+                                </button>
+                            </div>
                         </div>
                     ) : (
                         <button
+                            type="button"
                             onClick={handleSearchToggle}
-                            className="p-2 rounded-lg text-mal-text-secondary hover:text-white hover:bg-mal-hover transition-colors cursor-pointer"
+                            className="btn btn-quiet btn-icon"
+                            aria-label="Search"
                             title="Search"
                         >
-                            <Search size={20} />
+                            <Search size={18} />
                         </button>
                     )}
 
                     <button
+                        type="button"
                         onClick={onScan}
                         disabled={isScanning}
                         title="Scan for updates"
                         aria-label="Scan for updates"
-                        className="flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-lg text-xs font-semibold bg-mal-blue/20 text-mal-blue hover:bg-mal-blue/30 transition-all disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+                        className="btn btn-ghost btn-icon sm:px-4"
                     >
-                        <Sparkles size={14} className={isScanning ? 'animate-pulse' : ''} />
-                        <span className="hidden sm:inline">{isScanning ? 'Scanning...' : 'Scan'}</span>
+                        <RefreshCw size={16} className={isScanning ? 'animate-spin' : ''} aria-hidden="true" />
+                        <span className="hidden sm:inline">{isScanning ? 'Scanning…' : 'Scan'}</span>
                     </button>
 
                     {headerAction}
 
-                    <div className="flex md:hidden items-center gap-1">
-                        <button
-                            onClick={() => onNavigate('home')}
-                            className={`p-2 rounded-lg transition-colors cursor-pointer ${
-                                currentView === 'home' ? 'text-white' : 'text-mal-text-secondary hover:text-white'
-                            }`}
-                        >
-                            <span className="text-xs font-bold">HOME</span>
-                        </button>
-                        <button
-                            onClick={() => onNavigate('settings')}
-                            className={`p-2 rounded-lg transition-colors cursor-pointer ${
-                                currentView === 'settings' ? 'text-white' : 'text-mal-text-secondary hover:text-white'
-                            }`}
-                        >
-                            <SettingsIcon size={18} />
-                        </button>
-                    </div>
+                    <button
+                        type="button"
+                        onClick={() => onNavigate('settings')}
+                        aria-label="Settings"
+                        aria-current={currentView === 'settings' ? 'page' : undefined}
+                        className={`btn btn-icon md:hidden ${currentView === 'settings' ? 'bg-paper-3 text-ink' : 'btn-quiet'}`}
+                    >
+                        <SettingsIcon size={18} />
+                    </button>
                 </div>
             </div>
         </header>

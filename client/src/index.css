@@ -1,62 +1,170 @@
-@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@100..900&display=swap');
+/* Hallmark · shape: app screen · genre: atmospheric · theme: Kiln (deal 3/3, seed personal-dark-tracker-manhua-4d05·0eb30845·2026-11-13·r0) · redesign: full
+ * nav: kept shell, a top bar with the wordmark, two destinations, search, scan and new; filters as a left column on desktop, a sideways tab row on phones · signature: the backlog as heat, a ramp key and a Boska figure on every row that has new chapters, and the ember +1 only on those rows · states: loading, empty library, no match, scanning, scan done · kiln: ember
+ * axes: dark/high-contrast-serif/warm · posture: full-palette · contrast: pass · v2.0.0 */
+/* Hallmark · pre-emit critique: P4 H5 E4 S4 R4 V4 · weakest: S, a list of titles could be any tracker; the backlog is set as heat so a glance finds what is new, and the ember fill is spent only on rows that are behind */
 @import "tailwindcss";
+@import "./tokens.css";
+@import "./base.css" layer(base);
 
+/* Transitional: old token names mapped onto Kiln while components move over */
 @theme {
-  --font-sans: "Outfit", sans-serif;
-  --color-mal-blue: #3b82f6;
-  --color-mal-blue-dark: #2563eb;
-  --color-mal-page: #0f0f0f;
-  --color-mal-panel: #1a1a1a;
-  --color-mal-card: #222222;
-  --color-mal-border: rgba(255, 255, 255, 0.08);
-  --color-mal-hover: rgba(255, 255, 255, 0.05);
-  --color-mal-text: #e0e0e0;
-  --color-mal-text-secondary: #888888;
-  --color-mal-green: #4ade80;
-  --color-mal-blue-status: #60a5fa;
-  --color-mal-yellow: #fbbf24;
-  --color-mal-orange: #fb923c;
-  --color-mal-red: #f87171;
-  --color-mal-gray: #6b7280;
+    --color-mal-blue: var(--color-accent);
+    --color-mal-blue-dark: var(--color-accent-2);
+    --color-mal-page: var(--color-paper);
+    --color-mal-panel: var(--color-paper-2);
+    --color-mal-card: var(--color-paper-3);
+    --color-mal-border: var(--color-rule);
+    --color-mal-hover: var(--color-paper-3);
+    --color-mal-text: var(--color-ink);
+    --color-mal-text-secondary: var(--color-muted);
+    --color-mal-green: var(--color-success);
+    --color-mal-blue-status: var(--color-ink-2);
+    --color-mal-yellow: var(--color-heat-5);
+    --color-mal-orange: var(--color-heat-4);
+    --color-mal-red: var(--color-error);
+    --color-mal-gray: var(--color-muted);
 }
 
-body {
-  @apply bg-mal-page text-mal-text antialiased font-sans overflow-x-hidden;
-  margin: 0;
+@layer base {
+    body {
+        background: var(--color-paper);
+        color: var(--color-ink);
+        font-family: var(--font-body);
+    }
+
+    button:not(:disabled), [role="button"] {
+        cursor: pointer;
+    }
+
+    input::placeholder {
+        color: var(--color-muted);
+        opacity: 0.8;
+    }
 }
 
-::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
+@layer components {
+    /* Pills: one ember primary per screen, ghost pills for the rest */
+    .btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: var(--space-xs);
+        min-height: 40px;
+        padding: 0 var(--space-md);
+        border-radius: var(--radius-pill);
+        font-size: var(--text-sm);
+        font-weight: 500;
+        line-height: 1;
+        white-space: nowrap;
+        transition: background-color var(--dur-short) var(--ease-out), color var(--dur-short) var(--ease-out), transform var(--dur-micro) var(--ease-out);
+    }
+    .btn:active:not(:disabled) { transform: translateY(1px); }
+    .btn:focus-visible { outline: 2px solid var(--color-focus); outline-offset: 2px; }
+    .btn:disabled { opacity: 0.55; cursor: not-allowed; }
+
+    .btn-primary { background: var(--color-accent); color: var(--color-accent-ink); }
+    .btn-primary:hover:not(:disabled) { background: var(--color-accent-2); }
+
+    .btn-ghost { background: transparent; color: var(--color-ink); box-shadow: inset 0 0 0 var(--rule-hair) var(--color-rule-strong); }
+    .btn-ghost:hover:not(:disabled) { background: var(--color-paper-3); }
+
+    .btn-quiet { background: transparent; color: var(--color-ink-2); }
+    .btn-quiet:hover:not(:disabled) { background: var(--color-paper-3); color: var(--color-ink); }
+
+    .btn-danger { background: transparent; color: var(--color-error); box-shadow: inset 0 0 0 var(--rule-hair) var(--color-rule-strong); }
+    .btn-danger:hover:not(:disabled) { background: var(--color-paper-3); }
+
+    .btn-icon { min-width: 40px; padding: 0; }
+
+    /* Fields: smoked wells, constant border, an inset outline for focus */
+    .field {
+        display: block;
+        width: 100%;
+        min-height: 44px;
+        padding: 0 var(--space-sm);
+        background: var(--color-paper-2);
+        color: var(--color-ink);
+        border: var(--rule-hair) solid var(--color-rule-strong);
+        border-radius: var(--radius-well);
+        font-size: var(--text-md);
+        transition: background-color var(--dur-short) var(--ease-out);
+    }
+    .field:hover:not(:disabled) { background: var(--color-paper-3); }
+    .field:focus-visible { outline: 2px solid var(--color-focus); outline-offset: -2px; }
+    .field:disabled { opacity: 0.55; cursor: not-allowed; }
+
+    .label {
+        display: block;
+        margin-bottom: var(--space-2xs);
+        font-size: var(--text-sm);
+        font-weight: 500;
+        color: var(--color-muted);
+    }
+
+    /* A 44px hit target around a smaller control */
+    .hit { position: relative; }
+    .hit::after { content: ""; position: absolute; inset: -4px; }
+
+    /* Progress fills grow by transform, never by width */
+    .meter {
+        position: relative;
+        height: 3px;
+        overflow: hidden;
+        border-radius: var(--radius-pill);
+        background: var(--color-paper-3);
+    }
+    .meter > span {
+        position: absolute;
+        inset: 0;
+        background: var(--color-ink-2);
+        transform-origin: left center;
+        transition: transform var(--dur-long) var(--ease-out);
+    }
+
+    /* Heat key: a short bar of the ramp step the backlog reaches */
+    .heat-key {
+        display: inline-block;
+        width: 16px;
+        height: 4px;
+        flex-shrink: 0;
+        border-radius: var(--radius-pill);
+    }
+
+    .figure {
+        font-family: var(--font-display);
+        font-weight: var(--display-weight);
+        letter-spacing: -0.02em;
+        font-variant-numeric: lining-nums tabular-nums;
+        line-height: 1;
+    }
 }
 
-::-webkit-scrollbar-track {
-  background: transparent;
+/* Dialogs rise from the bottom on phones, settle in the centre on wider screens */
+@keyframes sheet-in {
+    from { opacity: 0; transform: translateY(16px); }
+    to { opacity: 1; transform: translateY(0); }
 }
-
-::-webkit-scrollbar-thumb {
-  @apply bg-gray-700 rounded-full;
+@keyframes fade-in {
+    from { opacity: 0; }
+    to { opacity: 1; }
 }
-
-::-webkit-scrollbar-thumb:hover {
-  @apply bg-gray-600;
-}
+.sheet-in { animation: sheet-in var(--dur-long) var(--ease-out); }
+.fade-in { animation: fade-in var(--dur-short) var(--ease-out); }
 
 /* Progress number pulse on quick +/- update */
 @keyframes progress-pulse {
-  0% { transform: scale(1); }
-  40% { transform: scale(1.15); }
-  100% { transform: scale(1); }
+    0% { transform: scale(1); }
+    40% { transform: scale(1.15); }
+    100% { transform: scale(1); }
 }
 
 .progress-pulse {
-  animation: progress-pulse 200ms ease-out;
-  display: inline-block;
-  transform-origin: center;
+    animation: progress-pulse 200ms var(--ease-out);
+    display: inline-block;
+    transform-origin: center;
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .progress-pulse {
-    animation: none;
-  }
+    .progress-pulse, .sheet-in, .fade-in { animation: none; }
+    .btn, .field, .meter > span { transition: none; }
 }
