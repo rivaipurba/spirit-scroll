@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Loader2, Book } from 'lucide-react';
+import { Loader2, BookOpen, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useMediaList, useMediaStats, useScanUpdates } from '../hooks/useMedia';
 import { MediaTable } from './MediaTable';
 import { ScanProgressBar } from './ScanProgressBar';
@@ -19,6 +19,12 @@ interface DashboardProps {
 type SortOption = 'updates' | 'title' | 'unwatched';
 
 const PAGE_SIZE = 50;
+
+const SORT_OPTIONS: { id: SortOption; label: string }[] = [
+    { id: 'updates', label: 'Updates' },
+    { id: 'unwatched', label: 'Most unwatched' },
+    { id: 'title', label: 'A–Z' },
+];
 
 export function Dashboard({ isDialogOpen, onCloseDialog, onStatsChange, registerScanFn, onScanningChange }: DashboardProps) {
     const [sortBy, setSortBy] = useState<SortOption>('updates');
@@ -69,9 +75,9 @@ export function Dashboard({ isDialogOpen, onCloseDialog, onStatsChange, register
 
     if (isLoading) {
         return (
-            <div className="h-64 flex flex-col items-center justify-center text-mal-text-secondary">
-                <Loader2 className="w-8 h-8 animate-spin mb-2 text-mal-blue" />
-                <p className="text-sm font-medium">Loading...</p>
+            <div className="h-64 flex flex-col items-center justify-center gap-3 text-muted" role="status">
+                <Loader2 className="w-6 h-6 animate-spin" aria-hidden="true" />
+                <p className="text-sm">Loading…</p>
             </div>
         );
     }
@@ -79,10 +85,10 @@ export function Dashboard({ isDialogOpen, onCloseDialog, onStatsChange, register
     if (stats?.total === 0 && !searchQuery && !apiType) {
         return (
             <>
-                <div className="bg-mal-panel rounded-lg border border-mal-border p-12 text-center">
-                    <Book size={48} className="mx-auto mb-4 text-mal-text-secondary/30" />
-                    <p className="text-mal-text-secondary font-medium">No entries yet</p>
-                    <p className="text-mal-text-secondary/60 text-sm mt-1">Click the + button above to add your first entry!</p>
+                <div className="max-w-md mx-auto py-16 md:py-24 text-center">
+                    <BookOpen size={32} className="mx-auto mb-6 text-muted" strokeWidth={1.5} aria-hidden="true" />
+                    <h1 className="text-3xl text-ink mx-auto">No entries yet</h1>
+                    <p className="text-md text-ink-2 mt-3 mx-auto">Click the + button above to add your first entry!</p>
                 </div>
                 <NewEntryDialog isOpen={isDialogOpen} onClose={onCloseDialog} />
             </>
@@ -91,45 +97,28 @@ export function Dashboard({ isDialogOpen, onCloseDialog, onStatsChange, register
 
     return (
         <div>
-            <div className="flex items-center justify-between mb-4">
-                <div className="flex items-center gap-2">
-                    <div className="flex items-center gap-1 bg-mal-panel border border-mal-border rounded-lg p-0.5 shadow-sm">
+            <div className="flex items-center justify-between gap-3 mb-4">
+                <div role="group" aria-label="Sort entries" className="flex items-center gap-0.5 rounded-full bg-paper-2 p-1 shadow-[inset_0_0_0_1px_var(--color-rule)] overflow-x-auto [scrollbar-width:none]">
+                    {SORT_OPTIONS.map(({ id, label }) => (
                         <button
-                            onClick={() => { setSortBy('updates'); setPage(1); }}
-                            className={`px-3 py-1.5 rounded-md text-xs font-medium transition-all cursor-pointer ${
-                                sortBy === 'updates'
-                                    ? 'bg-mal-blue text-white shadow-sm'
-                                    : 'text-mal-text-secondary hover:text-white'
+                            key={id}
+                            type="button"
+                            onClick={() => { setSortBy(id); setPage(1); }}
+                            aria-pressed={sortBy === id}
+                            className={`btn min-h-8 px-3 shrink-0 ${
+                                sortBy === id
+                                    ? 'bg-ink text-paper'
+                                    : 'text-ink-2 hover:text-ink hover:bg-paper-3'
                             }`}
                         >
-                            Updates
+                            {label}
                         </button>
-                        <button
-                            onClick={() => { setSortBy('unwatched'); setPage(1); }}
-                            className={`px-3 py-1.5 rounded-md text-xs font-medium transition-all cursor-pointer ${
-                                sortBy === 'unwatched'
-                                    ? 'bg-mal-blue text-white shadow-sm'
-                                    : 'text-mal-text-secondary hover:text-white'
-                            }`}
-                        >
-                            Most unwatched
-                        </button>
-                        <button
-                            onClick={() => { setSortBy('title'); setPage(1); }}
-                            className={`px-3 py-1.5 rounded-md text-xs font-medium transition-all cursor-pointer ${
-                                sortBy === 'title'
-                                    ? 'bg-mal-blue text-white shadow-sm'
-                                    : 'text-mal-text-secondary hover:text-white'
-                            }`}
-                        >
-                            A–Z
-                        </button>
-                    </div>
+                    ))}
                 </div>
 
-                <div className="text-xs text-mal-text-secondary/60">
+                <p className="text-sm text-muted tabular-nums whitespace-nowrap">
                     {totalItems} entries
-                </div>
+                </p>
             </div>
 
             {(isScanning || result) && (
@@ -147,25 +136,29 @@ export function Dashboard({ isDialogOpen, onCloseDialog, onStatsChange, register
             />
 
             {totalPages > 1 && (
-                <div className="flex items-center justify-center gap-4 mt-6">
+                <nav aria-label="Pagination" className="flex items-center justify-between md:justify-center gap-4 mt-6">
                     <button
+                        type="button"
                         onClick={handlePrevPage}
                         disabled={page <= 1}
-                        className="px-4 py-2 text-sm font-medium rounded-lg border border-mal-border bg-mal-panel text-mal-text-secondary hover:bg-mal-hover disabled:opacity-40 disabled:cursor-not-allowed transition-colors cursor-pointer"
+                        className="btn btn-ghost pl-3"
                     >
-                        ← Previous
+                        <ChevronLeft size={16} aria-hidden="true" />
+                        Previous
                     </button>
-                    <span className="text-sm text-mal-text-secondary/60">
+                    <span className="text-sm text-muted tabular-nums">
                         Page {page} of {totalPages}
                     </span>
                     <button
+                        type="button"
                         onClick={handleNextPage}
                         disabled={page >= totalPages}
-                        className="px-4 py-2 text-sm font-medium rounded-lg border border-mal-border bg-mal-panel text-mal-text-secondary hover:bg-mal-hover disabled:opacity-40 disabled:cursor-not-allowed transition-colors cursor-pointer"
+                        className="btn btn-ghost pr-3"
                     >
-                        Next →
+                        Next
+                        <ChevronRight size={16} aria-hidden="true" />
                     </button>
-                </div>
+                </nav>
             )}
 
             <NewEntryDialog isOpen={isDialogOpen} onClose={onCloseDialog} />

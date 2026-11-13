@@ -73,7 +73,7 @@ export function TopNavbar({ currentView, onNavigate, headerAction, isScanning, o
                         type="button"
                         onClick={() => onNavigate('home')}
                         aria-label="SpiritScroll, go to library"
-                        className="font-display text-2xl leading-none tracking-[-0.02em] text-ink whitespace-nowrap rounded-md focus-visible:outline-2 focus-visible:outline-focus focus-visible:outline-offset-4"
+                        className="font-display text-2xl leading-none tracking-[-0.02em] text-ink whitespace-nowrap rounded-md py-2.5 focus-visible:outline-2 focus-visible:outline-focus focus-visible:outline-offset-4"
                     >
                         SpiritScroll
                     </button>

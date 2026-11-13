@@ -1,9 +1,9 @@
 import { useState } from 'react';
-import { Plus, Minus, ExternalLink, Star } from 'lucide-react';
+import { Plus, Minus, ExternalLink, Star, BookOpen } from 'lucide-react';
 import { MediaTableRow } from './MediaTableRow';
 import { UpdateBadge } from './UpdateBadge';
 import { EditMediaDialog } from './EditMediaDialog';
-import { STATUS_COLORS, getStatusLabel } from '../lib/media-utils';
+import { getStatusLabel } from '../lib/media-utils';
 import { useUpdateProgress, useUpdateMedia } from '../hooks/useMedia';
 import { useToastContext } from '../context/ToastContext';
 import type { Media } from '../types/index';
@@ -59,97 +59,91 @@ function MobileCard({ media }: { media: Media }) {
         <>
             <div
                 onClick={() => setIsEditOpen(true)}
-                className="flex flex-col gap-2 px-3 py-3 border-b border-mal-border hover:bg-mal-hover transition-colors cursor-pointer last:border-0"
+                className={`flex flex-col gap-3 px-4 py-4 cursor-pointer transition-colors duration-(--dur-short) ${
+                    hasUpdate ? 'bg-paper-2 active:bg-paper-3' : 'active:bg-paper-2'
+                }`}
             >
-                <div className="flex gap-3">
-                    {/* Title + subtitle */}
+                <div className="flex items-start gap-2">
                     <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2">
-                            <div className="min-w-0 flex-1 text-sm font-semibold text-mal-text leading-tight">
-                                {media.sourceUrl ? (
-                                    <a
-                                        href={media.sourceUrl}
-                                        target="_blank"
-                                        rel="noopener noreferrer"
-                                        className="hover:text-mal-blue transition-colors inline-flex items-center gap-1 max-w-full"
-                                        onClick={(e) => e.stopPropagation()}
-                                    >
-                                        <span className="truncate min-w-0">{media.title}</span>
-                                        <ExternalLink size={12} className="opacity-40 flex-shrink-0" />
-                                    </a>
-                                ) : (
-                                    <span className="line-clamp-2">{media.title}</span>
-                                )}
-                            </div>
+                        <div className={`text-md leading-snug ${hasUpdate ? 'text-ink font-medium' : 'text-ink-2'}`}>
+                            {media.sourceUrl ? (
+                                <a
+                                    href={media.sourceUrl}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="inline-flex items-start gap-1.5 max-w-full rounded-sm focus-visible:outline-2 focus-visible:outline-focus"
+                                    onClick={(e) => e.stopPropagation()}
+                                >
+                                    <span className="line-clamp-2 min-w-0">{media.title}</span>
+                                    <ExternalLink size={12} className="shrink-0 mt-1.5 text-muted" aria-hidden="true" />
+                                </a>
+                            ) : (
+                                <span className="line-clamp-2">{media.title}</span>
+                            )}
+                        </div>
+                        <p className="text-sm text-muted mt-0.5">
+                            {media.type === 'DONGHUA' ? 'Donghua' : 'Manhua'}
+                            <span className="text-muted">, </span>
+                            <span className={isFinished ? 'text-ink-2' : 'text-muted'}>
+                                {isFinished ? 'Completed' : getStatusLabel(media.status, media.type)}
+                            </span>
+                        </p>
+                    </div>
+                    <button
+                        type="button"
+                        onClick={(e) => {
+                            e.stopPropagation();
+                            updateMedia.mutate({ id: media.id, isPinned: !media.isPinned });
+                        }}
+                        disabled={updateMedia.isPending}
+                        className={`btn btn-icon btn-quiet -mr-2 -mt-2 min-h-11 min-w-11 ${media.isPinned ? 'text-ink!' : 'text-muted!'}`}
+                        aria-label={media.isPinned ? 'Unpin' : 'Pin to top'}
+                        aria-pressed={Boolean(media.isPinned)}
+                        title={media.isPinned ? 'Unpin from top' : 'Pin to top'}
+                    >
+                        <Star size={16} className={media.isPinned ? 'fill-current' : 'fill-none'} strokeWidth={2} />
+                    </button>
+                </div>
+
+                <div className="flex items-center gap-3">
+                    <div className="flex-1 min-w-0">
+                        <div className="flex items-baseline justify-between gap-2">
+                            <span className="text-sm text-ink tabular-nums whitespace-nowrap">
+                                <span key={pulseCount} className="progress-pulse">{label} {media.currentChapter}</span>
+                                {media.totalChapters ? <span className="text-muted">{` / ${media.totalChapters}`}</span> : ''}
+                            </span>
                             {hasUpdate && media.latestReleasedChapter != null && (
                                 <UpdateBadge
                                     count={media.latestReleasedChapter - media.currentChapter}
                                     type={media.type}
                                 />
                             )}
-                            <button
-                                onClick={(e) => {
-                                    e.stopPropagation();
-                                    updateMedia.mutate({ id: media.id, isPinned: !media.isPinned });
-                                }}
-                                disabled={updateMedia.isPending}
-                                className="p-1 rounded text-mal-text-secondary hover:text-mal-yellow hover:bg-mal-hover transition-colors cursor-pointer"
-                                aria-label={media.isPinned ? 'Unpin' : 'Pin to top'}
-                                title={media.isPinned ? 'Unpin from top' : 'Pin to top'}
-                            >
-                                <Star
-                                    size={14}
-                                    className={media.isPinned ? 'text-mal-yellow fill-mal-yellow' : 'fill-none'}
-                                    strokeWidth={2}
-                                />
-                            </button>
-                        </div>
-                        <div className="text-xs text-mal-text-secondary/60 mt-0.5">
-                            {media.type === 'DONGHUA' ? 'Donghua' : 'Manhua'}
-                        </div>
-                    </div>
-
-                </div>
-
-                {/* Progress row */}
-                <div className="flex items-center gap-2">
-                    <div className="flex-1 min-w-0">
-                        <div className="text-xs font-medium text-mal-text">
-                            <span key={pulseCount} className="progress-pulse">{label} {media.currentChapter}</span>
-                            {media.totalChapters ? ` / ${media.totalChapters}` : ''}
                         </div>
                         {media.totalChapters ? (
-                            <div className="w-full h-1.5 bg-mal-card rounded-full mt-1 overflow-hidden">
-                                <div
-                                    className="h-full rounded-full bg-mal-blue transition-all duration-500"
-                                    style={{ width: `${progress}%` }}
-                                />
+                            <div className="meter mt-2">
+                                <span style={{ transform: `scaleX(${progress / 100})` }} />
                             </div>
                         ) : null}
                     </div>
 
-                    {/* Status badge */}
-                    <span className={`shrink-0 inline-block px-2 py-0.5 rounded text-xs font-bold text-black ${isFinished ? 'bg-mal-green' : (STATUS_COLORS[media.status] || 'bg-mal-gray')}`}>
-                        {isFinished ? 'Completed' : getStatusLabel(media.status, media.type)}
-                    </span>
-
-                    {/* Action buttons */}
                     <div className="flex items-center gap-2 shrink-0">
                         <button
+                            type="button"
                             onClick={handleQuickDecrement}
                             aria-label={`Decrement ${unit}`}
-                            className="p-1.5 rounded-md border border-mal-border text-mal-text-secondary hover:text-white hover:bg-mal-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-mal-blue transition-colors cursor-pointer"
+                            className="btn btn-quiet btn-icon min-h-11 min-w-11"
                             title={`Previous ${label}`}
                         >
-                            <Minus size={12} strokeWidth={2.5} />
+                            <Minus size={16} strokeWidth={2.25} />
                         </button>
                         <button
+                            type="button"
                             onClick={handleQuickIncrement}
                             aria-label={`Increment ${unit}`}
-                            className="p-1.5 rounded-md bg-mal-blue text-white hover:bg-mal-blue-dark focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-mal-blue transition-colors cursor-pointer"
+                            className={`btn btn-icon min-h-11 min-w-11 ${hasUpdate ? 'btn-primary' : 'btn-ghost'}`}
                             title={`Next ${label}`}
                         >
-                            <Plus size={12} strokeWidth={2.5} />
+                            <Plus size={18} strokeWidth={2.25} />
                         </button>
                     </div>
                 </div>
@@ -167,60 +161,43 @@ function MobileCard({ media }: { media: Media }) {
 export function MediaTable({ mediaList, isLoading }: MediaTableProps) {
     if (isLoading) {
         return (
-            <div className="bg-mal-panel rounded-lg border border-mal-border p-4">
-                {/* Desktop skeleton */}
-                <div className="hidden md:block">
-                    {[1, 2, 3, 4, 5].map((i) => (
-                        <div key={i} className="flex items-center gap-4 py-3 border-b border-mal-border last:border-0">
-                            <div className="w-8 h-4 bg-mal-card rounded animate-pulse" />
-                            <div className="flex-1 space-y-2">
-                                <div className="h-4 bg-mal-card rounded w-3/4 animate-pulse" />
-                                <div className="h-3 bg-mal-card rounded w-1/2 animate-pulse" />
-                            </div>
+            <div className="border-y border-rule md:border md:rounded-card overflow-hidden" aria-busy="true" aria-label="Loading entries">
+                {[1, 2, 3, 4, 5, 6].map((i) => (
+                    <div key={i} className="flex items-center gap-4 px-4 py-4 border-b border-rule last:border-b-0">
+                        <div className="flex-1 space-y-2">
+                            <div className="h-4 bg-paper-2 rounded-full w-2/3 animate-pulse" />
+                            <div className="h-3 bg-paper-2 rounded-full w-1/4 animate-pulse" />
                         </div>
-                    ))}
-                </div>
-                {/* Mobile skeleton */}
-                <div className="md:hidden space-y-3">
-                    {[1, 2, 3, 4, 5].map((i) => (
-                        <div key={i} className="py-3 border-b border-mal-border last:border-0">
-                            <div className="flex-1 space-y-2">
-                                <div className="h-4 bg-mal-card rounded w-3/4 animate-pulse" />
-                                <div className="h-3 bg-mal-card rounded w-1/2 animate-pulse" />
-                                <div className="h-3 bg-mal-card rounded w-1/3 animate-pulse" />
-                            </div>
-                        </div>
-                    ))}
-                </div>
+                        <div className="hidden md:block h-4 w-24 bg-paper-2 rounded-full animate-pulse" />
+                        <div className="h-9 w-20 bg-paper-2 rounded-full animate-pulse" />
+                    </div>
+                ))}
             </div>
         );
     }
 
     if (mediaList.length === 0) {
         return (
-            <div className="bg-mal-panel rounded-lg border border-mal-border p-12 text-center">
-                <div className="text-mal-text-secondary/40 mb-2">
-                    <svg className="w-12 h-12 mx-auto" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
-                    </svg>
-                </div>
-                <p className="text-mal-text-secondary font-medium">No entries found</p>
-                <p className="text-mal-text-secondary/60 text-sm mt-1">Add your first entry to get started!</p>
+            <div className="border-y border-rule md:border md:rounded-card px-6 py-16 text-center">
+                <BookOpen size={32} className="mx-auto mb-4 text-muted" strokeWidth={1.5} aria-hidden="true" />
+                <h2 className="text-2xl text-ink mx-auto">No entries found</h2>
+                <p className="text-sm text-muted mt-2 mx-auto">Add your first entry to get started!</p>
             </div>
         );
     }
 
     return (
-        <div className="bg-mal-panel rounded-lg border border-mal-border overflow-hidden">
+        <div className="-mx-4 md:mx-0 border-y border-rule md:border md:rounded-card overflow-hidden">
             {/* Desktop: table view */}
-            <table className="hidden md:table w-full">
+            <table className="hidden md:table w-full table-fixed border-collapse">
                 <thead>
-                    <tr className="border-b border-mal-border bg-mal-card/50">
-                        <th className="py-2.5 px-3 text-center text-xs font-semibold text-mal-text-secondary uppercase tracking-wider w-10">#</th>
-                        <th className="py-2.5 pr-4 text-left text-xs font-semibold text-mal-text-secondary uppercase tracking-wider">Title</th>
-                        <th className="py-2.5 pr-4 text-left text-xs font-semibold text-mal-text-secondary uppercase tracking-wider w-32">Progress</th>
-                        <th className="py-2.5 pr-4 text-left text-xs font-semibold text-mal-text-secondary uppercase tracking-wider w-28">Status</th>
-                        <th className="py-2.5 text-left text-xs font-semibold text-mal-text-secondary uppercase tracking-wider w-24">Actions</th>
+                    <tr className="border-b border-rule">
+                        <th scope="col" className="py-2.5 pl-4 pr-2 text-right text-sm font-medium text-muted w-12">#</th>
+                        <th scope="col" className="py-2.5 pr-4 text-left text-sm font-medium text-muted">Title</th>
+                        <th scope="col" className="py-2.5 pr-4 text-left text-sm font-medium text-muted w-32">Behind</th>
+                        <th scope="col" className="py-2.5 pr-4 text-left text-sm font-medium text-muted w-40">Progress</th>
+                        <th scope="col" className="py-2.5 pr-4 text-left text-sm font-medium text-muted w-32">Status</th>
+                        <th scope="col" className="py-2.5 pr-4 text-right text-sm font-medium text-muted w-28">Actions</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -231,7 +208,7 @@ export function MediaTable({ mediaList, isLoading }: MediaTableProps) {
             </table>
 
             {/* Mobile: card list view */}
-            <div className="md:hidden divide-y divide-mal-border">
+            <div className="md:hidden divide-y divide-rule">
                 {mediaList.map((media) => (
                     <MobileCard key={media.id} media={media} />
                 ))}

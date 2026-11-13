@@ -1,29 +1,26 @@
 import type { Media } from '../types/index';
+import { HEAT_BG, heatTier } from '../lib/heat';
 
 interface UpdateBadgeProps {
     count: number;
     type: Media['type'];
 }
 
-// Small rounded pill showing just the unwatched/unread count.
-// Color escalates with backlog size: 1-5 soft yellow, 6-50 orange, >50 red.
+// The backlog as heat: a short key in the ramp step the count reaches, then the count in Boska.
+// Tiers: 1-5 ember, 6-50 amber, over 50 white heat.
 export function UpdateBadge({ count, type }: UpdateBadgeProps) {
     const noun = type === 'DONGHUA' ? 'unwatched episode' : 'unread chapter';
-    const tier = count > 50 ? 'red' : count > 5 ? 'orange' : 'yellow';
-    const styles = {
-        red: 'bg-mal-red/15 text-mal-red',
-        orange: 'bg-mal-orange/15 text-mal-orange',
-        yellow: 'bg-mal-yellow/15 text-mal-yellow',
-    };
     const tooltip = `${count} ${noun}${count === 1 ? '' : 's'}`;
 
     return (
         <span
-            className={`shrink-0 inline-block px-1.5 py-0.5 rounded-md text-[11px] font-semibold leading-none ${styles[tier]}`}
+            className="shrink-0 inline-flex items-center gap-2 whitespace-nowrap"
             title={tooltip}
             aria-label={tooltip}
         >
-            {count}
+            <span className={`heat-key ${HEAT_BG[heatTier(count)]}`} aria-hidden="true" />
+            <span className="figure text-xl text-ink" aria-hidden="true">{count}</span>
+            <span className="text-xs text-ink-2" aria-hidden="true">new</span>
         </span>
     );
 }

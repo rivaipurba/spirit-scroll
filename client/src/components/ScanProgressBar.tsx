@@ -1,3 +1,5 @@
+import { Check } from 'lucide-react';
+
 interface ScanProgressBarProps {
     isScanning: boolean;
     progress: { current: number; total: number; currentTitle: string } | null;
@@ -6,36 +8,34 @@ interface ScanProgressBarProps {
 }
 
 export function ScanProgressBar({ isScanning, progress, result, onCancel }: ScanProgressBarProps) {
-    const percent = progress ? Math.round((progress.current / progress.total) * 100) : 100;
+    const fraction = progress && progress.total > 0 ? progress.current / progress.total : 1;
 
     return (
-        <div className="mb-4 animate-in fade-in duration-200">
-            <div className="bg-mal-panel rounded-lg border border-mal-border p-3 shadow-sm">
-                <div className="h-1.5 bg-mal-card rounded-full overflow-hidden">
-                    <div
-                        className="h-full bg-mal-blue rounded-full transition-all duration-500"
-                        style={{ width: `${percent}%` }}
-                    />
-                </div>
-                <div className="flex items-center justify-between mt-2">
-                    {isScanning && progress ? (
-                        <>
-                            <span className="text-xs text-mal-text-secondary/70 truncate max-w-[80%]">
-                                Checking {progress.current}/{progress.total}: <span className="text-mal-text font-medium">{progress.currentTitle}</span>
-                            </span>
-                            <button
-                                onClick={onCancel}
-                                className="text-xs text-mal-text-secondary hover:text-white transition-colors shrink-0 ml-2 font-medium cursor-pointer"
-                            >
-                                Cancel
-                            </button>
-                        </>
-                    ) : result ? (
-                        <span className="text-xs text-mal-green font-medium">
-                            Scan complete — {result.updated} update{result.updated !== 1 ? 's' : ''} found
-                        </span>
-                    ) : null}
-                </div>
+        <div className="mb-4 fade-in rounded-well bg-paper-2 border border-rule px-4 py-3" role="status" aria-live="polite">
+            <div className="flex items-center justify-between gap-3 min-h-8">
+                {isScanning && progress ? (
+                    <>
+                        <p className="min-w-0 truncate text-sm text-ink-2">
+                            Checking <span className="tabular-nums">{progress.current}/{progress.total}</span>:{' '}
+                            <span className="text-ink font-medium">{progress.currentTitle}</span>
+                        </p>
+                        <button
+                            type="button"
+                            onClick={onCancel}
+                            className="btn btn-quiet min-h-8 px-3 shrink-0"
+                        >
+                            Cancel
+                        </button>
+                    </>
+                ) : result ? (
+                    <p className="flex items-center gap-2 text-sm text-ink">
+                        <Check size={16} className="text-success shrink-0" aria-hidden="true" />
+                        Scan complete. {result.updated} update{result.updated !== 1 ? 's' : ''} found
+                    </p>
+                ) : null}
+            </div>
+            <div className="meter mt-2">
+                <span style={{ transform: `scaleX(${fraction})` }} className="bg-accent!" />
             </div>
         </div>
     );
