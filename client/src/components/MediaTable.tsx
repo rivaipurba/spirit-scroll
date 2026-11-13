@@ -149,11 +149,13 @@ function MobileCard({ media }: { media: Media }) {
                 </div>
             </div>
 
-            <EditMediaDialog
-                isOpen={isEditOpen}
-                onClose={() => setIsEditOpen(false)}
-                media={media}
-            />
+            {isEditOpen && (
+                <EditMediaDialog
+                    isOpen={isEditOpen}
+                    onClose={() => setIsEditOpen(false)}
+                    media={media}
+                />
+            )}
         </>
     );
 }

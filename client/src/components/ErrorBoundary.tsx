@@ -38,6 +38,8 @@ export class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoun
     }
 }
 
+// Private fallback for the class component above; the plugin does not count class exports as components
+// eslint-disable-next-line react-refresh/only-export-components
 function DefaultErrorFallback({ error, resetError }: { error?: Error; resetError: () => void }) {
     return (
         <div className="min-h-[50dvh] flex flex-col items-center justify-center p-8 text-center bg-paper text-ink">

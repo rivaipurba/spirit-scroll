@@ -158,11 +158,13 @@ export function MediaTableRow({ media, rank }: MediaTableRowProps) {
                 </td>
             </tr>
 
-            <EditMediaDialog
-                isOpen={isEditOpen}
-                onClose={() => setIsEditOpen(false)}
-                media={media}
-            />
+            {isEditOpen && (
+                <EditMediaDialog
+                    isOpen={isEditOpen}
+                    onClose={() => setIsEditOpen(false)}
+                    media={media}
+                />
+            )}
         </>
     );
 }

@@ -26,6 +26,8 @@ export function FilterProvider({ children }: { children: ReactNode }) {
     );
 }
 
+// Hook lives next to its provider; Fast Refresh still reloads the provider component
+// eslint-disable-next-line react-refresh/only-export-components
 export function useFilters() {
     const context = useContext(FilterContext);
     if (context === undefined) {

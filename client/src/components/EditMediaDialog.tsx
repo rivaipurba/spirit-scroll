@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { createPortal } from 'react-dom';
 import { X, Trash2 } from 'lucide-react';
 import { useUpdateMedia, useDeleteMedia } from '../hooks/useMedia';
@@ -11,39 +11,29 @@ interface EditMediaDialogProps {
     media: Media;
 }
 
+function reachesTotal(current: number, total: number | null): boolean {
+    return total != null && total > 0 && current >= total;
+}
+
 export function EditMediaDialog({ isOpen, onClose, media }: EditMediaDialogProps) {
     const [title, setTitle] = useState(media.title);
     const [type, setType] = useState<"MANHUA" | "DONGHUA">(media.type);
     const [currentChapter, setCurrentChapter] = useState(media.currentChapter.toString());
     const [totalChapters, setTotalChapters] = useState(media.totalChapters?.toString() || '');
-    const [status, setStatus] = useState<"READING" | "COMPLETED" | "PLAN_TO_READ" | "ON_HOLD" | "DROPPED">(media.status);
+    // Callers mount this dialog only while open, so state starts fresh from media on every open
+    const [status, setStatus] = useState<"READING" | "COMPLETED" | "PLAN_TO_READ" | "ON_HOLD" | "DROPPED">(
+        reachesTotal(media.currentChapter, media.totalChapters) ? 'COMPLETED' : media.status
+    );
     const [sourceUrl, setSourceUrl] = useState(media.sourceUrl || (media as Media & { source_url?: string }).source_url || '');
     const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false);
 
+    // Auto-suggest Completed status when current chapter reaches total
+    const suggestCompleted = (current: string, total: string) => {
+        if (reachesTotal(Number(current), Number(total))) setStatus('COMPLETED');
+    };
+
     const updateMedia = useUpdateMedia();
     const deleteMedia = useDeleteMedia();
-
-    useEffect(() => {
-        if (isOpen) {
-            setTitle(media.title);
-            setType(media.type);
-            setCurrentChapter(media.currentChapter.toString());
-            setTotalChapters(media.totalChapters?.toString() || '');
-            setStatus(media.status);
-            setSourceUrl(media.sourceUrl || (media as Media & { source_url?: string }).source_url || '');
-        }
-    }, [isOpen, media]);
-
-    // Auto-suggest Completed status when current chapter reaches total
-    useEffect(() => {
-        if (isOpen) {
-            const ch = Number(currentChapter);
-            const total = Number(totalChapters);
-            if (total > 0 && ch >= total) {
-                setStatus('COMPLETED');
-            }
-        }
-    }, [currentChapter, totalChapters, isOpen]);
 
     if (!isOpen) return null;
 
@@ -148,7 +138,7 @@ export function EditMediaDialog({ isOpen, onClose, media }: EditMediaDialogProps
                                     type="number"
                                     inputMode="numeric"
                                     value={currentChapter}
-                                    onChange={(e) => setCurrentChapter(e.target.value)}
+                                    onChange={(e) => { setCurrentChapter(e.target.value); suggestCompleted(e.target.value, totalChapters); }}
                                     min="0"
                                     className="field tabular-nums"
                                 />
@@ -161,7 +151,7 @@ export function EditMediaDialog({ isOpen, onClose, media }: EditMediaDialogProps
                                     type="number"
                                     inputMode="numeric"
                                     value={totalChapters}
-                                    onChange={(e) => setTotalChapters(e.target.value)}
+                                    onChange={(e) => { setTotalChapters(e.target.value); suggestCompleted(currentChapter, e.target.value); }}
                                     min="0"
                                     className="field tabular-nums"
                                     placeholder="Optional"

@@ -65,7 +65,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             } else {
                 return { success: false, error: data.error || 'Login failed' };
             }
-        } catch (e) {
+        } catch {
             return { success: false, error: 'Network error' };
         }
     };
@@ -88,19 +88,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     );
 }
 
+// Hook lives next to its provider; Fast Refresh still reloads the provider component
+// eslint-disable-next-line react-refresh/only-export-components
 export function useAuth() {
     const context = useContext(AuthContext);
     if (context === undefined) {
         throw new Error('useAuth must be used within an AuthProvider');
     }
     return context;
-}
-
-// Helper to get auth headers for API requests
-export function getAuthHeaders(): HeadersInit {
-    const token = localStorage.getItem(TOKEN_KEY);
-    if (token) {
-        return { 'Authorization': `Bearer ${token}` };
-    }
-    return {};
 }

@@ -24,4 +24,6 @@ const authFetch: typeof fetch = (input, init) => {
     });
 };
 
+// Untyped until hc<AppType> is wired up (see the commented-out import above)
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export const client = hc<any>(BASE_URL, { fetch: authFetch }) as any;
