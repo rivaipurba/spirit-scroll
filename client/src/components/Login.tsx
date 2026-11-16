@@ -74,7 +74,7 @@ export function Login() {
                     >
                         {isLoading ? (
                             <>
-                                <Loader2 size={18} className="animate-spin" aria-hidden="true" />
+                                <Loader2 size={18} className="animate-spin keep-motion" aria-hidden="true" />
                                 <span>Signing in…</span>
                             </>
                         ) : (

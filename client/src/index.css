@@ -154,4 +154,6 @@
 @media (prefers-reduced-motion: reduce) {
     .progress-pulse, .sheet-in, .fade-in { animation: none; }
     .btn, .field, .meter > span { transition: none; }
+    /* Loaders keep turning, slower, so a busy state still reads as busy */
+    .keep-motion.animate-spin { animation-duration: 1.6s; }
 }

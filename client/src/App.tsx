@@ -72,7 +72,7 @@ function AuthenticatedApp() {
       >
         <Suspense fallback={
           <div className="h-64 flex items-center justify-center">
-            <Loader2 className="w-6 h-6 animate-spin text-muted" aria-label="Loading" />
+            <Loader2 className="w-6 h-6 animate-spin keep-motion text-muted" aria-label="Loading" />
           </div>
         }>
           {currentView === 'home' && (
@@ -97,7 +97,7 @@ function AppContent() {
   if (isLoading) {
     return (
       <div className="min-h-dvh bg-paper flex items-center justify-center">
-        <Loader2 size={24} className="text-muted animate-spin" aria-label="Loading" />
+        <Loader2 size={24} className="text-muted animate-spin keep-motion" aria-label="Loading" />
       </div>
     );
   }

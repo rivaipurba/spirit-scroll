@@ -76,7 +76,7 @@ export function Dashboard({ isDialogOpen, onCloseDialog, onStatsChange, register
     if (isLoading) {
         return (
             <div className="h-64 flex flex-col items-center justify-center gap-3 text-muted" role="status">
-                <Loader2 className="w-6 h-6 animate-spin" aria-hidden="true" />
+                <Loader2 className="w-6 h-6 animate-spin keep-motion" aria-hidden="true" />
                 <p className="text-sm">Loading…</p>
             </div>
         );

@@ -129,7 +129,7 @@ export function TopNavbar({ currentView, onNavigate, headerAction, isScanning, o
                         aria-label="Scan for updates"
                         className="btn btn-ghost btn-icon sm:px-4"
                     >
-                        <RefreshCw size={16} className={isScanning ? 'animate-spin' : ''} aria-hidden="true" />
+                        <RefreshCw size={16} className={isScanning ? 'animate-spin keep-motion' : ''} aria-hidden="true" />
                         <span className="hidden sm:inline">{isScanning ? 'Scanning…' : 'Scan'}</span>
                     </button>
 
