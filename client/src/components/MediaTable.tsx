@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Plus, Minus, ExternalLink, Star, BookOpen } from 'lucide-react';
+import { Plus, Minus, ExternalLink, Star, BookOpen, Pencil } from 'lucide-react';
 import { MediaTableRow } from './MediaTableRow';
 import { UpdateBadge } from './UpdateBadge';
 import { EditMediaDialog } from './EditMediaDialog';
@@ -89,6 +89,15 @@ function MobileCard({ media }: { media: Media }) {
                             </span>
                         </p>
                     </div>
+                    <button
+                        type="button"
+                        onClick={(e) => { e.stopPropagation(); setIsEditOpen(true); }}
+                        aria-label={`Edit ${media.title}`}
+                        className="btn btn-icon btn-quiet -mt-2 min-h-11 min-w-11 text-muted!"
+                        title="Edit"
+                    >
+                        <Pencil size={16} strokeWidth={2} />
+                    </button>
                     <button
                         type="button"
                         onClick={(e) => {
@@ -197,7 +206,7 @@ export function MediaTable({ mediaList, isLoading }: MediaTableProps) {
                     <col />
                     <col className="w-28" />
                     <col className="w-36" />
-                    <col className="w-36" />
+                    <col className="w-44" />
                 </colgroup>
                 <thead>
                     <tr className="border-b border-rule">

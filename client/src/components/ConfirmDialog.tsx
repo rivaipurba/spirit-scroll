@@ -1,4 +1,6 @@
+import { useRef } from 'react';
 import { AlertTriangle } from 'lucide-react';
+import { useDialogFocus } from '../hooks/useDialogFocus';
 
 interface ConfirmDialogProps {
     isOpen: boolean;
@@ -21,12 +23,17 @@ export function ConfirmDialog({
     onConfirm,
     onCancel
 }: ConfirmDialogProps) {
+    const panelRef = useRef<HTMLDivElement>(null);
+    useDialogFocus(panelRef, isOpen, onCancel);
+
     if (!isOpen) return null;
 
     return (
         <div className="fixed inset-0 z-(--z-modal) flex items-end sm:items-center justify-center sm:p-4">
             <div className="fade-in absolute inset-0 bg-scrim" onClick={onCancel} />
             <div
+                ref={panelRef}
+                tabIndex={-1}
                 role="alertdialog"
                 aria-modal="true"
                 aria-labelledby="confirm-title"
@@ -48,6 +55,7 @@ export function ConfirmDialog({
                     <button
                         type="button"
                         onClick={onCancel}
+                        data-autofocus
                         className="btn btn-ghost flex-1 min-h-11"
                     >
                         {cancelText}

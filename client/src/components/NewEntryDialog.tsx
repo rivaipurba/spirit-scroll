@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+import React, { useRef, useState } from 'react';
 import { X, Book, Youtube } from 'lucide-react';
 import { useCreateMedia } from '../hooks/useMedia';
+import { useDialogFocus } from '../hooks/useDialogFocus';
 
 interface NewEntryDialogProps {
     isOpen: boolean;
@@ -16,6 +17,9 @@ export function NewEntryDialog({ isOpen, onClose }: NewEntryDialogProps) {
     const [status, setStatus] = useState<"READING" | "COMPLETED" | "PLAN_TO_READ" | "ON_HOLD" | "DROPPED">('READING');
 
     const createMedia = useCreateMedia();
+
+    const panelRef = useRef<HTMLDivElement>(null);
+    useDialogFocus(panelRef, isOpen, onClose);
 
     if (!isOpen) return null;
 
@@ -56,6 +60,8 @@ export function NewEntryDialog({ isOpen, onClose }: NewEntryDialogProps) {
         <div className="fixed inset-0 z-(--z-modal) flex items-end sm:items-center justify-center sm:p-4">
             <div className="fade-in absolute inset-0 bg-scrim" onClick={onClose} />
             <div
+                ref={panelRef}
+                tabIndex={-1}
                 role="dialog"
                 aria-modal="true"
                 aria-labelledby="new-entry-title"
@@ -75,6 +81,7 @@ export function NewEntryDialog({ isOpen, onClose }: NewEntryDialogProps) {
                             <label htmlFor="new-title" className="label">Title</label>
                             <input
                                 id="new-title"
+                                data-autofocus
                                 name="title"
                                 type="text"
                                 value={title}

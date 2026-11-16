@@ -53,7 +53,6 @@ export function Login() {
                                 onClick={() => setShowPassword(!showPassword)}
                                 aria-label={showPassword ? 'Hide password' : 'Show password'}
                                 className="btn btn-quiet btn-icon absolute right-1 top-1/2 -translate-y-1/2"
-                                tabIndex={-1}
                             >
                                 {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                             </button>

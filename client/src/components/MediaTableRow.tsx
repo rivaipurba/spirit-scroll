@@ -3,7 +3,7 @@ import { useToastContext } from '../context/ToastContext';
 import { useState } from 'react';
 import { EditMediaDialog } from './EditMediaDialog';
 import { UpdateBadge } from './UpdateBadge';
-import { Plus, Minus, ExternalLink, Star } from 'lucide-react';
+import { Plus, Minus, ExternalLink, Star, Pencil } from 'lucide-react';
 import { getStatusLabel } from '../lib/media-utils';
 import type { Media } from '../types/index';
 
@@ -134,6 +134,15 @@ export function MediaTableRow({ media, rank }: MediaTableRowProps) {
 
                 <td className="py-3 pr-4 align-middle">
                     <div className="flex items-center justify-end gap-1.5">
+                        <button
+                            type="button"
+                            onClick={(e) => { e.stopPropagation(); setIsEditOpen(true); }}
+                            aria-label={`Edit ${media.title}`}
+                            className="btn btn-quiet btn-icon hit min-h-9 min-w-9 text-muted hover:text-ink"
+                            title="Edit"
+                        >
+                            <Pencil size={14} strokeWidth={2} />
+                        </button>
                         <button
                             type="button"
                             onClick={handleQuickDecrement}

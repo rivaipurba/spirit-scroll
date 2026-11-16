@@ -1,8 +1,9 @@
-import React, { useState } from 'react';
+import React, { useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { X, Trash2 } from 'lucide-react';
 import { useUpdateMedia, useDeleteMedia } from '../hooks/useMedia';
 import { ConfirmDialog } from './ConfirmDialog';
+import { useDialogFocus } from '../hooks/useDialogFocus';
 import type { Media } from '../types/index';
 
 interface EditMediaDialogProps {
@@ -34,6 +35,9 @@ export function EditMediaDialog({ isOpen, onClose, media }: EditMediaDialogProps
 
     const updateMedia = useUpdateMedia();
     const deleteMedia = useDeleteMedia();
+
+    const panelRef = useRef<HTMLDivElement>(null);
+    useDialogFocus(panelRef, isOpen, onClose);
 
     if (!isOpen) return null;
 
@@ -67,6 +71,8 @@ export function EditMediaDialog({ isOpen, onClose, media }: EditMediaDialogProps
             <div className="fixed inset-0 z-(--z-modal) flex items-end sm:items-center justify-center sm:p-4">
                 <div className="fade-in absolute inset-0 bg-scrim" onClick={onClose} />
                 <div
+                    ref={panelRef}
+                    tabIndex={-1}
                     role="dialog"
                     aria-modal="true"
                     aria-labelledby={`edit-title-${media.id}`}
