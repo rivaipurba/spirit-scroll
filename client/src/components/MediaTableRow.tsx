@@ -63,7 +63,7 @@ export function MediaTableRow({ media, rank }: MediaTableRowProps) {
                     hasUpdate ? 'bg-paper-2 hover:bg-paper-3' : 'hover:bg-paper-2'
                 }`}
             >
-                <td className="py-3 pl-4 pr-2 text-right text-sm text-muted tabular-nums w-12 align-middle">
+                <td className="py-3 pl-4 pr-2 text-right text-sm text-muted tabular-nums align-middle">
                     {rank}
                 </td>
 
@@ -102,12 +102,16 @@ export function MediaTableRow({ media, rank }: MediaTableRowProps) {
                             )}
                         </div>
                     </div>
-                    <div className="text-sm text-muted mt-0.5 pl-6">
+                    <p className="text-sm text-muted mt-0.5 pl-6 truncate">
                         {media.type === 'DONGHUA' ? 'Donghua' : 'Manhua'}
-                    </div>
+                        {', '}
+                        <span className={isFinished ? 'text-ink-2' : undefined}>
+                            {isFinished ? 'Completed' : getStatusLabel(media.status, media.type)}
+                        </span>
+                    </p>
                 </td>
 
-                <td className="py-3 pr-4 w-32 align-middle">
+                <td className="py-3 pr-4 align-middle">
                     {hasUpdate && media.latestReleasedChapter != null && (
                         <UpdateBadge
                             count={media.latestReleasedChapter - media.currentChapter}
@@ -116,7 +120,7 @@ export function MediaTableRow({ media, rank }: MediaTableRowProps) {
                     )}
                 </td>
 
-                <td className="py-3 pr-4 w-40 align-middle">
+                <td className="py-3 pr-4 align-middle">
                     <div className="text-sm text-ink tabular-nums whitespace-nowrap">
                         <span key={pulseCount} className="progress-pulse">{label} {media.currentChapter}</span>
                         {media.totalChapters ? <span className="text-muted">{` / ${media.totalChapters}`}</span> : ''}
@@ -128,13 +132,7 @@ export function MediaTableRow({ media, rank }: MediaTableRowProps) {
                     ) : null}
                 </td>
 
-                <td className="py-3 pr-4 w-32 align-middle text-sm whitespace-nowrap">
-                    <span className={isFinished ? 'text-ink' : 'text-ink-2'}>
-                        {isFinished ? 'Completed' : getStatusLabel(media.status, media.type)}
-                    </span>
-                </td>
-
-                <td className="py-3 pr-4 w-28 align-middle">
+                <td className="py-3 pr-4 align-middle">
                     <div className="flex items-center justify-end gap-1.5">
                         <button
                             type="button"

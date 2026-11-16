@@ -170,7 +170,7 @@ export function MediaTable({ mediaList, isLoading }: MediaTableProps) {
                             <div className="h-4 bg-paper-2 rounded-full w-2/3 animate-pulse" />
                             <div className="h-3 bg-paper-2 rounded-full w-1/4 animate-pulse" />
                         </div>
-                        <div className="hidden md:block h-4 w-24 bg-paper-2 rounded-full animate-pulse" />
+                        <div className="hidden lg:block h-4 w-24 bg-paper-2 rounded-full animate-pulse" />
                         <div className="h-9 w-20 bg-paper-2 rounded-full animate-pulse" />
                     </div>
                 ))}
@@ -191,15 +191,21 @@ export function MediaTable({ mediaList, isLoading }: MediaTableProps) {
     return (
         <div className="-mx-4 md:mx-0 border-y border-rule md:border md:rounded-card overflow-hidden">
             {/* Desktop: table view */}
-            <table className="hidden md:table w-full table-fixed border-collapse">
+            <table className="hidden lg:table w-full table-fixed border-collapse">
+                <colgroup>
+                    <col className="w-12" />
+                    <col />
+                    <col className="w-28" />
+                    <col className="w-36" />
+                    <col className="w-36" />
+                </colgroup>
                 <thead>
                     <tr className="border-b border-rule">
-                        <th scope="col" className="py-2.5 pl-4 pr-2 text-right text-sm font-medium text-muted w-12">#</th>
+                        <th scope="col" className="py-2.5 pl-4 pr-2 text-right text-sm font-medium text-muted">#</th>
                         <th scope="col" className="py-2.5 pr-4 text-left text-sm font-medium text-muted">Title</th>
-                        <th scope="col" className="py-2.5 pr-4 text-left text-sm font-medium text-muted w-32">Behind</th>
-                        <th scope="col" className="py-2.5 pr-4 text-left text-sm font-medium text-muted w-40">Progress</th>
-                        <th scope="col" className="py-2.5 pr-4 text-left text-sm font-medium text-muted w-32">Status</th>
-                        <th scope="col" className="py-2.5 pr-4 text-right text-sm font-medium text-muted w-28">Actions</th>
+                        <th scope="col" className="py-2.5 pr-4 text-left text-sm font-medium text-muted">Behind</th>
+                        <th scope="col" className="py-2.5 pr-4 text-left text-sm font-medium text-muted">Progress</th>
+                        <th scope="col" className="py-2.5 pr-4 text-right text-sm font-medium text-muted">Actions</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -209,8 +215,8 @@ export function MediaTable({ mediaList, isLoading }: MediaTableProps) {
                 </tbody>
             </table>
 
-            {/* Mobile: card list view */}
-            <div className="md:hidden divide-y divide-rule">
+            {/* Phones and tablets: card list view */}
+            <div className="lg:hidden divide-y divide-rule">
                 {mediaList.map((media) => (
                     <MobileCard key={media.id} media={media} />
                 ))}
