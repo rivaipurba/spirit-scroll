@@ -21,6 +21,8 @@ function MobileCard({ media }: { media: Media }) {
     const toast = useToastContext();
 
     const hasUpdate = media.latestReleasedChapter != null && media.latestReleasedChapter > media.currentChapter;
+    // Only active entries (Reading/Watching) get the raised row and ember +1; others keep a muted badge
+    const isHot = hasUpdate && media.status === 'READING';
     const isFinished = media.status === 'COMPLETED' || Boolean(media.totalChapters && media.currentChapter >= media.totalChapters);
     const progress = media.totalChapters ? Math.min((media.currentChapter / media.totalChapters) * 100, 100) : 0;
     const label = media.type === 'DONGHUA' ? 'Ep.' : 'Ch.';
@@ -60,12 +62,12 @@ function MobileCard({ media }: { media: Media }) {
             <div
                 onClick={() => setIsEditOpen(true)}
                 className={`flex flex-col gap-3 px-4 py-4 cursor-pointer transition-colors duration-(--dur-short) ${
-                    hasUpdate ? 'bg-paper-2 active:bg-paper-3' : 'active:bg-paper-2'
+                    isHot ? 'bg-paper-2 active:bg-paper-3' : 'active:bg-paper-2'
                 }`}
             >
                 <div className="flex items-start gap-2">
                     <div className="flex-1 min-w-0">
-                        <div className={`text-md leading-snug ${hasUpdate ? 'text-ink font-medium' : 'text-ink-2'}`}>
+                        <div className={`text-md leading-snug ${isHot ? 'text-ink font-medium' : 'text-ink-2'}`}>
                             {media.sourceUrl ? (
                                 <a
                                     href={media.sourceUrl}
@@ -125,6 +127,7 @@ function MobileCard({ media }: { media: Media }) {
                                 <UpdateBadge
                                     count={media.latestReleasedChapter - media.currentChapter}
                                     type={media.type}
+                                    muted={!isHot}
                                 />
                             )}
                         </div>
@@ -149,7 +152,7 @@ function MobileCard({ media }: { media: Media }) {
                             type="button"
                             onClick={handleQuickIncrement}
                             aria-label={`Increment ${unit}`}
-                            className={`btn btn-icon min-h-11 min-w-11 ${hasUpdate ? 'btn-primary' : 'btn-ghost'}`}
+                            className={`btn btn-icon min-h-11 min-w-11 ${isHot ? 'btn-primary' : 'btn-ghost'}`}
                             title={`Next ${label}`}
                         >
                             <Plus size={18} strokeWidth={2.25} />
@@ -205,8 +208,8 @@ export function MediaTable({ mediaList, isLoading }: MediaTableProps) {
                     <col className="w-12" />
                     <col />
                     <col className="w-28" />
+                    <col className="w-32" />
                     <col className="w-36" />
-                    <col className="w-44" />
                 </colgroup>
                 <thead>
                     <tr className="border-b border-rule">

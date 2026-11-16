@@ -12,7 +12,7 @@ export function RightSidebar({ stats }: RightSidebarProps) {
         .filter((m) => m.gap > 0);
 
     return (
-        <aside className="hidden xl:block w-72 shrink-0 sticky top-16 self-start max-h-[calc(100dvh-4rem)] overflow-y-auto border-l border-rule px-6 py-6">
+        <aside className="hidden xl:block w-64 2xl:w-72 shrink-0 sticky top-16 self-start max-h-[calc(100dvh-4rem)] overflow-y-auto border-l border-rule px-5 py-6 2xl:px-6">
             {behind.length > 0 && (
                 <section aria-labelledby="latest-updates-head" className="mb-10">
                     <h2 id="latest-updates-head" className="text-xl text-ink mb-4">Latest updates</h2>

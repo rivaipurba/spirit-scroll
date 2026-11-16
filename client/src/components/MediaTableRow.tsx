@@ -21,6 +21,8 @@ export function MediaTableRow({ media, rank }: MediaTableRowProps) {
     const toast = useToastContext();
 
     const hasUpdate = media.latestReleasedChapter != null && media.latestReleasedChapter > media.currentChapter;
+    // Only active entries (Reading/Watching) get the raised row and ember +1; others keep a muted badge
+    const isHot = hasUpdate && media.status === 'READING';
     const isFinished = media.status === 'COMPLETED' || Boolean(media.totalChapters && media.currentChapter >= media.totalChapters);
     const progress = media.totalChapters ? Math.min((media.currentChapter / media.totalChapters) * 100, 100) : 0;
     const label = media.type === 'DONGHUA' ? 'Ep.' : 'Ch.';
@@ -60,7 +62,7 @@ export function MediaTableRow({ media, rank }: MediaTableRowProps) {
             <tr
                 onClick={() => setIsEditOpen(true)}
                 className={`group border-b border-rule last:border-b-0 cursor-pointer transition-colors duration-(--dur-short) ${
-                    hasUpdate ? 'bg-paper-2 hover:bg-paper-3' : 'hover:bg-paper-2'
+                    isHot ? 'bg-paper-2 hover:bg-paper-3' : 'hover:bg-paper-2'
                 }`}
             >
                 <td className="py-3 pl-4 pr-2 text-right text-sm text-muted tabular-nums align-middle">
@@ -85,7 +87,7 @@ export function MediaTableRow({ media, rank }: MediaTableRowProps) {
                         >
                             <Star size={14} className={media.isPinned ? 'fill-current' : 'fill-none'} strokeWidth={2} />
                         </button>
-                        <div className={`min-w-0 text-md leading-snug ${hasUpdate ? 'text-ink font-medium' : 'text-ink-2'}`}>
+                        <div className={`min-w-0 text-md leading-snug ${isHot ? 'text-ink font-medium' : 'text-ink-2'}`}>
                             {media.sourceUrl ? (
                                 <a
                                     href={media.sourceUrl}
@@ -116,6 +118,7 @@ export function MediaTableRow({ media, rank }: MediaTableRowProps) {
                         <UpdateBadge
                             count={media.latestReleasedChapter - media.currentChapter}
                             type={media.type}
+                            muted={!isHot}
                         />
                     )}
                 </td>
@@ -156,7 +159,7 @@ export function MediaTableRow({ media, rank }: MediaTableRowProps) {
                             type="button"
                             onClick={handleQuickIncrement}
                             aria-label={`Increment ${unit}`}
-                            className={`btn btn-icon hit min-h-9 min-w-9 ${hasUpdate ? 'btn-primary' : 'btn-ghost'}`}
+                            className={`btn btn-icon hit min-h-9 min-w-9 ${isHot ? 'btn-primary' : 'btn-ghost'}`}
                             title={`Next ${label}`}
                         >
                             <Plus size={16} strokeWidth={2.25} />
