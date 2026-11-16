@@ -6,7 +6,7 @@ import { useRef, useState } from 'react';
 export function Settings() {
     const { data: paginatedMedia } = useMedia(1, undefined, 10000);
     const media = paginatedMedia?.data;
-    const { data: mediaStats } = useMediaStats();
+    const { data: mediaStats, isLoading: isStatsLoading } = useMediaStats();
     const importMedia = useImportMedia();
     const { logout } = useAuth();
     const fileInputRef = useRef<HTMLInputElement>(null);
@@ -75,10 +75,10 @@ export function Settings() {
             <section aria-labelledby="library-stats-head" className="pb-10 border-b border-rule">
                 <h2 id="library-stats-head" className="text-xl text-ink mb-5">Library Stats</h2>
                 <dl className="grid grid-cols-2 sm:grid-cols-4 gap-y-6">
-                    <StatBox label="Total Series" value={stats.total} />
-                    <StatBox label="Total Chapters" value={stats.chapters} />
-                    <StatBox label="Reading" value={stats.reading} />
-                    <StatBox label="Completed" value={stats.completed} />
+                    <StatBox label="Total Series" value={isStatsLoading ? null : stats.total} />
+                    <StatBox label="Total Chapters" value={isStatsLoading ? null : stats.chapters} />
+                    <StatBox label="Reading" value={isStatsLoading ? null : stats.reading} />
+                    <StatBox label="Completed" value={isStatsLoading ? null : stats.completed} />
                 </dl>
             </section>
 
@@ -134,11 +134,15 @@ export function Settings() {
     );
 }
 
-function StatBox({ label, value }: { label: string; value: number }) {
+function StatBox({ label, value }: { label: string; value: number | null }) {
     return (
         <div className="pr-4 sm:border-l sm:border-rule sm:pl-4 sm:first:border-l-0 sm:first:pl-0">
             <dt className="text-sm text-muted">{label}</dt>
-            <dd className="figure text-3xl text-ink mt-2">{value}</dd>
+            <dd className="figure text-3xl text-ink mt-2">
+                {value === null
+                    ? <span className="block h-[1em] w-16 rounded-full bg-paper-2 animate-pulse" aria-label="Loading" />
+                    : value}
+            </dd>
         </div>
     );
 }

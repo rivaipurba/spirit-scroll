@@ -1,5 +1,5 @@
 import { CheckCircle, AlertCircle, Info, X } from 'lucide-react';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 
 export type ToastType = 'success' | 'error' | 'info';
 
@@ -19,12 +19,16 @@ interface ToastProps {
 }
 
 export function Toast({ id, type, title, message, duration = 4000, action, onClose }: ToastProps) {
+    // Hovering or focusing the toast holds it open; leaving restarts the countdown
+    const [isHeld, setIsHeld] = useState(false);
+
     useEffect(() => {
+        if (isHeld) return;
         const timer = setTimeout(() => {
             onClose(id);
         }, duration);
         return () => clearTimeout(timer);
-    }, [id, duration, onClose]);
+    }, [id, duration, onClose, isHeld]);
 
     const icons = {
         success: CheckCircle,
@@ -43,6 +47,10 @@ export function Toast({ id, type, title, message, duration = 4000, action, onClo
     return (
         <div
             role={type === 'error' ? 'alert' : 'status'}
+            onMouseEnter={() => setIsHeld(true)}
+            onMouseLeave={() => setIsHeld(false)}
+            onFocus={() => setIsHeld(true)}
+            onBlur={(e) => { if (!e.currentTarget.contains(e.relatedTarget)) setIsHeld(false); }}
             className="sheet-in bg-paper-3 border border-rule-strong rounded-well shadow-card px-4 py-3 w-full sm:min-w-[300px] sm:max-w-[400px]"
         >
             <div className="flex items-center gap-3">

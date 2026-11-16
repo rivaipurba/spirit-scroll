@@ -37,7 +37,7 @@ function MobileCard({ media }: { media: Media }) {
                 toast.success(
                     `${label} ${nextChapter} marked as read`,
                     undefined,
-                    2000,
+                    5000,
                     {
                         label: 'Undo',
                         onClick: () => updateProgress.mutate({ id: media.id, currentChapter: prevChapter }),

@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Loader2, BookOpen, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Loader2, BookOpen, ChevronLeft, ChevronRight, AlertTriangle, RefreshCw } from 'lucide-react';
 import { useMediaList, useMediaStats, useScanUpdates } from '../hooks/useMedia';
 import { MediaTable } from './MediaTable';
 import { ScanProgressBar } from './ScanProgressBar';
@@ -42,8 +42,8 @@ export function Dashboard({ isDialogOpen, onCloseDialog, onStatsChange, register
         setPage(1);
     }
 
-    const { data: stats, isLoading } = useMediaStats(apiType, searchQuery);
-    const { data: paginatedData, isLoading: isPageLoading } = useMediaList(page, apiType, PAGE_SIZE, sortBy, searchQuery, apiStatus);
+    const { data: stats, isLoading, isError: isStatsError, refetch: refetchStats } = useMediaStats(apiType, searchQuery);
+    const { data: paginatedData, isLoading: isPageLoading, isError: isListError, refetch: refetchList } = useMediaList(page, apiType, PAGE_SIZE, sortBy, searchQuery, apiStatus);
 
     const { startScan, cancelScan, isScanning, progress, result } = useScanUpdates();
 
@@ -79,6 +79,27 @@ export function Dashboard({ isDialogOpen, onCloseDialog, onStatsChange, register
                 <Loader2 className="w-6 h-6 animate-spin" aria-hidden="true" />
                 <p className="text-sm">Loading…</p>
             </div>
+        );
+    }
+
+    if (isStatsError || isListError) {
+        return (
+            <>
+                <div role="alert" className="max-w-md mx-auto py-16 md:py-24 text-center">
+                    <AlertTriangle size={28} className="mx-auto mb-6 text-error" strokeWidth={1.75} aria-hidden="true" />
+                    <h1 className="text-3xl text-ink mx-auto">Couldn’t load your library</h1>
+                    <p className="text-md text-ink-2 mt-3 mx-auto">Check your connection or the server, then try again.</p>
+                    <button
+                        type="button"
+                        onClick={() => { refetchStats(); refetchList(); }}
+                        className="btn btn-ghost min-h-11 px-5 mt-6"
+                    >
+                        <RefreshCw size={16} aria-hidden="true" />
+                        Try again
+                    </button>
+                </div>
+                <NewEntryDialog isOpen={isDialogOpen} onClose={onCloseDialog} />
+            </>
         );
     }
 
