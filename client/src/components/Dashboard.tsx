@@ -105,7 +105,7 @@ export function Dashboard({ isDialogOpen, onCloseDialog, onStatsChange, register
                             type="button"
                             onClick={() => { setSortBy(id); setPage(1); }}
                             aria-pressed={sortBy === id}
-                            className={`btn min-h-8 px-3 shrink-0 ${
+                            className={`btn min-h-11 lg:min-h-9 px-3 shrink-0 ${
                                 sortBy === id
                                     ? 'bg-ink text-paper'
                                     : 'text-ink-2 hover:text-ink hover:bg-paper-3'

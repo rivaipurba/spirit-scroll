@@ -123,7 +123,7 @@ export function MediaTableRow({ media, rank }: MediaTableRowProps) {
                 <td className="py-3 pr-4 align-middle">
                     <div className="text-sm text-ink tabular-nums whitespace-nowrap">
                         <span key={pulseCount} className="progress-pulse">{label} {media.currentChapter}</span>
-                        {media.totalChapters ? <span className="text-muted">{` / ${media.totalChapters}`}</span> : ''}
+                        {media.totalChapters ? <span className="text-muted ml-1">{`/ ${media.totalChapters}`}</span> : ''}
                     </div>
                     {media.totalChapters ? (
                         <div className="meter mt-1.5">

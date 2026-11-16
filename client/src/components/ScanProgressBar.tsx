@@ -12,7 +12,7 @@ export function ScanProgressBar({ isScanning, progress, result, onCancel }: Scan
 
     return (
         <div className="mb-4 fade-in rounded-well bg-paper-2 border border-rule px-4 py-3" role="status" aria-live="polite">
-            <div className="flex items-center justify-between gap-3 min-h-8">
+            <div className="flex items-center justify-between gap-3 min-h-9">
                 {isScanning && progress ? (
                     <>
                         <p className="min-w-0 truncate text-sm text-ink-2">
@@ -22,7 +22,7 @@ export function ScanProgressBar({ isScanning, progress, result, onCancel }: Scan
                         <button
                             type="button"
                             onClick={onCancel}
-                            className="btn btn-quiet min-h-8 px-3 shrink-0"
+                            className="btn btn-quiet min-h-11 sm:min-h-9 px-3 shrink-0"
                         >
                             Cancel
                         </button>

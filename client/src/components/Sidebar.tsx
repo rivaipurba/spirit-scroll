@@ -31,7 +31,7 @@ export function Sidebar({ counts, total }: SidebarProps) {
         <>
             {/* Phones: two sideways rows of tabs, always in reach above the list */}
             <div className="md:hidden border-b border-rule">
-                <nav aria-label="Filter by status" className="flex gap-1 overflow-x-auto px-4 pt-3 pb-2 [scrollbar-width:none]">
+                <nav aria-label="Filter by status" className="flex gap-1 overflow-x-auto px-4 pt-2 pb-1 [scrollbar-width:none]">
                     {STATUS_LINKS.map(({ id, label }) => {
                         const active = statusFilter === id;
                         return (
@@ -40,7 +40,7 @@ export function Sidebar({ counts, total }: SidebarProps) {
                                 type="button"
                                 onClick={() => setStatusFilter(id)}
                                 aria-pressed={active}
-                                className={`btn shrink-0 px-3 ${active ? 'bg-ink text-paper' : 'text-ink-2 hover:bg-paper-2'}`}
+                                className={`btn shrink-0 px-3 min-h-11 ${active ? 'bg-ink text-paper' : 'text-ink-2 hover:bg-paper-2'}`}
                             >
                                 {label}
                                 <span className={`tabular-nums ${active ? 'text-paper' : 'text-muted'}`}>{statusCount(id)}</span>
@@ -48,7 +48,7 @@ export function Sidebar({ counts, total }: SidebarProps) {
                         );
                     })}
                 </nav>
-                <nav aria-label="Filter by type" className="flex gap-1 overflow-x-auto px-4 pb-3 [scrollbar-width:none]">
+                <nav aria-label="Filter by type" className="flex gap-1 overflow-x-auto px-4 pb-2 [scrollbar-width:none]">
                     {TYPE_LINKS.map(({ id, label }) => {
                         const active = typeFilter === id;
                         const count = typeCount(id);
@@ -58,7 +58,7 @@ export function Sidebar({ counts, total }: SidebarProps) {
                                 type="button"
                                 onClick={() => setTypeFilter(id)}
                                 aria-pressed={active}
-                                className={`btn shrink-0 px-3 min-h-9 ${active ? 'bg-paper-3 text-ink' : 'text-muted hover:bg-paper-2 hover:text-ink'}`}
+                                className={`btn shrink-0 px-3 min-h-11 ${active ? 'bg-paper-3 text-ink' : 'text-muted hover:bg-paper-2 hover:text-ink'}`}
                             >
                                 {label}
                                 {count !== null && <span className="tabular-nums">{count}</span>}

@@ -85,7 +85,7 @@ export function TopNavbar({ currentView, onNavigate, headerAction, isScanning, o
 
                 {isSearchOpen && (
                     <div className="order-last basis-full pb-3 md:order-none md:basis-auto md:pb-0 md:ml-auto">
-                        <div className="flex items-center gap-2 h-10 rounded-full bg-paper-2 px-3 shadow-[inset_0_0_0_1px_var(--color-rule-strong)] focus-within:outline-2 focus-within:outline-focus focus-within:-outline-offset-2">
+                        <div className="flex items-center gap-2 h-11 md:h-10 rounded-full bg-paper-2 px-3 shadow-[inset_0_0_0_1px_var(--color-rule-strong)] focus-within:outline-2 focus-within:outline-focus focus-within:-outline-offset-2">
                             <Search size={16} className="text-muted shrink-0" aria-hidden="true" />
                             <input
                                 ref={inputRef}
@@ -94,13 +94,13 @@ export function TopNavbar({ currentView, onNavigate, headerAction, isScanning, o
                                 onChange={(e) => setInputValue(e.target.value)}
                                 placeholder="Search titles…"
                                 aria-label="Search titles"
-                                className="w-full md:w-56 min-w-0 bg-transparent border-0 p-0 text-md text-ink focus:outline-none"
+                                className="self-stretch w-full md:w-56 min-w-0 bg-transparent border-0 p-0 text-md text-ink focus:outline-none"
                             />
                             <button
                                 type="button"
                                 onClick={handleSearchToggle}
                                 aria-label="Close search"
-                                className="hit shrink-0 rounded-full p-1 text-muted hover:text-ink focus-visible:outline-2 focus-visible:outline-focus"
+                                className="hit shrink-0 -mr-2 grid place-items-center size-9 rounded-full text-muted hover:text-ink hover:bg-paper-3 focus-visible:outline-2 focus-visible:outline-focus"
                             >
                                 <X size={16} />
                             </button>

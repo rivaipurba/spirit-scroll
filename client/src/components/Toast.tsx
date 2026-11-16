@@ -57,7 +57,7 @@ export function Toast({ id, type, title, message, duration = 4000, action, onClo
                     <button
                         type="button"
                         onClick={() => { action.onClick(); onClose(id); }}
-                        className="btn btn-ghost min-h-8 px-3 shrink-0"
+                        className="btn btn-ghost min-h-11 sm:min-h-9 px-3 shrink-0"
                     >
                         {action.label}
                     </button>
@@ -66,7 +66,7 @@ export function Toast({ id, type, title, message, duration = 4000, action, onClo
                     type="button"
                     onClick={() => onClose(id)}
                     aria-label="Dismiss"
-                    className="btn btn-quiet btn-icon min-h-8 min-w-8 -mr-1 shrink-0"
+                    className="btn btn-quiet btn-icon min-h-11 min-w-11 sm:min-h-9 sm:min-w-9 -mr-1 shrink-0"
                 >
                     <X size={16} />
                 </button>

@@ -119,7 +119,7 @@ function MobileCard({ media }: { media: Media }) {
                         <div className="flex items-baseline justify-between gap-2">
                             <span className="text-sm text-ink tabular-nums whitespace-nowrap">
                                 <span key={pulseCount} className="progress-pulse">{label} {media.currentChapter}</span>
-                                {media.totalChapters ? <span className="text-muted">{` / ${media.totalChapters}`}</span> : ''}
+                                {media.totalChapters ? <span className="text-muted ml-1">{`/ ${media.totalChapters}`}</span> : ''}
                             </span>
                             {hasUpdate && media.latestReleasedChapter != null && (
                                 <UpdateBadge

@@ -57,6 +57,12 @@
 
     .btn-icon { min-width: 40px; padding: 0; }
 
+    /* Touch screens: every standalone control reaches 44px */
+    @media (pointer: coarse) {
+        .btn { min-height: 44px; }
+        .btn-icon { min-width: 44px; }
+    }
+
     /* Fields: smoked wells, constant border, an inset outline for focus */
     .field {
         display: block;
