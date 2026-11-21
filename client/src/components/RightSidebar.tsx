@@ -14,8 +14,8 @@ export function RightSidebar({ stats }: RightSidebarProps) {
     return (
         <aside className="hidden xl:block w-64 2xl:w-72 shrink-0 sticky top-16 self-start max-h-[calc(100dvh-4rem)] overflow-y-auto border-l border-rule px-5 py-6 2xl:px-6">
             {behind.length > 0 && (
-                <section aria-labelledby="latest-updates-head" className="mb-10">
-                    <h2 id="latest-updates-head" className="text-xl text-ink mb-4">Latest updates</h2>
+                <section aria-labelledby="most-behind-head" className="mb-10">
+                    <h2 id="most-behind-head" className="text-xl text-ink mb-4">Most behind</h2>
                     <ul className="flex flex-col">
                         {behind.map((m) => (
                             <li key={m.id} className="flex items-center gap-3 py-2.5 border-t border-rule first:border-t-0 first:pt-0">
