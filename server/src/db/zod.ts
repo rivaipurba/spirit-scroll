@@ -1,6 +1,7 @@
 import { createInsertSchema, createSelectSchema } from "drizzle-zod";
 import { media } from "./schema";
 import { z } from "zod";
+import { normalizeSourceUrl } from "../utils/update-checker";
 
 export const insertMediaSchema = createInsertSchema(media).omit({
     id: true,
@@ -13,7 +14,8 @@ export const insertMediaSchema = createInsertSchema(media).omit({
     currentChapter: z.union([z.string(), z.number()])
         .transform((val: any) => Number(val) || 0)
         .optional(),
-    sourceUrl: z.string().optional().nullable().transform((val: any) => val === "" ? null : val),
+    // Old asuracomic.net links redirect to the Asura homepage, so store the current domain
+    sourceUrl: z.string().optional().nullable().transform((val: any) => (val === "" ? null : val ? normalizeSourceUrl(val) : val)),
     latestReleasedChapter: z.number().optional().nullable(),
     isPinned: z.boolean().optional(),
 });

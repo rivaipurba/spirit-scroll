@@ -98,6 +98,19 @@ describe("POST /api/media", () => {
         expect(created.status).toBe("PLAN_TO_READ");
         expect((await getRow(created.id))?.status).toBe("PLAN_TO_READ");
     });
+
+    it("stores an old asuracomic.net source URL as asurascans.com", async () => {
+        const res = await request("POST", "/api/media", {
+            title: "Old Asura",
+            type: "MANHUA",
+            status: "READING",
+            sourceUrl: "https://asuracomic.net/series/star-embracing-swordmaster-02292682",
+        });
+
+        expect(res.status).toBe(201);
+        const created = await res.json() as any;
+        expect((await getRow(created.id))?.source_url).toBe("https://asurascans.com/comics/star-embracing-swordmaster-02292682");
+    });
 });
 
 describe("PATCH /api/media/:id", () => {
@@ -118,6 +131,18 @@ describe("PATCH /api/media/:id", () => {
         expect(row?.cover_url).toBe("https://old.example.com/cover.jpg");
         expect(outboundUrls).toEqual([]);
     });
+
+    it("rewrites an old asuracomic.net source URL on edit and keeps other URLs as sent", async () => {
+        await sqlite.execute(`
+            INSERT INTO media (title, type, status, source_url)
+            VALUES ('Existing', 'MANHUA', 'READING', 'https://example.com/old')`);
+
+        await request("PATCH", "/api/media/1", { sourceUrl: "https://www.asuracomic.net/series/bad-born-blood-3a64143d/" });
+        expect((await getRow(1))?.source_url).toBe("https://asurascans.com/comics/bad-born-blood-3a64143d");
+
+        await request("PATCH", "/api/media/1", { sourceUrl: "https://animexin.dev/martial-master/" });
+        expect((await getRow(1))?.source_url).toBe("https://animexin.dev/martial-master/");
+    });
 });
 
 describe("POST /api/import", () => {
@@ -131,6 +156,15 @@ describe("POST /api/import", () => {
         expect(outboundUrls).toEqual([]);
         expect((await getRow(1))?.cover_url).toBeNull();
         expect((await getRow(2))?.cover_url).toBe("https://cdn.example.com/b.jpg");
+    });
+
+    it("rewrites old asuracomic.net source URLs on import", async () => {
+        const res = await request("POST", "/api/import", [
+            { title: "Old Asura", type: "MANHUA", status: "READING", sourceUrl: "https://asuracomic.net/series/absolute-sword-sense-176e220b" },
+        ]);
+
+        expect(res.status).toBe(200);
+        expect((await getRow(1))?.source_url).toBe("https://asurascans.com/comics/absolute-sword-sense-176e220b");
     });
 });
 
