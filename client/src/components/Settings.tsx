@@ -1,6 +1,8 @@
 import { Download, Upload, CheckCircle2, AlertCircle, LogOut } from 'lucide-react';
 import { useMediaList as useMedia, useMediaStats, useImportMedia } from '../hooks/useMedia';
 import { useAuth } from '../context/AuthContext';
+import { ConfirmDialog } from './ConfirmDialog';
+import type { Media } from '../types/index';
 import { useRef, useState } from 'react';
 
 export function Settings() {
@@ -11,6 +13,7 @@ export function Settings() {
     const { logout } = useAuth();
     const fileInputRef = useRef<HTMLInputElement>(null);
     const [importStatus, setImportStatus] = useState<{ type: 'success' | 'error', message: string } | null>(null);
+    const [pendingImport, setPendingImport] = useState<Partial<Media>[] | null>(null);
 
     const handleExport = () => {
         if (!media) return;
@@ -23,6 +26,22 @@ export function Settings() {
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
+    };
+
+    const confirmImport = () => {
+        const data = pendingImport;
+        setPendingImport(null);
+        if (!data) return;
+        importMedia.mutate(data, {
+            onSuccess: () => {
+                setImportStatus({ type: 'success', message: `Successfully imported ${data.length} entries` });
+                setTimeout(() => setImportStatus(null), 5000);
+            },
+            onError: (err) => {
+                setImportStatus({ type: 'error', message: `Import failed: ${err.message}` });
+                setTimeout(() => setImportStatus(null), 5000);
+            }
+        });
     };
 
     const handleImportClick = () => {
@@ -38,16 +57,8 @@ export function Settings() {
             try {
                 const data = JSON.parse(event.target?.result as string);
                 if (Array.isArray(data)) {
-                    importMedia.mutate(data, {
-                        onSuccess: () => {
-                            setImportStatus({ type: 'success', message: `Successfully imported ${data.length} entries` });
-                            setTimeout(() => setImportStatus(null), 5000);
-                        },
-                        onError: (err) => {
-                            setImportStatus({ type: 'error', message: `Import failed: ${err.message}` });
-                            setTimeout(() => setImportStatus(null), 5000);
-                        }
-                    });
+                    // Wait for the owner's confirmation before touching the library
+                    setPendingImport(data);
                 } else {
                     setImportStatus({ type: 'error', message: 'Invalid JSON format: expected an array of entries' });
                     setTimeout(() => setImportStatus(null), 5000);
@@ -88,10 +99,11 @@ export function Settings() {
                     <button
                         type="button"
                         onClick={handleExport}
+                        disabled={!media}
                         className="btn btn-primary min-h-11 px-5"
                     >
                         <Download size={16} aria-hidden="true" />
-                        Export JSON
+                        {media ? 'Export JSON' : 'Preparing export…'}
                     </button>
                     <button
                         type="button"
@@ -120,6 +132,15 @@ export function Settings() {
                 )}
             </section>
 
+            <ConfirmDialog
+                isOpen={pendingImport !== null}
+                title="Import entries?"
+                message={`This file has ${pendingImport?.length ?? 0} entries. They are added to your library, so titles you already have may appear twice, and there is no undo. Export a backup first if unsure.`}
+                confirmText="Import"
+                onConfirm={confirmImport}
+                onCancel={() => setPendingImport(null)}
+            />
+
             <section className="pt-10">
                 <button
                     type="button"
@@ -140,7 +161,7 @@ function StatBox({ label, value }: { label: string; value: number | null }) {
             <dt className="text-sm text-muted">{label}</dt>
             <dd className="figure text-3xl text-ink mt-2">
                 {value === null
-                    ? <span className="block h-[1em] w-16 rounded-full bg-paper-2 animate-pulse" aria-label="Loading" />
+                    ? <span className="block h-[1em] w-16 rounded-full bg-paper-2 animate-pulse keep-motion" aria-label="Loading" />
                     : value}
             </dd>
         </div>
