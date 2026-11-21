@@ -80,7 +80,7 @@ export function Sidebar({ counts, total }: SidebarProps) {
                                 type="button"
                                 onClick={() => setStatusFilter(id)}
                                 aria-pressed={active}
-                                className={`w-full flex items-center gap-2 min-h-9 px-3 rounded-full text-sm transition-colors duration-(--dur-short) focus-visible:outline-2 focus-visible:outline-focus ${
+                                className={`w-full flex items-center gap-2 min-h-9 pointer-coarse:min-h-11 px-3 rounded-full text-sm transition-colors duration-(--dur-short) focus-visible:outline-2 focus-visible:outline-focus ${
                                     active
                                         ? 'bg-paper-3 text-ink font-medium'
                                         : 'text-ink-2 hover:bg-paper-2 hover:text-ink'
@@ -106,7 +106,7 @@ export function Sidebar({ counts, total }: SidebarProps) {
                                 type="button"
                                 onClick={() => setTypeFilter(id)}
                                 aria-pressed={active}
-                                className={`w-full flex items-center gap-2 min-h-9 px-3 rounded-full text-sm transition-colors duration-(--dur-short) focus-visible:outline-2 focus-visible:outline-focus ${
+                                className={`w-full flex items-center gap-2 min-h-9 pointer-coarse:min-h-11 px-3 rounded-full text-sm transition-colors duration-(--dur-short) focus-visible:outline-2 focus-visible:outline-focus ${
                                     active
                                         ? 'bg-paper-3 text-ink font-medium'
                                         : 'text-ink-2 hover:bg-paper-2 hover:text-ink'

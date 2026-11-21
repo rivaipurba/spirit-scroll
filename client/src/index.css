@@ -156,4 +156,6 @@
     .btn, .field, .meter > span { transition: none; }
     /* Loaders keep turning, slower, so a busy state still reads as busy */
     .keep-motion.animate-spin { animation-duration: 1.6s; }
+    /* Skeletons keep a slow opacity pulse so loading still reads as loading */
+    .keep-motion.animate-pulse { animation-duration: 2.4s; }
 }

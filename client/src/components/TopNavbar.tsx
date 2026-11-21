@@ -100,7 +100,7 @@ export function TopNavbar({ currentView, onNavigate, headerAction, isScanning, o
                                 type="button"
                                 onClick={handleSearchToggle}
                                 aria-label="Close search"
-                                className="hit shrink-0 -mr-2 grid place-items-center size-9 rounded-full text-muted hover:text-ink hover:bg-paper-3 focus-visible:outline-2 focus-visible:outline-focus"
+                                className="hit shrink-0 -mr-2 grid place-items-center size-9 pointer-coarse:size-11 rounded-full text-muted hover:text-ink hover:bg-paper-3 focus-visible:outline-2 focus-visible:outline-focus"
                             >
                                 <X size={16} />
                             </button>

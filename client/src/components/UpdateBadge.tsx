@@ -17,8 +17,8 @@ export function UpdateBadge({ count, type, muted = false }: UpdateBadgeProps) {
         <span
             className="shrink-0 inline-flex items-center gap-2 whitespace-nowrap"
             title={tooltip}
-            aria-label={tooltip}
         >
+            <span className="visually-hidden">{tooltip}</span>
             <span className={`heat-key ${muted ? 'bg-muted opacity-60' : HEAT_BG[heatTier(count)]}`} aria-hidden="true" />
             <span className={`figure text-lg ${muted ? 'text-ink-2' : 'text-ink'}`} aria-hidden="true">{count}</span>
             <span className={`text-xs ${muted ? 'text-muted' : 'text-ink-2'}`} aria-hidden="true">new</span>

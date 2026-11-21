@@ -25,6 +25,12 @@ export function Layout({
 }: LayoutProps) {
     return (
         <div className="min-h-dvh bg-paper text-ink flex flex-col">
+            <a
+                href="#main"
+                className="btn btn-primary px-4 fixed left-4 top-3 z-50 -translate-y-20 focus:translate-y-0"
+            >
+                Skip to content
+            </a>
             <TopNavbar
                 currentView={currentView}
                 onNavigate={onNavigate}
@@ -38,7 +44,7 @@ export function Layout({
                 <Sidebar counts={stats.counts} total={stats.total} />
 
                 {/* Main Content */}
-                <main className="flex-1 min-w-0 px-4 pt-4 pb-16 md:px-8 md:pt-6">
+                <main id="main" tabIndex={-1} className="flex-1 min-w-0 px-4 pt-4 pb-16 md:px-8 md:pt-6 focus:outline-none">
                     {children}
                 </main>
 

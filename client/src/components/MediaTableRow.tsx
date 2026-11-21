@@ -141,7 +141,7 @@ export function MediaTableRow({ media, rank }: MediaTableRowProps) {
                             type="button"
                             onClick={(e) => { e.stopPropagation(); setIsEditOpen(true); }}
                             aria-label={`Edit ${media.title}`}
-                            className="btn btn-quiet btn-icon hit min-h-9 min-w-9 text-muted hover:text-ink"
+                            className="btn btn-quiet btn-icon hit min-h-9 min-w-9 pointer-coarse:min-h-11 pointer-coarse:min-w-11 text-muted hover:text-ink"
                             title="Edit"
                         >
                             <Pencil size={14} strokeWidth={2} />
@@ -150,7 +150,7 @@ export function MediaTableRow({ media, rank }: MediaTableRowProps) {
                             type="button"
                             onClick={handleQuickDecrement}
                             aria-label={`Decrement ${unit}`}
-                            className="btn btn-quiet btn-icon hit min-h-9 min-w-9"
+                            className="btn btn-quiet btn-icon hit min-h-9 min-w-9 pointer-coarse:min-h-11 pointer-coarse:min-w-11"
                             title={`Previous ${label}`}
                         >
                             <Minus size={14} strokeWidth={2.25} />
@@ -159,7 +159,7 @@ export function MediaTableRow({ media, rank }: MediaTableRowProps) {
                             type="button"
                             onClick={handleQuickIncrement}
                             aria-label={`Increment ${unit}`}
-                            className={`btn btn-icon hit min-h-9 min-w-9 ${isHot ? 'btn-primary' : 'btn-ghost'}`}
+                            className={`btn btn-icon hit min-h-9 min-w-9 pointer-coarse:min-h-11 pointer-coarse:min-w-11 ${isHot ? 'btn-primary' : 'btn-ghost'}`}
                             title={`Next ${label}`}
                         >
                             <Plus size={16} strokeWidth={2.25} />
