@@ -4,6 +4,7 @@ import { useMediaList, useMediaStats, useScanUpdates } from '../hooks/useMedia';
 import { MediaTable } from './MediaTable';
 import { ScanProgressBar } from './ScanProgressBar';
 import { NewEntryDialog } from './NewEntryDialog';
+import { HEAT_BG, HEAT_LEGEND } from '../lib/heat';
 import { useSearch } from '../context/SearchContext';
 import { useFilters } from '../context/FilterContext';
 import type { Media, MediaStats } from '../types/index';
@@ -124,6 +125,7 @@ export function Dashboard({ isDialogOpen, onCloseDialog, onStatsChange, register
 
     return (
         <div>
+            <h1 className="visually-hidden">Library</h1>
             <div className="flex items-center justify-between gap-3 mb-4">
                 <div role="group" aria-label="Sort entries" className="flex items-center gap-0.5 rounded-full bg-paper-2 p-1 shadow-[inset_0_0_0_1px_var(--color-rule)] overflow-x-auto [scrollbar-width:none]">
                     {SORT_OPTIONS.map(({ id, label }) => (
@@ -147,6 +149,18 @@ export function Dashboard({ isDialogOpen, onCloseDialog, onStatsChange, register
                     {totalItems} entries
                 </p>
             </div>
+
+            {sortBy === 'updates' && (stats?.withUpdates ?? 0) > 0 && (
+                <p className="flex flex-wrap items-center gap-x-4 gap-y-1 mb-4 text-xs text-muted">
+                    <span>Hotter means further behind:</span>
+                    {([1, 2, 3] as const).map((tier) => (
+                        <span key={tier} className="inline-flex items-center gap-2">
+                            <span className={`heat-key ${HEAT_BG[tier]}`} aria-hidden="true" />
+                            {HEAT_LEGEND[tier]}
+                        </span>
+                    ))}
+                </p>
+            )}
 
             {(isScanning || result) && (
                 <ScanProgressBar
