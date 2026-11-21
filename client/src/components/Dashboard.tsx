@@ -29,8 +29,14 @@ const SORT_OPTIONS: { id: SortOption; label: string }[] = [
 export function Dashboard({ isDialogOpen, onCloseDialog, onStatsChange, registerScanFn, onScanningChange }: DashboardProps) {
     const [sortBy, setSortBy] = useState<SortOption>('updates');
     const [page, setPage] = useState(1);
-    const { searchQuery } = useSearch();
-    const { statusFilter, typeFilter } = useFilters();
+    const { searchQuery, setSearchQuery } = useSearch();
+    const { statusFilter, setStatusFilter, typeFilter, setTypeFilter } = useFilters();
+    const filtersActive = Boolean(searchQuery) || statusFilter !== 'ALL' || typeFilter !== 'ALL';
+    const clearFilters = () => {
+        setSearchQuery('');
+        setStatusFilter('ALL');
+        setTypeFilter('ALL');
+    };
 
     const apiType = typeFilter === 'ALL' ? undefined : typeFilter as 'MANHUA' | 'DONGHUA';
     const apiStatus = statusFilter === 'ALL' ? undefined : statusFilter;
@@ -109,7 +115,7 @@ export function Dashboard({ isDialogOpen, onCloseDialog, onStatsChange, register
                 <div className="max-w-md mx-auto py-16 md:py-24 text-center">
                     <BookOpen size={32} className="mx-auto mb-6 text-muted" strokeWidth={1.5} aria-hidden="true" />
                     <h1 className="text-3xl text-ink mx-auto">No entries yet</h1>
-                    <p className="text-md text-ink-2 mt-3 mx-auto">Click the + button above to add your first entry!</p>
+                    <p className="text-md text-ink-2 mt-3 mx-auto">Press New to add your first entry.</p>
                 </div>
                 <NewEntryDialog isOpen={isDialogOpen} onClose={onCloseDialog} />
             </>
@@ -154,6 +160,8 @@ export function Dashboard({ isDialogOpen, onCloseDialog, onStatsChange, register
             <MediaTable
                 mediaList={displayMedia}
                 isLoading={isPageLoading}
+                filtersActive={filtersActive}
+                onClearFilters={clearFilters}
             />
 
             {totalPages > 1 && (

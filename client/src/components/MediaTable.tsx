@@ -11,6 +11,8 @@ import type { Media } from '../types/index';
 interface MediaTableProps {
     mediaList: Media[];
     isLoading: boolean;
+    filtersActive: boolean;
+    onClearFilters: () => void;
 }
 
 function MobileCard({ media }: { media: Media }) {
@@ -172,7 +174,7 @@ function MobileCard({ media }: { media: Media }) {
     );
 }
 
-export function MediaTable({ mediaList, isLoading }: MediaTableProps) {
+export function MediaTable({ mediaList, isLoading, filtersActive, onClearFilters }: MediaTableProps) {
     if (isLoading) {
         return (
             <div className="border-y border-rule md:border md:rounded-card overflow-hidden" aria-busy="true" aria-label="Loading entries">
@@ -194,8 +196,20 @@ export function MediaTable({ mediaList, isLoading }: MediaTableProps) {
         return (
             <div className="border-y border-rule md:border md:rounded-card px-6 py-16 text-center">
                 <BookOpen size={32} className="mx-auto mb-4 text-muted" strokeWidth={1.5} aria-hidden="true" />
-                <h2 className="text-2xl text-ink mx-auto">No entries found</h2>
-                <p className="text-sm text-muted mt-2 mx-auto">Add your first entry to get started!</p>
+                {filtersActive ? (
+                    <>
+                        <h2 className="text-2xl text-ink mx-auto">No matches</h2>
+                        <p className="text-sm text-muted mt-2 mx-auto">Nothing fits the current search or filters.</p>
+                        <button type="button" onClick={onClearFilters} className="btn btn-ghost min-h-11 px-5 mt-6">
+                            Clear filters
+                        </button>
+                    </>
+                ) : (
+                    <>
+                        <h2 className="text-2xl text-ink mx-auto">No entries yet</h2>
+                        <p className="text-sm text-muted mt-2 mx-auto">Press New to add your first entry.</p>
+                    </>
+                )}
             </div>
         );
     }
