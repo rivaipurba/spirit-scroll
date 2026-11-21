@@ -115,7 +115,8 @@ export function TopNavbar({ currentView, onNavigate, headerAction, isScanning, o
                             onClick={handleSearchToggle}
                             className="btn btn-quiet btn-icon"
                             aria-label="Search"
-                            title="Search"
+                            aria-keyshortcuts="/"
+                            title="Search (/)"
                         >
                             <Search size={18} />
                         </button>
@@ -125,8 +126,9 @@ export function TopNavbar({ currentView, onNavigate, headerAction, isScanning, o
                         type="button"
                         onClick={onScan}
                         disabled={isScanning}
-                        title="Scan for updates"
+                        title="Scan for updates (S)"
                         aria-label="Scan for updates"
+                        aria-keyshortcuts="s"
                         className="btn btn-ghost btn-icon sm:px-4"
                     >
                         <RefreshCw size={16} className={isScanning ? 'animate-spin keep-motion' : ''} aria-hidden="true" />

@@ -8,6 +8,7 @@ import { Login } from './components/Login';
 import { ToastProvider } from './context/ToastContext';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { FilterProvider } from './context/FilterContext';
+import { useKeyboardShortcuts } from './hooks/useKeyboardShortcuts';
 import type { MediaStats } from './types/index';
 
 const Dashboard = lazy(() => import('./components/Dashboard').then(module => ({ default: module.Dashboard })));
@@ -46,6 +47,14 @@ function AuthenticatedApp() {
     scanTriggerRef.current();
   }, []);
 
+  const openNewEntry = useCallback(() => setIsDialogOpen(true), []);
+
+  useKeyboardShortcuts({
+    enabled: currentView === 'home',
+    onNew: openNewEntry,
+    onScan: handleScanClick,
+    isScanning,
+  });
 
   return (
     <FilterProvider>
@@ -59,10 +68,11 @@ function AuthenticatedApp() {
           currentView === 'home' ? (
             <button
               type="button"
-              onClick={() => setIsDialogOpen(true)}
+              onClick={openNewEntry}
               aria-label="Add new entry"
+              aria-keyshortcuts="n"
               className="btn btn-ghost btn-icon sm:px-4"
-              title="Add new entry"
+              title="Add new entry (N)"
             >
               <Plus size={18} strokeWidth={2.25} aria-hidden="true" />
               <span className="hidden sm:inline">New</span>
