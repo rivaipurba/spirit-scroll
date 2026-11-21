@@ -112,9 +112,6 @@ export function NewEntryDialog({ isOpen, onClose }: NewEntryDialogProps) {
                             >
                                 <option value="READING">Reading / Watching</option>
                                 <option value="COMPLETED">Completed</option>
-                                <option value="ON_HOLD">On Hold</option>
-                                <option value="DROPPED">Dropped</option>
-                                <option value="PLAN_TO_READ">Plan to Read / Watch</option>
                             </select>
                         </div>
 

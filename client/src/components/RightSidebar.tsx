@@ -49,9 +49,6 @@ export function RightSidebar({ stats }: RightSidebarProps) {
                     <StatusRow label="Reading" count={counts.READING} />
                     <StatusRow label="Watching" count={counts.WATCHING} />
                     <StatusRow label="Completed" count={counts.COMPLETED} />
-                    <StatusRow label="On Hold" count={counts.ON_HOLD} />
-                    <StatusRow label="Dropped" count={counts.DROPPED} />
-                    <StatusRow label="Plan to Read" count={counts.PLAN_TO_READ} />
                 </dl>
             </section>
         </aside>

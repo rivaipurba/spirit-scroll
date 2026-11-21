@@ -128,9 +128,10 @@ export function EditMediaDialog({ isOpen, onClose, media }: EditMediaDialogProps
                                 >
                                     <option value="READING">Reading / Watching</option>
                                     <option value="COMPLETED">Completed</option>
-                                    <option value="ON_HOLD">On Hold</option>
-                                    <option value="DROPPED">Dropped</option>
-                                    <option value="PLAN_TO_READ">Plan to Read / Watch</option>
+                                    {/* Retired statuses stay selectable only for entries that already have one */}
+                                    {media.status === 'ON_HOLD' && <option value="ON_HOLD">On Hold</option>}
+                                    {media.status === 'DROPPED' && <option value="DROPPED">Dropped</option>}
+                                    {media.status === 'PLAN_TO_READ' && <option value="PLAN_TO_READ">Plan to Read / Watch</option>}
                                 </select>
                             </div>
                         </div>

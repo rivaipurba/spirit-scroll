@@ -10,9 +10,6 @@ const STATUS_LINKS: { id: StatusFilter; label: string }[] = [
     { id: 'READING', label: 'Reading' },
     { id: 'WATCHING', label: 'Watching' },
     { id: 'COMPLETED', label: 'Completed' },
-    { id: 'ON_HOLD', label: 'On Hold' },
-    { id: 'DROPPED', label: 'Dropped' },
-    { id: 'PLAN_TO_READ', label: 'Plan to Read' },
 ];
 
 const TYPE_LINKS: { id: TypeFilter; label: string }[] = [
